@@ -23,7 +23,7 @@ public class DBContext {
             + "encrypt=true;"
             + "trustServerCertificate=true;";
     private static final String user="sa";
-    private static final String pass="123";
+    private static final String pass="0123456";
     public DBContext() {
         // Không tạo kết nối ở đây nữa
     }
