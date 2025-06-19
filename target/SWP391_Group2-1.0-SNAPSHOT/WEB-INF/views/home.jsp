@@ -5,7 +5,7 @@
 --%>
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%-- Bắt buộc phải có các taglib này --%>
+<%@ page import="java.util.List, model.Flight, java.text.SimpleDateFormat" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
@@ -33,56 +33,268 @@
             --white: #ffffff;
             --shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Montserrat', sans-serif; background-color: var(--light-gray); color: var(--text-color); }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-        
-        /* Header */
-        .main-header { background-color: var(--white); box-shadow: var(--shadow); padding: 15px 0; position: sticky; top: 0; z-index: 1000; }
-        .main-header .container { display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 1.8em; font-weight: 700; color: var(--primary-color); text-decoration: none; }
-        .logo i { margin-right: 10px; }
-        .main-nav a { color: var(--text-color); text-decoration: none; margin: 0 15px; font-weight: 500; transition: color 0.3s ease; }
-        .main-nav a:hover { color: var(--primary-color); }
-        .auth-buttons .btn { padding: 10px 20px; border-radius: 5px; text-decoration: none; margin-left: 10px; transition: all 0.3s ease; border: 1px solid transparent; }
-        .btn-login { background-color: transparent; color: var(--primary-color); border-color: var(--primary-color); }
-        .btn-login:hover { background-color: var(--primary-color); color: var(--white); }
-        .btn-register { background-color: var(--primary-color); color: var(--white); }
-        .btn-register:hover { background-color: #0056b3; }
 
-        /* Hero Section (Slider + Search) */
-        .hero-section { position: relative; height: 60vh; min-height: 450px; color: var(--white); display: flex; align-items: center; justify-content: center; text-align: center; }
-        .slider { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        .slide { position: absolute; width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0; transition: opacity 1.5s ease-in-out; }
-        .slide.active { opacity: 1; }
-        .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 2; }
-        .hero-content { position: relative; z-index: 3; }
-        .hero-content h1 { font-size: 3em; margin-bottom: 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        .search-form-container { background-color: rgba(255,255,255,0.9); padding: 30px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); backdrop-filter: blur(5px); }
-        .search-form { display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; justify-content: center;}
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-size: 0.9em; color: #555; margin-bottom: 5px; text-align: left; }
-        .form-group input { padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 1em; }
-        .btn-search { padding: 12px 30px; font-size: 1.1em; background-color: var(--secondary-color); color: var(--white); border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; }
-        .btn-search:hover { background-color: #e65c50; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-        /* Featured Deals Section */
-        .featured-deals-section { padding: 60px 0; background-color: #e3f2fd; position: relative; overflow: hidden; }
-        .cloud-border { position: absolute; top: 0; left: 0; width: 100%; height: 40px; background-image: radial-gradient(circle at 50% 100%, transparent 20px, #4a2d6e 21px); background-size: 50px 40px; background-repeat: repeat-x; opacity: 0.8; }
-        .section-title { text-align: center; font-size: 2.2em; margin-bottom: 40px; color: var(--text-color); font-weight: 700; }
-        .deals-container { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
-        .deal-card { text-decoration: none; color: var(--text-color); transition: transform 0.3s ease; }
-        .deal-card:hover { transform: scale(1.05); }
-        .deal-card-inner { width: 200px; background-color: #ffeb3b; border-radius: 40px 40px 10px 10px; padding: 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: relative; }
-        .deal-card-inner::after { content: ''; position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 15px solid #ffeb3b; }
-        .from-location { font-size: 1em; font-weight: 500; margin-bottom: 5px; }
-        .from-location span { color: #e53935; font-weight: 700; }
-        .price-tag { font-size: 0.8em; color: #555; }
-        .price-amount { font-size: 2.2em; font-weight: 700; color: #e53935; line-height: 1; }
-        .price-currency { font-size: 0.9em; color: #333; }
-        .to-location { margin-top: 25px; font-size: 1em; font-weight: 500; text-align: center; }
-        .to-location span { color: #e53935; font-weight: 700; }
-        .no-flights { text-align: center; padding: 40px; font-size: 1.2em; color: #6c757d; }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--light-gray);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* --- HEADER --- */
+        .main-header {
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .main-header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        .logo i {
+            margin-right: 10px;
+        }
+
+        .main-nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .main-nav a:hover {
+            color: var(--primary-color);
+        }
+
+        .auth-buttons .btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        .btn-login {
+            background-color: transparent;
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-login:hover {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+        .btn-register {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+         .btn-register:hover {
+            background-color: #0056b3;
+        }
+
+        /* --- HERO SECTION (SLIDER + SEARCH) --- */
+        .hero-section {
+            position: relative;
+            height: 60vh;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+        }
+        .slide.active {
+            opacity: 1;
+        }
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 3;
+        }
+        .hero-content h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .search-form-container {
+            background-color: rgba(255,255,255,0.9);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(5px);
+        }
+        .search-form {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+        .form-group input {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        .btn-search {
+            padding: 12px 30px;
+            font-size: 1.1em;
+            background-color: var(--secondary-color);
+            color: var(--white);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-search:hover {
+            background-color: #e65c50;
+        }
+
+        /* --- FLIGHT LIST SECTION --- */
+        .flight-results-section {
+            padding: 50px 0;
+        }
+        .section-title {
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 40px;
+            color: var(--text-color);
+        }
+        .flight-list {
+            display: grid;
+            grid-template-columns: 1fr; /* Default to 1 column */
+            gap: 25px;
+        }
+        .flight-card {
+            display: flex;
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        .flight-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+        .airline-logo {
+            flex: 0 0 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e9ecef;
+            border-right: 1px solid #dee2e6;
+        }
+         .airline-logo i {
+            font-size: 2.5em;
+            color: var(--primary-color);
+        }
+        .flight-details {
+            flex-grow: 1;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .flight-route, .flight-time, .flight-price {
+            display: flex;
+            flex-direction: column;
+        }
+        .flight-route {
+            flex-basis: 40%;
+        }
+        .flight-time {
+            flex-basis: 30%;
+        }
+        .flight-price {
+            flex-basis: 30%;
+            text-align: right;
+        }
+        .route-path {
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+        .route-path .fa-plane {
+            margin: 0 10px;
+            color: var(--secondary-color);
+        }
+        .flight-time-value {
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+        .price-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+        .label {
+            font-size: 0.8em;
+            color: #6c757d;
+        }
+        .btn-book {
+            padding: 12px 25px;
+            background-color: var(--primary-color);
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+         .btn-book:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
@@ -90,19 +302,19 @@
     <!-- ==================== HEADER ==================== -->
     <header class="main-header">
         <div class="container">
-            <a href="home" class="logo">
+            <a href="#" class="logo">
                 <i class="fa-solid fa-plane-up"></i>
                 Flight Booking Web
             </a>
             <nav class="main-nav">
-                <a href="home">Trang Chủ</a>
+                <a href="#">Trang Chủ</a>
                 <a href="#">Khuyến Mãi</a>
                 <a href="#">Quản Lý Đặt Chỗ</a>
                 <a href="#">Liên Hệ</a>
             </nav>
             <div class="auth-buttons">
-                <a href="LoginController" class="btn btn-login">Đăng Nhập</a>
-                <a href="register" class="btn btn-register">Đăng Ký</a>
+                <a href="#" class="btn btn-login">Đăng Nhập</a>
+                <a href="#" class="btn btn-register">Đăng Ký</a>
             </div>
         </div>
     </header>
@@ -118,17 +330,17 @@
         <div class="hero-content container">
             <h1>Chuyến đi trong mơ, trong tầm tay bạn</h1>
             <div class="search-form-container">
-                <form action="search" method="get" class="search-form">
+                <form action="SearchController" method="get" class="search-form">
                     <div class="form-group">
-                        <label for="from"><i class="fa-solid fa-plane-departure"></i> Điểm đi</label>
+                        <label for="from">Điểm đi</label>
                         <input type="text" id="from" name="from" placeholder="Thành phố, sân bay..." required>
                     </div>
                     <div class="form-group">
-                        <label for="to"><i class="fa-solid fa-plane-arrival"></i> Điểm đến</label>
+                        <label for="to">Điểm đến</label>
                         <input type="text" id="to" name="to" placeholder="Thành phố, sân bay..." required>
                     </div>
                     <div class="form-group">
-                        <label for="departureDate"><i class="fa-solid fa-calendar-days"></i> Ngày đi</label>
+                        <label for="departureDate">Ngày đi</label>
                         <input type="date" id="departureDate" name="departureDate" required>
                     </div>
                     <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm</button>
@@ -137,33 +349,49 @@
         </div>
     </section>
 
-    <!-- ==================== FEATURED DEALS SECTION ==================== -->
-    <section class="featured-deals-section">
-        <div class="cloud-border"></div>
+    <!-- ==================== FLIGHT LIST SECTION ==================== -->
+    <section class="flight-results-section">
         <div class="container">
-            <h2 class="section-title">Vé máy bay giá tốt, khám phá thế giới</h2>
+            <h2 class="section-title">Các chuyến bay nổi bật</h2>
             
-            <div class="deals-container">
+            <div class="flight-list">
                 <c:choose>
                     <c:when test="${not empty flights}">
-                        <%-- Giới hạn chỉ hiển thị 5 chuyến bay đầu tiên --%>
-                        <c:forEach var="flight" items="${flights}" begin="0" end="4">
-                            <a href="flight-detail?flightId=${flight.flightId}" class="deal-card">
-                                <div class="deal-card-inner">
-                                    <div class="from-location">Từ <span>${flight.routeFrom}</span></div>
-                                    <div class="price-tag">Chỉ từ</div>
-                                    <div class="price-amount">
-                                        <%-- Định dạng giá tiền có dấu phẩy --%>
-                                        <fmt:formatNumber value="${flight.price}" type="number" maxFractionDigits="0"/>
-                                    </div>
-                                    <div class="price-currency">VND</div>
+                        <c:forEach var="flight" items="${flights}">
+                            <div class="flight-card">
+                                <div class="airline-logo">
+                                    <i class="fa-solid fa-paper-plane"></i>
                                 </div>
-                                <div class="to-location">Đến <span>${flight.routeTo}</span></div>
-                            </a>
+                                <div class="flight-details">
+                                    <div class="flight-route">
+                                        <div class="label">${flight.flightNumber} - ${flight.airlineId}</div>
+                                        <div class="route-path">
+                                            <span>${flight.routeFrom}</span>
+                                            <i class="fa-solid fa-plane"></i>
+                                            <span>${flight.routeTo}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flight-time">
+                                        <div class="label">Khởi hành</div>
+                                        <div class="flight-time-value">
+                                            <fmt:formatDate value="${flight.departureTime}" pattern="HH:mm, dd/MM/yyyy" />
+                                        </div>
+                                    </div>
+                                    <div class="flight-price">
+                                        <div class="label">Giá chỉ từ</div>
+                                        <div class="price-value">
+                                            <fmt:formatNumber value="${flight.price}" type="currency" currencyCode="VND" />
+                                        </div>
+                                        <a href="FlightDetailController?flightId=${flight.flightId}" class="btn-book">Đặt ngay</a>
+                                    </div>
+                                </div>
+                            </div>
                         </c:forEach>
                     </c:when>
                     <c:otherwise>
-                         <p class="no-flights">Hiện không có chuyến bay nổi bật nào.</p>
+                        <div class="no-flights">
+                            <p>Hiện không có chuyến bay nào.</p>
+                        </div>
                     </c:otherwise>
                 </c:choose>
             </div>
@@ -174,23 +402,23 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const slides = document.querySelectorAll('.slider .slide');
-            if (slides.length > 0) {
-                let currentSlide = 0;
-                
-                function showSlide(index) {
-                    slides.forEach((slide, i) => {
-                        slide.style.opacity = (i === index) ? '1' : '0';
-                    });
-                }
+            let currentSlide = 0;
 
-                function nextSlide() {
-                    currentSlide = (currentSlide + 1) % slides.length;
-                    showSlide(currentSlide);
-                }
-
-                showSlide(0); // Show first slide immediately
-                setInterval(nextSlide, 5000); // Change slide every 5 seconds
+            function showSlide(index) {
+                slides.forEach((slide, i) => {
+                    slide.classList.remove('active');
+                    if (i === index) {
+                        slide.classList.add('active');
+                    }
+                });
             }
+
+            function nextSlide() {
+                currentSlide = (currentSlide + 1) % slides.length;
+                showSlide(currentSlide);
+            }
+
+            setInterval(nextSlide, 5000); // Change slide every 5 seconds
         });
     </script>
 </body>
