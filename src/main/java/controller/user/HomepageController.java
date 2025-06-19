@@ -34,7 +34,7 @@ public class HomepageController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        try ( PrintWriter out = response.getWriter()) {
+        try (PrintWriter out = response.getWriter()) {
             /* TODO output your page here. You may use following sample code. */
             out.println("<!DOCTYPE html>");
             out.println("<html>");
@@ -60,13 +60,34 @@ public class HomepageController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-         FlightDAO dao = new FlightDAO();
-        List<Flight> flights = dao.getAllFlights();
+        System.out.println("--- Bắt đầu xử lý HomepageController ---"); // Log bắt đầu
+        try {
+            FlightDAO dao = new FlightDAO();
+            List<Flight> flights = dao.getAllFlights();
 
-        request.setAttribute("flights", flights);
+            // === DÒNG DEBUG QUAN TRỌNG ===
+            if (flights != null) {
+                System.out.println("==> FlightDAO đã trả về danh sách. Số lượng: " + flights.size());
+                if (!flights.isEmpty()) {
+                    // In ra thông tin chuyến bay đầu tiên để kiểm tra
+                    Flight firstFlight = flights.get(0);
+                    System.out.println("==> Chuyến bay đầu tiên: " + firstFlight.getFlightNumber()
+                            + " | Giá: " + firstFlight.getPrice());
+                }
+            } else {
+                System.out.println("==> LỖI: FlightDAO trả về NULL!");
+            }
+            // =============================
+
+            request.setAttribute("flights", flights);
+        } catch (Exception e) {
+            System.out.println("==> LỖI NGOẠI LỆ TRONG SERVLET: ");
+            e.printStackTrace(); // In ra chi tiết lỗi nếu có
+        }
+
+        System.out.println("--- Chuyển hướng đến home.jsp ---"); // Log kết thúc
         request.getRequestDispatcher("/WEB-INF/views/home.jsp").forward(request, response);
     }
-   
 
     /**
      * Handles the HTTP <code>POST</code> method.
