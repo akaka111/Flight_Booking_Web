@@ -17,7 +17,8 @@ public class FlightDAO extends DBContext {
 
     public List<Flight> getAllFlights() {
         List<Flight> flights = new ArrayList<>();
-        String sql = "SELECT * FROM Flight;";
+        String sql = "SELECT f.*, a.airline_name FROM Flight f "
+                + "JOIN Airline a ON f.airline_id = a.airline_id";
 
         try ( Connection conn = getConnection();  PreparedStatement ps = conn.prepareStatement(sql);  ResultSet rs = ps.executeQuery()) {
 
