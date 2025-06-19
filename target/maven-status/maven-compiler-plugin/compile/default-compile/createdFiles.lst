@@ -1,0 +1,12 @@
+model\Passenger.class
+DAO\FlightDAO.class
+model\Booking.class
+model\Payment.class
+utils\DBContext.class
+controller\user\HomepageController.class
+model\Airline.class
+model\Seat.class
+model\BookingVoucher.class
+model\Flight.class
+model\Voucher.class
+model\User.class
