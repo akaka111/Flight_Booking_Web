@@ -8,9 +8,17 @@
         <servlet-name>HomepageController</servlet-name>
         <servlet-class>controller.user.HomepageController</servlet-class>
     </servlet>
+  <servlet>
+        <servlet-name>DashboardAdmin</servlet-name>
+        <servlet-class>controller.admin.DashboardAdmin</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>HomepageController</servlet-name>
         <url-pattern>/home</url-pattern> 
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>DashboardAdmin</servlet-name>
+        <url-pattern>/admin</url-pattern> 
     </servlet-mapping>
     <session-config>
         <session-timeout>
