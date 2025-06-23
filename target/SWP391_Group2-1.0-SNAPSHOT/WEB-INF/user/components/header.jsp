@@ -116,9 +116,28 @@
             <a href="#">Quản Lý Đặt Chỗ</a>
             <a href="#">Liên Hệ</a>
         </nav>
+        <%-- ================== PHẦN HIỂN THỊ ĐỘNG ================== --%>
         <div class="auth-buttons">
-            <a href="LoginController" class="btn btn-login">Đăng Nhập</a>
-            <a href="register" class="btn btn-register">Đăng Ký</a>
+            <c:choose>
+                <%-- TRƯỜNG HỢP: ĐÃ ĐĂNG NHẬP (user không rỗng) --%>
+                <c:when test="${not empty sessionScope.user}">
+                    <div class="user-info">
+                        <a href="#">
+                            <i class="fa-solid fa-user-circle"></i> 
+                            Chào, ${sessionScope.user.username}
+                        </a>
+                        <a href="<c:url value='/logout'/>" class="btn btn-logout">Đăng Xuất</a>
+                    </div>
+                </c:when>
+
+                <%-- TRƯỜNG HỢP: CHƯA ĐĂNG NHẬP --%>
+                <c:otherwise>
+                    <a href="<c:url value='/login'/>" class="btn btn-login">Đăng Nhập</a>
+                    <a href="<c:url value='/register'/>" class="btn btn-register">Đăng Ký</a>
+                </c:otherwise>
+            </c:choose>
         </div>
+        <%-- ======================================================== --%>
+
     </div>
 </header>
