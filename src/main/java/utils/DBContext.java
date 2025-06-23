@@ -1,8 +1,7 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Click nbfs://SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-
 package utils;
 
 import java.sql.Connection;
@@ -14,44 +13,61 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
- * @author $ LienXuanThinh - CE182117
+ * Database context for managing SQL Server connections and queries.
+ * @author LienXuanThinh - CE182117
  */
 public class DBContext {
- private static String url="jdbc:sqlserver://localhost:1433;"
+    private static final String URL = "jdbc:sqlserver://localhost:1433;"
             + "databaseName=Flight_Booking_Web;"
             + "encrypt=true;"
             + "trustServerCertificate=true;";
-    private static final String user="sa";
-    private static final String pass="123";
+    private static final String USER = "sa";
+    private static final String PASS = "0123456";
+    private static final Logger LOGGER = Logger.getLogger(DBContext.class.getName());
+
     public DBContext() {
-        // Không tạo kết nối ở đây nữa
+        // No connection initialization here
     }
-    public void testConnect(){
+
+    public void testConnect() {
+        Connection conn = null;
         try {
-            Connection conn = getConnection();
-            if(conn==null)
-                    System.out.println("Fail");
-            else
+            conn = getConnection();
+            if (conn == null || conn.isClosed()) {
+                LOGGER.severe("Database connection test failed: Connection is null or closed");
+                System.out.println("Fail");
+            } else {
+                LOGGER.info("Database connection test successful");
                 System.out.println("Ok");
-        } catch (SQLException ex) {
-            Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-                
-    }
-    // Phương thức để lấy một kết nối mới
-    public Connection getConnection() throws SQLException {
-        try {
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            return DriverManager.getConnection(url,user,pass);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
-            throw new SQLException("Error loading JDBC driver", ex); // Re-throw as SQLException
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error testing database connection", e);
+            System.out.println("Fail: " + e.getMessage());
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    LOGGER.log(Level.SEVERE, "Error closing test connection", e);
+                }
+            }
         }
     }
 
-    // Phương thức cho các lệnh SELECT (có params)
+    // Get a new database connection
+    public Connection getConnection() throws SQLException {
+        try {
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            Connection conn = DriverManager.getConnection(URL, USER, PASS);
+            LOGGER.info("New database connection established");
+            return conn;
+        } catch (ClassNotFoundException e) {
+            LOGGER.log(Level.SEVERE, "JDBC driver not found", e);
+            throw new SQLException("Error loading JDBC driver: " + e.getMessage(), e);
+        }
+    }
+
+    // Execute SELECT query with parameters
     public ResultSet execSelectQuery(String query, Object[] params) throws SQLException {
         Connection conn = null;
         PreparedStatement preparedStatement = null;
@@ -59,57 +75,44 @@ public class DBContext {
         try {
             conn = getConnection();
             preparedStatement = conn.prepareStatement(query);
+            LOGGER.info("Executing SELECT query: " + query);
 
             if (params != null) {
                 for (int i = 0; i < params.length; i++) {
                     preparedStatement.setObject(i + 1, params[i]);
-                }
-            }
-            rs = preparedStatement.executeQuery();
-            return rs;
-        } catch (SQLException e) {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException ex) {
-                    Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-            throw e; // Re-throw the exception
-        } finally {
-            // Đóng các tài nguyên theo thứ tự ngược lại
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (SQLException ex) {
-                    Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
+                    LOGGER.fine("Parameter " + (i + 1) + ": " + params[i]);
                 }
             }
 
-            // Không đóng connection ở đây nữa, vì ResultSet có thể vẫn cần
+            rs = preparedStatement.executeQuery();
+            // Return ResultSet; caller is responsible for closing ResultSet, PreparedStatement, and Connection
+            return rs;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error executing SELECT query: " + query, e);
+            throw e;
+        } finally {
+            // Do not close PreparedStatement or Connection here; caller will close them
         }
     }
 
-    // Phương thức cho các lệnh SELECT không có params
+    // Execute SELECT query without parameters
     public ResultSet execSelectQuery(String query) throws SQLException {
-        return this.execSelectQuery(query, null);
+        return execSelectQuery(query, null);
     }
 
-    // Phương thức cho các lệnh INSERT, UPDATE, DELETE
+    // Execute INSERT, UPDATE, DELETE query
     public int execQuery(String query, Object[] params) throws SQLException {
         Connection conn = null;
         PreparedStatement preparedStatement = null;
         try {
             conn = getConnection();
             preparedStatement = conn.prepareStatement(query);
+            LOGGER.info("Executing query: " + query);
 
-            // In ra câu lệnh SQL và các tham số
-            System.out.println("execQuery() - SQL: " + query);
             if (params != null) {
-                System.out.print("execQuery() - Parameters: ");
+                LOGGER.info("Parameters: ");
                 for (int i = 0; i < params.length; i++) {
-                    System.out.print(params[i] + ", ");
-                    // Set tham số dựa trên kiểu dữ liệu
+                    LOGGER.fine("Parameter " + (i + 1) + ": " + params[i]);
                     if (params[i] instanceof Integer) {
                         preparedStatement.setInt(i + 1, (Integer) params[i]);
                     } else if (params[i] instanceof String) {
@@ -124,29 +127,58 @@ public class DBContext {
                         preparedStatement.setObject(i + 1, params[i]);
                     }
                 }
-                System.out.println();
             }
 
-            return preparedStatement.executeUpdate();
+            int rowsAffected = preparedStatement.executeUpdate();
+            LOGGER.info("Rows affected: " + rowsAffected);
+            return rowsAffected;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error executing query: " + query, e);
+            throw e;
         } finally {
             if (preparedStatement != null) {
                 try {
                     preparedStatement.close();
-                } catch (SQLException ex) {
-                    Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (SQLException e) {
+                    LOGGER.log(Level.SEVERE, "Error closing PreparedStatement", e);
                 }
             }
             if (conn != null) {
                 try {
                     conn.close();
-                } catch (SQLException ex) {
-                    Logger.getLogger(DBContext.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (SQLException e) {
+                    LOGGER.log(Level.SEVERE, "Error closing Connection", e);
                 }
             }
         }
     }
-    public static void main(String[] args)
-    {
+
+    // Close resources explicitly (for use with execSelectQuery)
+    public static void closeSelectResources(ResultSet rs, PreparedStatement ps, Connection conn) {
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error closing ResultSet", e);
+            }
+        }
+        if (ps != null) {
+            try {
+                ps.close();
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error closing PreparedStatement", e);
+            }
+        }
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error closing Connection", e);
+            }
+        }
+    }
+
+    public static void main(String[] args) {
         DBContext db = new DBContext();
         db.testConnect();
     }

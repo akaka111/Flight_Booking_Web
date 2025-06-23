@@ -4,7 +4,7 @@
  */
 package controller.user;
 
-import DAO.FlightDAO;
+import DAO.Admin.FlightDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;

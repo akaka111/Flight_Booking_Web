@@ -304,14 +304,13 @@
         .modal-content .btn {
             padding: 10px 20px;
             margin: 0 10px;
-           
             border-radius: 5px;
             text-decoration: none;
             transition: all 0.3s ease;
         }
         .btn-confirm {
             background-color: var(--primary-color);
-            color: var(--white);
+            color: white;
         }
         .btn-confirm:hover {
             background-color: #0056b3;
@@ -330,37 +329,37 @@
     <div class="sidebar">
         <div class="logo">FBAir <i class="fa-solid fa-plane"></i></div>
         <ul>
-            <li><a href="#" onclick="loadPage('admin.jsp')"><i class="fa-solid fa-tachometer-alt"></i> Bảng Điều Khiển</a></li>
-            <li><a href="#" onclick="loadPage('manageUsers.jsp')"><i class="fa-solid fa-users"></i> Quản Lý Người Dùng</a></li>
-            <li><a href="#" onclick="loadPage('manageFlights.jsp')"><i class="fa-solid fa-plane-departure"></i> Quản Lý Chuyến Bay</a></li>
-            <li><a href="#" onclick="loadPage('manageAirlines.jsp')"><i class="fa-solid fa-building"></i> Quản Lý Hãng Bay</a></li>
-            <li><a href="#" onclick="loadPage('manageVouchers.jsp')"><i class="fa-solid fa-ticket"></i> Quản Lý Voucher</a></li>
-            <li><a href="#" onclick="loadPage('statistics.jsp')"><i class="fa-solid fa-chart-line"></i> Thống Kê</a></li>
-            <li><a href="#" onclick="loadPage('settings.jsp')"><i class="fa-solid fa-cog"></i> Cài Đặt</a></li>
-            <li><a href="#" onclick="loadPage('support.jsp')"><i class="fa-solid fa-headset"></i> Hỗ Trợ</a></li>
+            <li data-page="dashboard"><a href="#" onclick="showDashboard()"><i class="fa-solid fa-tachometer-alt"></i> Bảng Điều Khiển</a></li>
+            <li data-page="manageUsers"><a href="#" onclick="loadPage('${pageContext.request.contextPath}/UserAdmin')"><i class="fa-solid fa-users"></i> Quản Lý Người Dùng</a></li>
+            <li data-page="manageFlights"><a href="#" onclick="loadPage('${pageContext.request.contextPath}/FlightAdmin')"><i class="fa-solid fa-plane-departure"></i> Quản Lý Chuyến Bay</a></li>
+            <li data-page="manageAirlines"><a href="#" onclick="loadPage('${pageContext.request.contextPath}/AirlineAdmin')"><i class="fa-solid fa-building"></i> Quản Lý Hãng Bay</a></li>
+            <li data-page="manageVouchers"><a href="#" onclick="loadPage('${pageContext.request.contextPath}/VoucherAdmin')"><i class="fa-solid fa-ticket"></i> Quản Lý Voucher</a></li>
+            <li data-page="statistics"><a href="#" onclick="loadPage('${pageContext.request.contextPath}/Statistics')"><i class="fa-solid fa-chart-line"></i> Thống Kê</a></li>
+            <li data-page="settings"><a href="#" onclick="loadPage('${pageContext.request.contextPath}/Settings')"><i class="fa-solid fa-cog"></i> Cài Đặt</a></li>
+            <li data-page="support"><a href="#" onclick="loadPage('${pageContext.request.contextPath}/Support')"><i class="fa-solid fa-headset"></i> Hỗ Trợ</a></li>
         </ul>
     </div>
 
     <div class="content">
         <div class="header">
-            <div class="greeting">Xin Chào, Admin</div>
+            <div class="greeting">Xin Chào</div>
             <div class="actions">
-                <a href="exportDashboard.jsp" class="btn-export" id="exportButton">Xuất PDF</a>
+                <a href="exportServlet" class="btn btn-export" id="exportBtn">Xuất PDF</a>
                 <div class="dropdown">
                     <button><i class="fa-solid fa-user"></i> Hồ Sơ</button>
                     <div class="dropdown-content">
-                        <a href="viewProfile.jsp">Xem Hồ Sơ Admin</a>
+                        <a href="${pageContext.request.contextPath}/profile">Xem Hồ Sơ</a>
                         <a href="#" id="logoutBtn">Đăng Xuất</a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="hero-section">
+        <div class="hero-section" id="heroSection">
             <div class="slider">
-                <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1530521954074-e64f6810b32d?q=80&w=2070');"></div>
-                <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074');"></div>
-                <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1569154941061-e231b4725ef1?q=80&w=2070');"></div>
+                <div class="slide active" style="background-image: url('https://images.unsplash.com/photo/1530521714074-e64f6810b32d?q=80&w=2070');"></div>
+                <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1436491865332-ffb61a109cc05?q=80&w=2070');"></div>
+                <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1569154941061-fb-c472b2efe1f1?q=80&w=2070');"></div>
             </div>
             <div class="hero-overlay"></div>
             <div class="hero-content">
@@ -368,7 +367,7 @@
             </div>
         </div>
 
-        <div class="stats-grid">
+        <div class="stats-grid" id="statsGrid">
             <div class="stat-card">
                 <h3>Doanh Thu Tháng (Tháng 6/2025)</h3>
                 <p><fmt:formatNumber value="250000000" type="currency" currencyCode="VND" /></p>
@@ -387,7 +386,7 @@
             </div>
             <div class="stat-card">
                 <h3>Hiệu Suất Phi Công</h3>
-                <p>Phi Công A: 18 chuyến - 320 vé<br>Phi Công B: 14 chuyến - 250 vé</p>
+                <p>Phi Công A: 155 chuyến - 320 vé<br>Phi Công B: 144 chuyến - 250 vé</p>
             </div>
             <div class="stat-card">
                 <h3>Thống Kê Chi Tiết Hàng Ngày (<%= new SimpleDateFormat("dd/MM/yyyy").format(new Date()) %>)</h3>
@@ -402,7 +401,7 @@
             <div class="modal-content">
                 <h3>Xác nhận đăng xuất</h3>
                 <p>Bạn có chắc muốn đăng xuất?</p>
-                <a href="LogoutController" class="btn btn-confirm">Có</a>
+                <a href="${pageContext.request.contextPath}/Logout" class="btn btn-confirm">Có</a>
                 <a href="#" class="btn btn-cancel" id="cancelLogout">Không</a>
             </div>
         </div>
@@ -427,53 +426,72 @@
 
             setInterval(nextSlide, 5000);
 
-            // Function to load page into iframe
-            window.loadPage = function(page) {
+            // Function to show dashboard content
+            window.showDashboard = function() {
                 const iframe = document.getElementById('contentFrame');
-                const exportButton = document.getElementById('exportButton');
-                if (page === 'admin.jsp') {
-                    // Show dashboard content and export button
-                    document.querySelector('.hero-section').style.display = 'block';
-                    document.querySelector('.stats-grid').style.display = 'grid';
-                    iframe.style.display = 'none';
-                    exportButton.style.display = 'block';
-                } else {
-                    // Load other pages in iframe and hide export button
-                    iframe.style.display = 'block';
-                    iframe.src = page;
+                const heroSection = document.getElementById('heroSection');
+                const statsGrid = document.getElementById('statsGrid');
+                const exportBtn = document.getElementById('exportBtn');
 
-                    // Hide dashboard content
-                    document.querySelector('.hero-section').style.display = 'none';
-                    document.querySelector('.stats-grid').style.display = 'none';
-                    exportButton.style.display = 'none';
-                }
+                // Show dashboard content
+                heroSection.style.display = 'block';
+                statsGrid.style.display = 'grid';
+                iframe.style.display = 'none';
+                exportBtn.style.display = 'block';
 
-                // Remove active class from all sidebar items
-                document.querySelectorAll('.sidebar ul li').forEach(item => item.classList.remove('active'));
-
-                // Add active class to the clicked item
-                const activeItem = Array.from(document.querySelectorAll('.sidebar ul li a'))
-                    .find(a => a.getAttribute('onclick').includes(page));
-                if (activeItem) activeItem.parentElement.classList.add('active');
+                // Update active sidebar item
+                updateActiveSidebar('dashboard');
             };
 
-            // Show dashboard content and export button on initial load
-            document.querySelector('.hero-section').style.display = 'block';
-            document.querySelector('.stats-grid').style.display = 'grid';
-            document.getElementById('contentFrame').style.display = 'none';
-            document.getElementById('exportButton').style.display = 'block';
+            // Function to load page into iframe
+            window.loadPage = function(url) {
+                const iframe = document.getElementById('contentFrame');
+                const heroSection = document.getElementById('heroSection');
+                const statsGrid = document.getElementById('statsGrid');
+                const exportBtn = document.getElementById('exportBtn');
 
-            // Add click event listeners to prevent default and ensure immediate load
+                // Load page in iframe
+                iframe.style.display = 'block';
+                iframe.src = url;
+
+                // Hide dashboard content
+                heroSection.style.display = 'none';
+                statsGrid.style.display = 'none';
+                exportBtn.style.display = 'none';
+
+                // Update active sidebar item
+                const pageId = url.split('/').pop(); // Extract page identifier (e.g., AirlineAdmin)
+                updateActiveSidebar(pageId);
+            };
+
+            // Function to update active sidebar item
+            function updateActiveSidebar(pageId) {
+                document.querySelectorAll('.sidebar ul li').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('data-page') === pageId || (pageId === 'dashboard' && item.getAttribute('data-page') === 'dashboard')) {
+                        item.classList.add('active');
+                    }
+                });
+            }
+
+            // Initial load: show dashboard
+            showDashboard();
+
+            // Add click event listeners to sidebar links
             document.querySelectorAll('.sidebar ul li a').forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
-                    const page = this.getAttribute('onclick').match(/'([^']+)'/)[1];
-                    loadPage(page);
+                    const onclickAttr = this.getAttribute('onclick');
+                    if (onclickAttr.includes('showDashboard')) {
+                        showDashboard();
+                    } else {
+                        const urlMatch = onclickAttr.match(/'([^']+)'/);
+                        if (urlMatch) {
+                            loadPage(urlMatch[1]);
+                        }
+                    }
                 });
             });
-
-            // Set initial active state for Dashboard
-            document.querySelector('.sidebar ul li a[onclick*="admin.jsp"]').parentElement.classList.add('active');
 
             // Modal Logic
             const logoutBtn = document.getElementById('logoutBtn');
