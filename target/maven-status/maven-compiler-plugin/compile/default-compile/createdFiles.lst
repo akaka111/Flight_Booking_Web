@@ -1,6 +1,10 @@
+controller\admin\ManageAccountController.class
+DAO\Admin\AccountDAO.class
+DAO\Admin\FlightDAO.class
 model\Passenger.class
 controller\user\LoginController.class
-DAO\FlightDAO.class
+DAO\Admin\AirlineDAO.class
+controller\admin\AirlineAdmin.class
 model\Booking.class
 model\Payment.class
 utils\DBContext.class
@@ -9,8 +13,8 @@ model\Airline.class
 model\Seat.class
 model\BookingVoucher.class
 model\Flight.class
-DAO\AccountDAO.class
 utils\GoogleUtils.class
 model\Voucher.class
 controller\user\FlightDetailController.class
+controller\admin\DashboardAdmin.class
 model\Account.class

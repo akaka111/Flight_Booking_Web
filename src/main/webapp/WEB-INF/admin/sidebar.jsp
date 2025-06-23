@@ -18,8 +18,8 @@
         </li>
 
 
-        <li><a href="manageFlights.jsp"><i class="fa-solid fa-plane-departure"></i> Quản Lý Chuyến Bay</a></li>
-        <li><a href="manageAirlines.jsp"><i class="fa-solid fa-building"></i> Quản Lý Hãng Bay</a></li>
+        <li><a href="${pageContext.request.contextPath}/FlightAdmin1"><i class="fa-solid fa-plane-departure"></i> Quản Lý Chuyến Bay</a></li>
+        <li><a href="${pageContext.request.contextPath}/AirlineAdmin"><i class="fa-solid fa-building"></i> Quản Lý Hãng Bay</a></li>
         <li><a href="manageVouchers.jsp"><i class="fa-solid fa-ticket"></i> Quản Lý Voucher</a></li>
         <li><a href="statistics.jsp"><i class="fa-solid fa-chart-line"></i> Thống Kê</a></li>
         <li><a href="settings.jsp"><i class="fa-solid fa-cog"></i> Cài Đặt</a></li>

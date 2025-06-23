@@ -340,7 +340,7 @@
                         <button><i class="fa-solid fa-user"></i> Hồ Sơ</button>
                         <div class="dropdown-content">
                             <a href="viewProfile.jsp">Xem Hồ Sơ Admin</a>
-                            <a href="<c:url value='/logout'/>" class="btn btn-logout">Đăng Xuất</a>
+                            <a href="#" id="logoutBtn">Đăng Xuất</a>
                         </div>
                     </div>
                 </div>
@@ -392,7 +392,7 @@
                 <div class="modal-content">
                     <h3>Xác nhận đăng xuất</h3>
                     <p>Bạn có chắc muốn đăng xuất?</p>
-                    <a href="LogoutController" class="btn btn-confirm">Có</a>
+                    <a href="<c:url value='/logout'/>" class="btn btn-confirm">Có</a>
                     <a href="#" class="btn btn-cancel" id="cancelLogout">Không</a>
                 </div>
             </div>

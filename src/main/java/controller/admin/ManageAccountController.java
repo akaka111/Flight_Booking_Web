@@ -4,7 +4,7 @@
  */
 package controller.admin;
 
-import DAO.AccountDAO;
+import DAO.Admin.AccountDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
