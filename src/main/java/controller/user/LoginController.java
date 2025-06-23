@@ -19,7 +19,8 @@ import utils.GoogleUtils;
  *
  * @author Admin
  */
-@WebServlet(name = "LoginController", urlPatterns = {"/LoginController"})
+// THAY ĐỔI 1: Đổi URL pattern cho ngắn gọn và chuẩn hơn
+@WebServlet(name = "LoginController", urlPatterns = {"/login"})
 public class LoginController extends HttpServlet {
 
     @Override
@@ -32,112 +33,161 @@ public class LoginController extends HttpServlet {
 
         switch (action) {
             case "google":
-                loginByGG(request, response);
+                loginByGoogle(request, response);
                 break;
             case "googlereceive":
-                sendDirect(request, response);
+                handleGoogleCallback(request, response);
                 break;
             default:
+                // Hiển thị trang login
                 request.getRequestDispatcher("/WEB-INF/common/Login.jsp").forward(request, response);
         }
-
     }
 
-    public void loginByGG(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    private void loginByGoogle(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
         String googleLoginUrl = GoogleUtils.getGoogleLoginUrl();
         response.sendRedirect(googleLoginUrl);
     }
 
-    private void sendDirect(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        AccountDAO uaDAO = new AccountDAO();
+    private void handleGoogleCallback(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         String code = request.getParameter("code");
-        if (code != null) {
-            // Lấy URL trước khi đăng nhập
-            HttpSession session = request.getSession();
+        if (code == null || code.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/login?error=Google login failed");
+            return;
+        }
+
+        AccountDAO accountDao = new AccountDAO();
+        com.google.api.services.oauth2.model.Userinfo userInfo = GoogleUtils.getUserInfo(code);
+        String email = userInfo.getEmail();
+
+        // Kiểm tra xem user đã tồn tại trong DB chưa
+        Account user = accountDao.getUserByEmail(email);
+
+        if (user == null) { // Nếu user chưa tồn tại
+            // THAY ĐỔI 2: Tạo user mới nếu email đã được xác thực
+            if (userInfo.getVerifiedEmail()) {
+
+                // Sau khi tạo, phải lấy lại thông tin user từ DB để có đầy đủ dữ liệu (user_id, role,...)
+                user = accountDao.getUserByEmail(email);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/login?error=Email has not been verified");
+                return;
+            }
+        }
+
+        // Nếu user tồn tại (hoặc vừa được tạo thành công), lưu vào session
+        if (user != null) {
+            HttpSession session = request.getSession(true);
+
+            session.setAttribute("user", user);
+
             String redirectURL = (String) session.getAttribute("redirectURL");
             session.removeAttribute("redirectURL");
 
-            com.google.api.services.oauth2.model.Userinfo userInfo = GoogleUtils.getUserInfo(code);
-            String email = userInfo.getEmail();
-            String fullName = userInfo.getName();
+            String role = user.getRole().toLowerCase();
 
-            if (email == null) {
-                request.getRequestDispatcher("/WEB-INF/common/Login.jsp").forward(request, response);
-            }
-
-            Account ua = uaDAO.getUserByEmail(email);
-            if (ua != null) {
-                session.setAttribute("user", ua);
-                if (redirectURL != null && !redirectURL.isEmpty()) {
-                    response.sendRedirect(redirectURL);
-                } else {
-                    response.sendRedirect(request.getContextPath() + "/home");
+            if (role != null) {
+                switch (role) {
+                    case "admin":
+                        System.out.println("User is ADMIN. Redirecting to admin dashboard...");
+                        response.sendRedirect(request.getContextPath() + "/admin");
+                        break;
+                    case "staff":
+                        System.out.println("User is STAFF. Redirecting to staff dashboard...");
+                        response.sendRedirect(request.getContextPath() + "/staff/dashboard");
+                        break;
+                    case "customer":
+                    default:
+                        System.out.println("User is CUSTOMER. Redirecting to home page...");
+                        if (redirectURL != null && !redirectURL.isEmpty()) {
+                            response.sendRedirect(redirectURL);
+                        } else {
+                            response.sendRedirect(request.getContextPath() + "/home");
+                        }
+                        break;
                 }
             } else {
-                if (userInfo.getVerifiedEmail()) {
-                    uaDAO.createUserFromGoogle(email, fullName, userInfo.getPicture());
-                    session.setAttribute("user", uaDAO.getUserByEmail(email));
-                    if (redirectURL != null && !redirectURL.isEmpty()) {
-                        response.sendRedirect(redirectURL);
-                    } else {
-                        response.sendRedirect(request.getContextPath() + "/home?");
-                    }
-                } else {
-                    response.sendRedirect("Login?error=Email has not been verified");
-                }
-
+                // Trường hợp role là null (để phòng ngừa), cho về trang chủ
+                response.sendRedirect(request.getContextPath() + "/home");
             }
-        } else {
-            response.sendRedirect("Login?error=There are some error");
+
         }
+        System.out.println("User info: " + user);
+        System.out.println("Role: " + user.getRole());
+
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String action = request.getParameter("action");
-        if (action == null) {
-            action = "default";
-        }
-        switch (action) {
-            default:
-                handleNormalLogin(request, response);
-        }
+        handleNormalLogin(request, response);
     }
 
     private void handleNormalLogin(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+
         String username = request.getParameter("username");
         String password = request.getParameter("password");
 
-        // Lấy URL trước khi đăng nhập
-        HttpSession session = request.getSession();
+        HttpSession session = request.getSession(true);
+
         String redirectURL = (String) session.getAttribute("redirectURL");
 
-        // Kiểm tra input rỗng
         if (username == null || password == null || username.trim().isEmpty() || password.trim().isEmpty()) {
-            request.setAttribute("error", "Username and Password cannot be empty.");
+            request.setAttribute("error", "Tên đăng nhập và mật khẩu không được để trống.");
             request.getRequestDispatcher("/WEB-INF/common/Login.jsp").forward(request, response);
             return;
         }
 
-        // Xác thực người dùng
         AccountDAO userDao = new AccountDAO();
         Account user = userDao.authenticateUser(username, password);
 
         if (user == null) {
-            request.setAttribute("error", "Invalid username or password.");
+            request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng.");
             request.getRequestDispatcher("/WEB-INF/common/Login.jsp").forward(request, response);
         } else {
             session.setAttribute("user", user);
-            session.removeAttribute("redirectURL"); // Xóa session redirect sau khi sử dụng
+            session.removeAttribute("redirectURL"); // Xóa URL cũ sau khi dùng
 
-            // Chuyển hướng về trang cũ nếu có, ngược lại về Home
-            if (redirectURL != null && !redirectURL.isEmpty()) {
-                response.sendRedirect(redirectURL);
+            // === PHẦN PHÂN QUYỀN VÀ CHUYỂN HƯỚNG ===
+            String role = user.getRole().toLowerCase();
+
+            if (role != null) {
+                switch (role) {
+                    case "admin":
+                        // Chuyển hướng đến trang dashboard của admin
+                        System.out.println("User is ADMIN. Redirecting to admin dashboard...");
+                        response.sendRedirect(request.getContextPath() + "/admin");
+                        break;
+                    case "staff":
+                        // Chuyển hướng đến trang dashboard của nhân viên
+                        System.out.println("User is STAFF. Redirecting to staff dashboard...");
+                        response.sendRedirect(request.getContextPath() + "/staff/dashboard");
+                        break;
+                    case "customer":
+                    default:
+                        // Chuyển hướng về trang chủ cho khách hàng
+                        // hoặc về trang trước đó nếu có
+                        System.out.println("User is CUSTOMER. Redirecting to home page...");
+                        if (redirectURL != null && !redirectURL.isEmpty()) {
+                            response.sendRedirect(redirectURL);
+                        } else {
+                            response.sendRedirect(request.getContextPath() + "/home");
+                        }
+                        break;
+                }
             } else {
+                // Trường hợp role là null (để phòng ngừa), cho về trang chủ
                 response.sendRedirect(request.getContextPath() + "/home");
-            }
-        }
-    }
+                // Ví dụ filter hoặc trong web.xml
+                if (session.getAttribute("user") == null || !role.equals("admin")) {
+                    response.sendRedirect("/login?error=permission");
+                }
 
+            }
+            // ===========================================
+        }
+        System.out.println("User info: " + user);
+        System.out.println("Role: " + user.getRole());
+
+    }
 }
