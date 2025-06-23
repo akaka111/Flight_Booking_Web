@@ -8,9 +8,11 @@ controller\user\HomepageController.class
 model\Airline.class
 model\Seat.class
 model\BookingVoucher.class
+controller\admin\FlightAdmin1.class
 model\Flight.class
 DAO\AccountDAO.class
 utils\GoogleUtils.class
 model\Voucher.class
 controller\user\FlightDetailController.class
+controller\admin\DashboardAdmin.class
 model\Account.class

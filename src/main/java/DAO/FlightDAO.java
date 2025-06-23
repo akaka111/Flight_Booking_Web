@@ -18,8 +18,8 @@ public class FlightDAO extends DBContext {
     public List<Flight> getAllFlights() {
         List<Flight> flights = new ArrayList<>();
         String sql = "SELECT * FROM Flight;";
-
-        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+        DBContext db = new DBContext();
+        try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 Flight f = new Flight();
@@ -45,7 +45,7 @@ public class FlightDAO extends DBContext {
         Flight flight = null;
         String sql = "SELECT * FROM Flight WHERE flight_id = ?";
 
-        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, flightId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -74,5 +74,63 @@ public class FlightDAO extends DBContext {
             e.printStackTrace();
         }
         return flight;
+    }
+
+    public void insertFlight(Flight f) {
+        String sql = "INSERT INTO Flight (flight_number, route_from, route_to, departure_time, arrival_time, price, aircraft, status) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, f.getFlightNumber());
+            ps.setString(2, f.getRouteFrom());
+            ps.setString(3, f.getRouteTo());
+            ps.setTimestamp(4, f.getDepartureTime());
+            ps.setTimestamp(5, f.getArrivalTime());
+            ps.setDouble(6, f.getPrice());
+            ps.setString(7, f.getAircraft());
+            ps.setString(8, f.getStatus());
+
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateFlight(Flight f) {
+        String sql = "UPDATE Flight SET flight_number=?, route_from=?, route_to=?, departure_time=?, arrival_time=?, "
+                + "price=?, aircraft=?, status=? WHERE flight_id=?";
+
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, f.getFlightNumber());
+            ps.setString(2, f.getRouteFrom());
+            ps.setString(3, f.getRouteTo());
+            ps.setTimestamp(4, f.getDepartureTime());
+            ps.setTimestamp(5, f.getArrivalTime());
+            ps.setDouble(6, f.getPrice());
+            ps.setString(7, f.getAircraft());
+            ps.setString(8, f.getStatus());
+            ps.setInt(9, f.getFlightId());
+
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteFlight(int id) {
+        String sql = "DELETE FROM Flight WHERE flight_id = ?";
+
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
