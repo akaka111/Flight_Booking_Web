@@ -334,7 +334,7 @@
             <li><a href="#" onclick="loadPage('manageUsers.jsp')"><i class="fa-solid fa-users"></i> Quản Lý Người Dùng</a></li>
             <li><a href="#" onclick="loadPage('manageFlights.jsp')"><i class="fa-solid fa-plane-departure"></i> Quản Lý Chuyến Bay</a></li>
             <li><a href="#" onclick="loadPage('manageAirlines.jsp')"><i class="fa-solid fa-building"></i> Quản Lý Hãng Bay</a></li>
-            <li><a href="#" onclick="loadPage('manageVouchers.jsp')"><i class="fa-solid fa-ticket"></i> Quản Lý Voucher</a></li>
+            <li><a href="#" onclick="loadPage('manageVouchers')"><i class="fa-solid fa-ticket"></i> Quản Lý Voucher</a></li>
             <li><a href="#" onclick="loadPage('statistics.jsp')"><i class="fa-solid fa-chart-line"></i> Thống Kê</a></li>
             <li><a href="#" onclick="loadPage('settings.jsp')"><i class="fa-solid fa-cog"></i> Cài Đặt</a></li>
             <li><a href="#" onclick="loadPage('support.jsp')"><i class="fa-solid fa-headset"></i> Hỗ Trợ</a></li>
