@@ -21,8 +21,8 @@
         <li><a href="${pageContext.request.contextPath}/FlightAdmin1"><i class="fa-solid fa-plane-departure"></i> Quản Lý Chuyến Bay</a></li>
         <li><a href="${pageContext.request.contextPath}/AirlineAdmin"><i class="fa-solid fa-building"></i> Quản Lý Hãng Bay</a></li>
         <li><a href="manageVouchers.jsp"><i class="fa-solid fa-ticket"></i> Quản Lý Voucher</a></li>
-        <li><a href="statistics.jsp"><i class="fa-solid fa-chart-line"></i> Thống Kê</a></li>
-        <li><a href="settings.jsp"><i class="fa-solid fa-cog"></i> Cài Đặt</a></li>
+        <li><a href="Stats"><i class="fa-solid fa-chart-line"></i> Thống Kê</a></li>
+        <li><a href="AdminChangePassword"><i class="fa-solid fa-cog"></i>Đổi Mật Khẩu</a></li>
         <li><a href="support.jsp"><i class="fa-solid fa-headset"></i> Hỗ Trợ</a></li>
     </ul>
 </div>
