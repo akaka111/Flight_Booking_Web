@@ -80,13 +80,12 @@ public class Stats extends HttpServlet {
         int y = Integer.parseInt(request.getParameter("year") != null ? request.getParameter("year") : String.valueOf(LocalDate.now().getYear()));
         int count = dao.countUsersInMonthYear(m, y);  //đếm user
         double totalRevenue = dao.getRevenueMonthYear(m, y); //đếm tiền
+        int ticketsSold = dao.countTicketsSold(m, y); //
 
         int completedFlights = dao.getCompletedFlights();
         int getCancelFlights = dao.getCancelFlights();
         int getDelayFlights = dao.getDelayFlights();
-        int ticketsSold = dao.countTicketsSold();
-        
-        request.setAttribute("ticketsSold", ticketsSold);
+
 //        List<String> customerList = dao.getCustomerList();
         request.setAttribute("completedFlights", completedFlights);
         request.setAttribute("CancelFlights", getCancelFlights);
@@ -97,6 +96,7 @@ public class Stats extends HttpServlet {
         request.setAttribute("selectedYear", y);
         request.setAttribute("accountCount", count); //đếm người
         request.setAttribute("revenue", totalRevenue); //đềm tiền 
+        request.setAttribute("ticketsSold", ticketsSold);
 
         request.getRequestDispatcher("/WEB-INF/admin/statistics.jsp").forward(request, response);
 

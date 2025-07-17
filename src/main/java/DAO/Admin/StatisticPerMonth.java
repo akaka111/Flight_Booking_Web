@@ -107,11 +107,15 @@ public class StatisticPerMonth {
         return customers;
     }
 
-    public int countTicketsSold() {
-        String sql = "SELECT COUNT(*) FROM Booking WHERE status = 'CONFIRMED'";
-        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                return rs.getInt(1);
+    public int countTicketsSold(int m, int y) {
+        String sql = "SELECT COUNT(*) FROM Booking WHERE status = 'CONFIRMED' AND MONTH(booking_time) = ? AND YEAR(booking_time) = ?";
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, m);
+            ps.setInt(2, y);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

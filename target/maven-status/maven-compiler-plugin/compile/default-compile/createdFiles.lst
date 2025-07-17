@@ -4,9 +4,12 @@ controller\admin\ChangePassword.class
 controller\user\LoginController.class
 controller\user\RegisterController.class
 controller\admin\AirlineAdmin.class
+model\Message.class
 utils\DBContext.class
 controller\user\LogoutController.class
 controller\user\HomepageController.class
+controller_staff\textboxmailMessage.class
+DAO\user\SupportContact.class
 model\Airline.class
 model\Seat.class
 model\BookingVoucher.class
@@ -21,7 +24,12 @@ model\Account.class
 controller\admin\ManageAccountController.class
 DAO\Admin\FlightDAO.class
 DAO\Admin\AirlineDAO.class
+DAO\staff\messageDAO.class
 model\Booking.class
 model\Payment.class
+controller_staff\DashboardStaff.class
 model\Flight.class
+controller\user\ContactSupport.class
+controller_staff\messageDetail.class
 controller\user\FlightDetailController.class
+DAO\staff\AccountDAO.class

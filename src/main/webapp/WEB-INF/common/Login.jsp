@@ -81,7 +81,14 @@
 
             <hr style="margin: 20px 0;">
 
-
+<%
+    String msg = (String) request.getAttribute("message");
+    if (msg != null) {
+%>
+    <div style="color: red;"><%= msg %></div>
+<%
+    }
+%>
         </div>
     </body>
 </html>
