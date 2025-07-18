@@ -4,7 +4,6 @@
  */
 package controller.user;
 
-import DAO.staff.messageDAO;
 import DAO.user.SupportContact;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -14,9 +13,9 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.sql.SQLException;
-import java.util.logging.Level;
+import java.util.List;
 import model.Account;
+import model.Message;
 
 /**
  *
@@ -79,33 +78,44 @@ public class ContactSupport extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = request.getSession(false);
         String action = request.getParameter("action");
-        // Trường hợp: người dùng bấm nút "Liên hệ hỗ trợ"
+        HttpSession session = request.getSession(false);
+
         if ("openForm".equals(action)) {
-            if (session != null && session.getAttribute("user") != null) {
-                // Đã đăng nhập → hiển thị form gửi tin
+            if (session != null && session.getAttribute("account") != null) {
                 request.getRequestDispatcher("/WEB-INF/views/sendMessage.jsp").forward(request, response);
             } else {
-                // Chưa đăng nhập → chuyển sang login (public)
                 request.setAttribute("message", "Vui lòng đăng nhập để liên hệ hỗ trợ.");
                 request.getRequestDispatcher("/WEB-INF/common/Login.jsp").forward(request, response);
             }
-            // Trường hợp: người dùng gửi form
+
         } else if ("send".equals(action)) {
-            if (session == null || session.getAttribute("user") == null) {
-                request.setAttribute("message", "Vui lòng đăng nhập để liên hệ hỗ trợ.");
-                request.getRequestDispatcher("/WEB-INF/common/Login.jsp").forward(request, response);
-                return;
-            }
-            // Lấy thông tin và lưu tin nhắn
-            String email = ((Account) session.getAttribute("user")).getEmail();
+            String email = ((Account) session.getAttribute("account")).getEmail();
             String subject = request.getParameter("subject");
             String content = request.getParameter("content");
+            String recipient = request.getParameter("recipient");
+            Message msg = new Message();
+            msg.setSenderEmail(email);
+            msg.setRecipientEmail(recipient);
+            msg.setSubject(subject);
+            msg.setContent(content);
             SupportContact dao = new SupportContact();
-            dao.insertMessage(email, subject, content);
+            dao.insertMessage(msg);
             request.setAttribute("notify", "✅ Tin nhắn của bạn đã được gửi thành công!");
-            request.getRequestDispatcher("/WEB-INF/views/SupportPage.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/sendMessage.jsp").forward(request, response);
+        } else if ("inbox".equals(action)) {
+            if (session != null && session.getAttribute("account") != null) {
+                Account acc = (Account) session.getAttribute("account");
+                String email = acc.getEmail();
+                SupportContact dao = new SupportContact();
+                List<Message> inbox = dao.getMessagesByRecipient(email);
+                request.setAttribute("messages", inbox);
+                request.getRequestDispatcher("/WEB-INF/views/mailBox.jsp").forward(request, response);
+            } else {
+                request.setAttribute("message", "Vui lòng đăng nhập để xem hòm thư.");
+                request.getRequestDispatcher("/WEB-INF/common/Login.jsp").forward(request, response);
+            }
+            request.getRequestDispatcher("/WEB-INF/views/mailBoxdetail.jsp").forward(request, response);
         }
     }
 

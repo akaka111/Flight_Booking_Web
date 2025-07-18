@@ -82,7 +82,17 @@ public class messageDetail extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+       String to = request.getParameter("to"); // recipient email
+        String subject = request.getParameter("subject");
+        String content = request.getParameter("content");
+        Message reply = new Message();
+        reply.setSenderEmail("A@staffexample.com"); 
+        reply.setRecipientEmail(to);
+        reply.setSubject(subject);
+        reply.setContent(content);
+        messageDAO dao = new messageDAO();
+        dao.insertMessage(reply);
+        response.sendRedirect("textboxmailMessage");
     }
 
     /**

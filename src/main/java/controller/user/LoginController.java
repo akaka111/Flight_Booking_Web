@@ -120,7 +120,13 @@ public class LoginController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        handleNormalLogin(request, response);
+                handleNormalLogin(request, response);
+
+//        String email = request.getParameter("email");
+//        HttpSession session = request.getSession();
+//        session.setAttribute("email", email);
+//        session.setAttribute("role", "user");
+//        request.getRequestDispatcher("/WEB-INF/views/home.jsp").forward(request, response);
     }
 
     private void handleNormalLogin(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {

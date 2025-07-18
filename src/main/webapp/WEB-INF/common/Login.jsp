@@ -5,7 +5,6 @@
 --%>
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <!DOCTYPE html>
 <html>
@@ -66,7 +65,7 @@
             </c:if>
 
             <!-- Form login thông thường -->
-           <form action="<c:url value='/login'/>" method="post">
+            <form action="<c:url value='/login'/>" method="post">
                 <div class="form-group">
                     <label for="username">Tài khoản</label>
                     <input type="text" id="username" name="username" required>
@@ -81,14 +80,29 @@
 
             <hr style="margin: 20px 0;">
 
-<%
-    String msg = (String) request.getAttribute("message");
-    if (msg != null) {
-%>
-    <div style="color: red;"><%= msg %></div>
-<%
-    }
-%>
+            <%
+                String msg = (String) request.getAttribute("message");
+                if (msg != null) {
+            %>
+            <div style="color: red;"><%= msg%></div>
+            <%
+                }
+            %>
+
+!@#$#%#$%%$#&%^*%^!@#$#%#$%%$#&%^*%^!@#$#%#$%%$#&%^*%^!@#$#%#$%%$#&%^*%^!@#$#%#$%%$#&%^*%^           
+            <h2>Login Tạm Để Test Chức Năng</h2>
+            <form action="TEMPORARYLOGINCHECKSYSTEM" method="get">
+                <label>Chọn Role:</label>
+                <select name="role">
+                    <option value="CUSTOMER">Customer</option>
+                    <option value="STAFF">Staff</option>
+                    <option value="ADMIN">Admin</option>
+                </select>
+                <br/><br/>
+                <input type="submit" value="Login Tạm"/>
+            </form>
+!@#$#%#$%%$#&%^*%^!@#$#%#$%%$#&%^*%^!@#$#%#$%%$#&%^*%^!@#$#%#$%%$#&%^*%^!@#$#%#$%%$#&%^*%^
+
         </div>
     </body>
 </html>

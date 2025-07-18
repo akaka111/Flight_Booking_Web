@@ -50,7 +50,8 @@ public class messageDAO {
                             rs.getString("subject"),
                             rs.getString("content"),
                             rs.getTimestamp("sent_time"),
-                            rs.getBoolean("is_read")
+                            rs.getBoolean("is_read"),
+                            rs.getString("recipient_email")
                     );
                 }
             }
@@ -58,5 +59,18 @@ public class messageDAO {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public void insertMessage(Message msg) {
+        String sql = "INSERT INTO Message (sender_email, recipient_email, subject, content) VALUES (?, ?, ?, ?)";
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, msg.getSenderEmail());
+            ps.setString(2, msg.getRecipientEmail());
+            ps.setString(3, msg.getSubject());
+            ps.setString(4, msg.getContent());
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

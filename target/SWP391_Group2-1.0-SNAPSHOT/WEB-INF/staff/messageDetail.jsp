@@ -27,7 +27,17 @@
                 <strong>Chủ đề:</strong> <%= msg.getSubject()%><br/><br/>
                 <%= msg.getContent().replaceAll("\n", "<br/>")%>
             </div>
-            <a class="back-link" href="staffMessageList">⬅ Quay lại hộp thư</a>
+            <h3>✉️ Trả lời khách hàng</h3>
+            <form action="messageDetail" method="post">
+                <input type="hidden" name="to" value="<%= msg.getSenderEmail()%>"/>
+                <input type="hidden" name="subject" value="Re: <%= msg.getSubject()%>"/>
+
+                <label for="replyContent">Nội dung phản hồi:</label><br>
+                <textarea name="content" id="replyContent" rows="6" cols="60" required></textarea><br><br>
+
+                <input type="submit" value="Gửi phản hồi"/>
+            </form>
+            <a class="back-link" href="textboxmailMessage">⬅ Quay lại hộp thư</a>
             <% } else { %>
             <p>Không tìm thấy tin nhắn.</p>
             <% }%>

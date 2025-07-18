@@ -15,6 +15,16 @@ public class Message {
     public Message() {
     }
 
+    public Message(int id, String senderEmail, String subject, String content, Timestamp sentTime, boolean isRead, String recipientEmail) {
+        this.id = id;
+        this.senderEmail = senderEmail;
+        this.subject = subject;
+        this.content = content;
+        this.sentTime = sentTime;
+        this.isRead = isRead;
+        this.recipientEmail = recipientEmail;
+    }
+
     public int getId() {
         return id;
     }
@@ -63,13 +73,12 @@ public class Message {
         this.isRead = isRead;
     }
 
-    public Message(int id, String senderEmail, String subject, String content, Timestamp sentTime, boolean isRead) {
-        this.id = id;
-        this.senderEmail = senderEmail;
-        this.subject = subject;
-        this.content = content;
-        this.sentTime = sentTime;
-        this.isRead = isRead;
+    public String getRecipientEmail() {
+        return recipientEmail;
+    }
+
+    public void setRecipientEmail(String recipientEmail) {
+        this.recipientEmail = recipientEmail;
     }
 
     private int id;
@@ -78,6 +87,6 @@ public class Message {
     private String content;
     private Timestamp sentTime;
     private boolean isRead;
+    private String recipientEmail;
 
-    // Getters + Setters
 }

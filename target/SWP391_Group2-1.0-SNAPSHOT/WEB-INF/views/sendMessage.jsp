@@ -18,7 +18,16 @@
             <input type="text" name="subject" required><br><br>
             <label>Nội dung:</label><br>
             <textarea name="content" rows="5" cols="50" required></textarea><br><br>
+            <input type="hidden" name="recipient" value="support@staffexample.com">
             <button type="submit">Gửi</button>
         </form>
+        <%
+            String notify = (String) request.getAttribute("notify");
+            if (notify != null) {
+        %>
+        <p style="color: green;"><%= notify%></p>
+        <%
+            }
+        %>
     </body>
 </html>

@@ -253,7 +253,7 @@ public class AccountDAO {
      * @return
      */
     public boolean checkOldPassword(String username, String oldPassword) {
-        String sql = "SELECT * FROM [User] WHERE username = ? AND password = ? AND role = 'ADMIN'";
+        String sql = "SELECT * FROM Account WHERE username = ? AND password = ? AND role = 'ADMIN'";
         try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, username);
             ps.setString(2, oldPassword);
@@ -266,7 +266,7 @@ public class AccountDAO {
     }
 
     public boolean updatePassword(String username, String newPassword) {
-        String sql = "UPDATE [User] SET password = ? WHERE username = ? AND role = 'ADMIN'";
+        String sql = "UPDATE Account SET password = ? WHERE username = ? AND role = 'ADMIN'";
         try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, newPassword);
             ps.setString(2, username);

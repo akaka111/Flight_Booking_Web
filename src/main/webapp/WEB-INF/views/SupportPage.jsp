@@ -35,5 +35,9 @@
             <input type="hidden" name="action" value="openForm" />
             <button type="submit">💬 Liên hệ hỗ trợ</button>
         </form>
+        <form action="ContactSupport" method="post">
+            <input type="hidden" name="action" value="inbox" />
+            <button type="submit">💬 hòm thư</button>
+        </form>
     </body>
 </html>
