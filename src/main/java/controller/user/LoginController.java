@@ -120,13 +120,7 @@ public class LoginController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-                handleNormalLogin(request, response);
-
-//        String email = request.getParameter("email");
-//        HttpSession session = request.getSession();
-//        session.setAttribute("email", email);
-//        session.setAttribute("role", "user");
-//        request.getRequestDispatcher("/WEB-INF/views/home.jsp").forward(request, response);
+        handleNormalLogin(request, response);
     }
 
     private void handleNormalLogin(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -167,7 +161,7 @@ public class LoginController extends HttpServlet {
                     case "staff":
                         // Chuyển hướng đến trang dashboard của nhân viên
                         System.out.println("User is STAFF. Redirecting to staff dashboard...");
-                        response.sendRedirect(request.getContextPath() + "/staff/dashboard");
+                        response.sendRedirect(request.getContextPath() + "/staff");
                         break;
                     case "customer":
                     default:

@@ -2,9 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-package controller.admin;
+package controller.staff;
 
-import DAO.Admin.StatisticPerMonth;
+import DAO.staff.messageDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -12,18 +12,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.time.LocalDate;
-import java.util.List;
-import utils.dbconnect;
+import model.Message;
 
 /**
  *
  * @author ADMIN
  */
-@WebServlet(name = "Stats", urlPatterns = {"/Stats"})
-public class Stats extends HttpServlet {
+@WebServlet(name = "messageDetail", urlPatterns = {"/messageDetail"})
+public class messageDetail extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -42,10 +38,10 @@ public class Stats extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet Stats</title>");
+            out.println("<title>Servlet messageDetail</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet Stats at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet messageDetail at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -63,43 +59,16 @@ public class Stats extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try (Connection conn = dbconnect.getConnection()) {
-            if (conn != null) {
-                System.out.println(" Kết nối thành công!");
-            } else {
-                System.out.println(" Kết nối thất bại!");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            response.getWriter().println(" Lỗi: " + e.getMessage());
+        String idStr = request.getParameter("id");
+        if (idStr != null) {
+            int id = Integer.parseInt(idStr);
+            messageDAO dao = new messageDAO();
+            Message msg = dao.getMessageById(id); // bạn cần tạo hàm này trong DAO
+            request.setAttribute("message", msg);
+            request.getRequestDispatcher("/WEB-INF/staff/messageDetail.jsp").forward(request, response);
+        } else {
+            response.sendRedirect("textboxmailMessage");
         }
-
-        StatisticPerMonth dao = new StatisticPerMonth();
-
-        int m = Integer.parseInt(request.getParameter("month") != null ? request.getParameter("month") : String.valueOf(LocalDate.now().getMonthValue()));
-        int y = Integer.parseInt(request.getParameter("year") != null ? request.getParameter("year") : String.valueOf(LocalDate.now().getYear()));
-        int count = dao.countUsersInMonthYear(m, y);  //đếm user
-        double totalRevenue = dao.getRevenueMonthYear(m, y); //đếm tiền
-        int ticketsSold = dao.countTicketsSold(m, y); //
-
-        int completedFlights = dao.getCompletedFlights();
-        int getCancelFlights = dao.getCancelFlights();
-        int getDelayFlights = dao.getDelayFlights();
-
-//        List<String> customerList = dao.getCustomerList();
-        request.setAttribute("completedFlights", completedFlights);
-        request.setAttribute("CancelFlights", getCancelFlights);
-        request.setAttribute("delayFlights", getDelayFlights);
-//        request.setAttribute("customerList", customerList);
-
-        request.setAttribute("selectedMonth", m);
-        request.setAttribute("selectedYear", y);
-        request.setAttribute("accountCount", count); //đếm người
-        request.setAttribute("revenue", totalRevenue); //đềm tiền 
-        request.setAttribute("ticketsSold", ticketsSold);
-
-        request.getRequestDispatcher("/WEB-INF/admin/statistics.jsp").forward(request, response);
-
     }
 
     /**
@@ -113,7 +82,17 @@ public class Stats extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
+       String to = request.getParameter("to"); // recipient email
+        String subject = request.getParameter("subject");
+        String content = request.getParameter("content");
+        Message reply = new Message();
+        reply.setSenderEmail("A@staffexample.com"); 
+        reply.setRecipientEmail(to);
+        reply.setSubject(subject);
+        reply.setContent(content);
+        messageDAO dao = new messageDAO();
+        dao.insertMessage(reply);
+        response.sendRedirect("textboxmailMessage");
     }
 
     /**

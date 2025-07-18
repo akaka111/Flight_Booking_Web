@@ -244,15 +244,8 @@ public class AccountDAO {
         }
         return false;
     }
-
-    /**
-     * đổi mật khẩu admin
-     *
-     * @param username
-     * @param oldPassword
-     * @return
-     */
-    public boolean checkOldPassword(String username, String oldPassword) {
+     public boolean checkOldPassword(String username, String oldPassword) {
+        
         String sql = "SELECT * FROM Account WHERE username = ? AND password = ? AND role = 'ADMIN'";
         try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, username);
@@ -266,6 +259,7 @@ public class AccountDAO {
     }
 
     public boolean updatePassword(String username, String newPassword) {
+        
         String sql = "UPDATE Account SET password = ? WHERE username = ? AND role = 'ADMIN'";
         try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, newPassword);
@@ -276,4 +270,6 @@ public class AccountDAO {
             return false;
         }
     }
+
+            
 }

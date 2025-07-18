@@ -26,44 +26,51 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             max-width: 100%;
         }
-        .btn-add-flight {
+        .btn-add {
             padding: 10px 20px;
             font-size: 16px;
-            background-color: #007bff;
+            background-color: #28a745;
             color: white;
             border: none;
             border-radius: 6px;
             text-decoration: none;
             font-weight: 500;
         }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .action-buttons .btn {
+            font-size: 14px;
+            padding: 4px 10px;
+        }
         table th {
             background-color: #007bff;
             color: white;
         }
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        .action-buttons .btn {
-            font-weight: 500;
-            padding: 4px 10px;
-        }
     </style>
 </head>
 <body>
-
 <div class="container">
     <div class="table-container">
         <h2 class="mb-4">Quản Lý Chuyến Bay</h2>
 
+        <!-- Thông báo -->
+        <c:if test="${not empty message}">
+            <div class="alert alert-success">${message}</div>
+        </c:if>
+        <c:if test="${not empty error}">
+            <div class="alert alert-danger">${error}</div>
+        </c:if>
+
         <div class="text-right mb-3">
-            <a href="FlightAdmin1?action=showAddForm" class="btn-add-flight">
-                <i class="fa fa-plus-circle"></i> Thêm chuyến bay
+            <a href="FlightAdmin1?action=showAddForm" class="btn-add">
+                <i class="fa fa-plus"></i> Thêm Chuyến Bay
             </a>
         </div>
 
         <table class="table table-bordered">
-            <thead class="thead-light">
+            <thead>
                 <tr>
                     <th>Số hiệu</th>
                     <th>Điểm đi</th>
@@ -78,38 +85,36 @@
                 </tr>
             </thead>
             <tbody>
-            <c:forEach var="f" items="${flights}">
-                <tr>
-                    <td>${f.flightNumber}</td>
-                    <td>${f.routeFrom}</td>
-                    <td>${f.routeTo}</td>
-                    <td>${f.departureTime}</td>
-                    <td>${f.arrivalTime}</td>
-                    <td>ECO</td>
-                    <td>${f.price}</td>
-                    <td>${f.aircraft}</td>
-                    <td>${f.status}</td>
-                    <td class="action-buttons">
-                        <a href="FlightAdmin1?action=editFlight&id=${f.flightId}"
-                           class="btn btn-sm btn-warning">
-                            <i class="fa fa-edit"></i> Sửa
-                        </a>
-                        <form method="post" action="FlightAdmin1" onsubmit="return confirm('Xoá chuyến bay này?')">
-                            <input type="hidden" name="action" value="deleteFlight"/>
-                            <input type="hidden" name="id" value="${f.flightId}"/>
-                            <button type="submit" class="btn btn-sm btn-danger">
-                                <i class="fa fa-trash"></i> Xoá
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-            </c:forEach>
+                <c:forEach var="f" items="${flights}">
+                    <tr>
+                        <td>${f.flightNumber}</td>
+                        <td>${f.routeFrom}</td>
+                        <td>${f.routeTo}</td>
+                        <td>${f.departureTime}</td>
+                        <td>${f.arrivalTime}</td>
+                        <td>ECO</td>
+                        <td>${f.price}</td>
+                        <td>${f.aircraft}</td>
+                        <td>${f.status}</td>
+                        <td class="action-buttons">
+                            <a href="FlightAdmin1?action=editFlight&id=${f.flightId}" class="btn btn-sm btn-warning">
+                                <i class="fa fa-edit"></i> Sửa
+                            </a>
+                            <form method="post" action="FlightAdmin1" onsubmit="return confirm('Xác nhận xóa chuyến bay này?')">
+                                <input type="hidden" name="action" value="deleteFlight"/>
+                                <input type="hidden" name="id" value="${f.flightId}"/>
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="fa fa-trash"></i> Xóa
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                </c:forEach>
             </tbody>
         </table>
     </div>
 </div>
 
-<!-- Bootstrap scripts -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>

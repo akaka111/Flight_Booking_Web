@@ -2,7 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
+package controller.user;
 
+import DAO.Admin.FlightDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -10,15 +12,16 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import model.Account;
+import java.sql.Date;
+import java.util.List;
+import model.Flight;
 
 /**
  *
- * @author ADMIN
+ * @author Admin
  */
-@WebServlet(name = "TEMPORARYLOGINCHECKSYSTEM", urlPatterns = {"/TEMPORARYLOGINCHECKSYSTEM"})
-public class TEMPORARYLOGINCHECKSYSTEM extends HttpServlet {
+@WebServlet(name = "SearchFlightController", urlPatterns = {"/search"})
+public class SearchFlightController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -37,10 +40,10 @@ public class TEMPORARYLOGINCHECKSYSTEM extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet TEMPORARYLOGINCHECKSYSTEM</title>");
+            out.println("<title>Servlet SearchFlightController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet TEMPORARYLOGINCHECKSYSTEM at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet SearchFlightController at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -58,39 +61,30 @@ public class TEMPORARYLOGINCHECKSYSTEM extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Lấy role từ parameter (có thể là CUSTOMER, STAFF, ADMIN)
-        String role = request.getParameter("role");
-        if ("STAFF".equals(role)) {
-            Account staffUser = new Account();
-            staffUser.setUserId(999);
-            staffUser.setUsername("staff");
-            staffUser.setEmail("staff@example.com");
-            staffUser.setRole("STAFF");
-            // Lưu vào session
-            HttpSession session = request.getSession();
-            session.setAttribute("account", staffUser);
-            System.out.println("Đăng nhập tạm với vai trò STAFF: " + staffUser.getEmail());
-            // Chuyển hướng đến trang của staff
-            request.getRequestDispatcher("/WEB-INF/staff/staff.jsp").forward(request, response);;
-            return;
-        }
-        if ("CUSTOMER".equals(role))  {
-            // Tạo user giả lập
-            Account fakeUser = new Account();
-            fakeUser.setUserId(999); // hoặc bất kỳ ID nào
-            fakeUser.setUsername("testuser");
-            fakeUser.setEmail("test2@example.com");
-            fakeUser.setRole(role); // Gán role theo parameter
+        String from = request.getParameter("from");
+        String to = request.getParameter("to");
+        String departureDateStr = request.getParameter("departureDate");
 
-            // Lưu vào session
-            HttpSession session = request.getSession();
-            session.setAttribute("account", fakeUser);
+        List<Flight> flights = null;
 
-            // Chuyển hướng đến trang cần test
-            request.getRequestDispatcher("/WEB-INF/views/home.jsp").forward(request, response);
-            System.out.println("Đã login tạm role: " + fakeUser.getRole());
-            System.out.println("Email: " + fakeUser.getEmail());
+        if (from != null && to != null && departureDateStr != null) {
+            java.sql.Date departureDate = java.sql.Date.valueOf(departureDateStr);
+
+            FlightDAO dao = new FlightDAO();
+            flights = dao.searchFlights(from, to, departureDate);
+
+            if (!flights.isEmpty()) {
+                Flight flight = flights.get(0);
+                request.setAttribute("flight", flight);
+            }
+
+            request.setAttribute("flights", flights);
+            request.setAttribute("from", from);
+            request.setAttribute("to", to);
+            request.setAttribute("departureDate", departureDateStr);
         }
+
+        request.getRequestDispatcher("/WEB-INF/user/flight-detail.jsp").forward(request, response);
     }
 
     /**

@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.sql.Connection;
 import java.sql.SQLException;
-import utils.dbconnect;
+import utils.DBContext;
 
 /**
  *
@@ -23,7 +23,8 @@ import utils.dbconnect;
  */
 @WebServlet(name = "AdminChangePassword", urlPatterns = {"/AdminChangePassword"})
 public class ChangePassword extends HttpServlet {
-
+ 
+    DBContext dbconnect = new DBContext();
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.

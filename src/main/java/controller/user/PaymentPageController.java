@@ -1,14 +1,12 @@
-package controller_staff;
-
-
-
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
 
+package controller.user;
 
-
+import DAO.Admin.BookingDAO;
+import jakarta.servlet.RequestDispatcher;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -16,13 +14,16 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.sql.Connection;
+import model.Booking;
+import utils.DBContext;
 
 /**
  *
  * @author Admin
  */
-@WebServlet(name="DashboardStaff", urlPatterns={"/staff"})
-public class DashboardStaff extends HttpServlet {
+@WebServlet(name="PaymentPageController", urlPatterns={"/payment"})
+public class PaymentPageController extends HttpServlet {
    
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -39,10 +40,10 @@ public class DashboardStaff extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet DashboardStaff</title>");  
+            out.println("<title>Servlet PaymentPageController</title>");  
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet DashboardStaff at " + request.getContextPath () + "</h1>");
+            out.println("<h1>Servlet PaymentPageController at " + request.getContextPath () + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -59,8 +60,28 @@ public class DashboardStaff extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-       request.getRequestDispatcher("/WEB-INF/staff/staff.jsp").forward(request, response);
-    } 
+       int bookingId = Integer.parseInt(request.getParameter("bookingId"));
+        DBContext db = new DBContext();
+        
+        try (Connection conn = db.getConnection()){
+            BookingDAO bookingDAO = new BookingDAO(conn);
+            // Bạn cần một phương thức để lấy booking bằng ID trong BookingDAO
+            Booking booking = bookingDAO.getBookingById(bookingId); 
+            
+            if(booking != null) {
+                request.setAttribute("booking", booking);
+                RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/user/payment.jsp");
+                rd.forward(request, response);
+            } else {
+                response.sendRedirect("error.jsp?message=BookingNotFound");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendRedirect("error.jsp?message=DatabaseError");
+        }
+    }
+
+     
 
     /** 
      * Handles the HTTP <code>POST</code> method.

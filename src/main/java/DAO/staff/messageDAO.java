@@ -10,7 +10,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import model.Message;
-import utils.dbconnect;
+import utils.DBContext;
 
 /**
  *
@@ -18,6 +18,7 @@ import utils.dbconnect;
  */
 public class messageDAO {
 
+    DBContext dbconnect = new DBContext();
     public List<Message> getAllMessages() {
         List<Message> list = new ArrayList<>();
         String sql = "SELECT * FROM Message ORDER BY sent_time DESC";

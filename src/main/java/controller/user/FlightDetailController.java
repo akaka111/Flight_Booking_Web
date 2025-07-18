@@ -5,6 +5,7 @@
 package controller.user;
 
 import DAO.Admin.FlightDAO;
+import DAO.Admin.TicketClassDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -12,7 +13,9 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
 import model.Flight;
+import model.TicketClass;
 
 /**
  *
@@ -59,24 +62,29 @@ public class FlightDetailController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try {
-            // 1. Lấy flightId từ URL
-            int flightId = Integer.parseInt(request.getParameter("flightId"));
-
-            // 2. Gọi DAO để lấy thông tin chuyến bay
-            FlightDAO dao = new FlightDAO();
-            Flight flight = dao.getFlightById(flightId);
-
-            // 3. Đặt đối tượng flight vào request để gửi sang JSP
-            request.setAttribute("flight", flight);
-
-            // 4. Chuyển hướng đến trang JSP chi tiết
-            request.getRequestDispatcher("/WEB-INF/user/flight-detail.jsp").forward(request, response);
-
-        } catch (NumberFormatException e) {
-            // Xử lý nếu flightId không phải là số
-            response.sendRedirect("home"); // Hoặc trang báo lỗi
+        String idParam = request.getParameter("id");
+        if (idParam == null || idParam.isEmpty()) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiếu tham số id chuyến bay.");
+            return;
         }
+
+        int flightId;
+        try {
+            flightId = Integer.parseInt(idParam);
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Tham số id không hợp lệ.");
+            return;
+        }
+
+        FlightDAO flightDAO = new FlightDAO();
+        TicketClassDAO ticketDAO = new TicketClassDAO();
+
+        Flight flight = flightDAO.getFlightById(flightId);
+        List<TicketClass> ticketClasses = ticketDAO.getTicketClassesByFlightId(flightId);
+
+        request.setAttribute("flight", flight);
+        request.setAttribute("ticketClasses", ticketClasses);
+        request.getRequestDispatcher("/WEB-INF/user/flight-detail.jsp").forward(request, response);
     }
 
     /**

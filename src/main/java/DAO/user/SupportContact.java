@@ -10,14 +10,15 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import model.Message;
-import utils.dbconnect;
+import utils.DBContext;
 
 /**
  *
  * @author ADMIN
  */
 public class SupportContact {
-
+ 
+    DBContext dbconnect = new DBContext();
     public void insertMessage(Message msg) {
         String sql = "INSERT INTO Message (sender_email, recipient_email, subject, content) VALUES (?, ?, ?, ?)";
         try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
