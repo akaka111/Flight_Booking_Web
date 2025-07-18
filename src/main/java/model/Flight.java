@@ -22,14 +22,21 @@ public class Flight {
     private double price;
     private String aircraft;
     private String status;
-    private double priceDeluxe;
-    private double priceSkyboss;
-    private double priceBusiness;
+    private Double ecoPrice;
+
+    public Double getEcoPrice() {
+        return ecoPrice;
+    }
+
+    public void setEcoPrice(Double ecoPrice) {
+        this.ecoPrice = ecoPrice;
+    }
+
 
     public Flight() {
     }
 
-    public Flight(int flightId, int airlineId, String flightNumber, String routeFrom, String routeTo, Timestamp departureTime, Timestamp arrivalTime, double price, String aircraft, String status, double priceDeluxe, double priceSkyboss, double priceBusiness) {
+    public Flight(int flightId, int airlineId, String flightNumber, String routeFrom, String routeTo, Timestamp departureTime, Timestamp arrivalTime, double price, String aircraft, String status) {
         this.flightId = flightId;
         this.airlineId = airlineId;
         this.flightNumber = flightNumber;
@@ -40,10 +47,9 @@ public class Flight {
         this.price = price;
         this.aircraft = aircraft;
         this.status = status;
-        this.priceDeluxe = priceDeluxe;
-        this.priceSkyboss = priceSkyboss;
-        this.priceBusiness = priceBusiness;
     }
+
+    
 
 
 
@@ -127,27 +133,5 @@ public class Flight {
         this.status = status;
     }
 
-    public double getPriceDeluxe() {
-        return priceDeluxe;
-    }
-
-    public void setPriceDeluxe(double priceDeluxe) {
-        this.priceDeluxe = priceDeluxe;
-    }
-
-    public double getPriceSkyboss() {
-        return priceSkyboss;
-    }
-
-    public void setPriceSkyboss(double priceSkyboss) {
-        this.priceSkyboss = priceSkyboss;
-    }
-
-    public double getPriceBusiness() {
-        return priceBusiness;
-    }
-
-    public void setPriceBusiness(double priceBusiness) {
-        this.priceBusiness = priceBusiness;
-    }
+    
 }

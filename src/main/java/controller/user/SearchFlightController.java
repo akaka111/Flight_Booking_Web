@@ -5,7 +5,6 @@
 package controller.user;
 
 import DAO.Admin.FlightDAO;
-import DAO.Admin.TicketClassDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -13,18 +12,16 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.HashMap;
+import java.sql.Date;
 import java.util.List;
-import java.util.Map;
 import model.Flight;
-import model.TicketClass;
 
 /**
  *
  * @author Admin
  */
-@WebServlet(name = "HomepageController", urlPatterns = {"/home"})
-public class HomepageController extends HttpServlet {
+@WebServlet(name = "SearchFlightController", urlPatterns = {"/search"})
+public class SearchFlightController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -43,10 +40,10 @@ public class HomepageController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet HomepageController</title>");
+            out.println("<title>Servlet SearchFlightController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet HomepageController at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet SearchFlightController at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -64,27 +61,30 @@ public class HomepageController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try {
-            FlightDAO dao = new FlightDAO();
-            TicketClassDAO ticketDAO = new TicketClassDAO();
-            List<Flight> flights = dao.getFlightsToday();
+        String from = request.getParameter("from");
+        String to = request.getParameter("to");
+        String departureDateStr = request.getParameter("departureDate");
 
-            // Map chứa flightId -> giá Eco
-            Map<Integer, Double> ecoPrices = new HashMap<>();
-            for (Flight flight : flights) {
-                int flightId = flight.getFlightId();
-                Double price = ticketDAO.getEcoPriceByFlightId(flightId);
-                ecoPrices.put(flightId, price != null ? price : 0.0);
+        List<Flight> flights = null;
+
+        if (from != null && to != null && departureDateStr != null) {
+            java.sql.Date departureDate = java.sql.Date.valueOf(departureDateStr);
+
+            FlightDAO dao = new FlightDAO();
+            flights = dao.searchFlights(from, to, departureDate);
+
+            if (!flights.isEmpty()) {
+                Flight flight = flights.get(0);
+                request.setAttribute("flight", flight);
             }
 
             request.setAttribute("flights", flights);
-            request.setAttribute("ecoPrices", ecoPrices);
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            request.setAttribute("from", from);
+            request.setAttribute("to", to);
+            request.setAttribute("departureDate", departureDateStr);
         }
 
-        request.getRequestDispatcher("/WEB-INF/views/home.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/user/flight-detail.jsp").forward(request, response);
     }
 
     /**

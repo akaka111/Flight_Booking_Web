@@ -222,23 +222,20 @@
                             <div class="itinerary-body">
                                 <%-- Sửa lại đoạn này trong flight-detail.jsp --%>
                                 <div class="fare-options">
-                                    <div class="fare-option" data-class="BUSINESS" data-price="${flight.priceBusiness}">
-                                        <span class="class-name">BUSINESS</span>
-                                        <span class="price"><fmt:formatNumber value="${flight.priceBusiness}" type="number" maxFractionDigits="0"/> <span class="currency">VND</span></span>
-                                    </div>
-                                    <div class="fare-option" data-class="SKYBOSS" data-price="${flight.priceSkyboss}">
-                                        <span class="class-name">SKYBOSS</span>
-                                        <span class="price"><fmt:formatNumber value="${flight.priceSkyboss}" type="number" maxFractionDigits="0"/> <span class="currency">VND</span></span>
-                                    </div>
-                                    <div class="fare-option" data-class="DELUXE" data-price="${flight.priceDeluxe}">
-                                        <span class="class-name">DELUXE</span>
-                                        <span class="price"><fmt:formatNumber value="${flight.priceDeluxe}" type="number" maxFractionDigits="0"/> <span class="currency">VND</span></span>
-                                    </div>
-                                    <div class="fare-option active" data-class="ECO" data-price="${flight.price}">
-                                        <span class="class-name">ECO</span>
-                                        <span class="price"><fmt:formatNumber value="${flight.price}" type="number" maxFractionDigits="0"/> <span class="currency">VND</span></span>
-                                    </div>
+                                    <c:forEach var="ticket" items="${ticketClasses}">
+                                        
+                                        <div class="fare-option ${ticket.className == 'ECO' ? 'active' : ''}"
+                                             data-class="${ticket.className}" 
+                                             data-price="${ticket.price}">
+                                            <span class="class-name">${ticket.className}</span>
+                                            <span class="price">
+                                                <fmt:formatNumber value="${ticket.price}" type="number" maxFractionDigits="0"/> 
+                                                <span class="currency">VND</span>
+                                            </span>
+                                        </div>
+                                    </c:forEach>
                                 </div>
+
                                 <div class="flight-timeline">
                                     <div class="time-point">
                                         <div class="time-info"><fmt:formatDate value="${flight.departureTime}" pattern="HH:mm" /></div>
@@ -259,7 +256,7 @@
                     <div class="sidebar">
                         <div class="price-summary">
                             <div class="price-summary-header"><h3>THÔNG TIN ĐẶT CHỖ</h3></div>
-                            <form action="booking-confirmation" method="post">
+                            <form action="passenger" method="get">
                                 <div class="price-summary-body">
                                     <h4>Chuyến đi: <span id="flight-class-summary" style="color: var(--secondary-color)"></span></h4>
                                     <p>${flight.routeFrom} - ${flight.routeTo}</p>

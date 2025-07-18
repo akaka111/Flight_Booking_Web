@@ -319,7 +319,9 @@
             <div class="hero-content container">
                 <h1>Chuyến đi trong mơ, trong tầm tay bạn</h1>
                 <div class="search-form-container">
-                    <form action="search" method="get" class="search-form">
+                    <form action="${pageContext.request.contextPath}/search" method="get" class="search-form">
+
+
                         <div class="form-group">
                             <label for="from"><i class="fa-solid fa-plane-departure"></i> Điểm đi</label>
                             <input type="text" id="from" name="from" placeholder="Thành phố, sân bay..." required>
@@ -344,18 +346,20 @@
             <div class="container">
                 <h2 class="section-title">Vé máy bay giá tốt, khám phá thế giới</h2>
 
-                <div class="deals-container">
+                <div class="deals-container">                  
                     <c:choose>
                         <c:when test="${not empty flights}">
-                            <%-- Giới hạn chỉ hiển thị 5 chuyến bay đầu tiên --%>
-                            <c:forEach var="flight" items="${flights}" begin="0" end="4">
-                                <a href="flight-detail?flightId=${flight.flightId}" class="deal-card">
+                            <c:forEach var="flight" items="${flights}" begin="0" end="4">                               
+                                 <a href="flight-detail?id=${flight.flightId}" class="deal-card">
                                     <div class="deal-card-inner">
                                         <div class="from-location">Từ <span>${flight.routeFrom}</span></div>
                                         <div class="price-tag">Chỉ từ</div>
                                         <div class="price-amount">
-                                            <%-- Định dạng giá tiền có dấu phẩy --%>
-                                            <fmt:formatNumber value="${flight.price}" type="number" maxFractionDigits="0"/>
+                                            <fmt:formatNumber 
+                                                value="${ecoPrices[flight.flightId]}" 
+                                                type="number" 
+                                                maxFractionDigits="0" 
+                                                groupingUsed="true"/>
                                         </div>
                                         <div class="price-currency">VND</div>
                                     </div>

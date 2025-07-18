@@ -2,10 +2,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-package controller.user;
+package VNPay;
 
-import DAO.Admin.FlightDAO;
-import DAO.Admin.TicketClassDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -13,18 +11,20 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import model.Flight;
-import model.TicketClass;
+
 
 /**
  *
  * @author Admin
  */
-@WebServlet(name = "HomepageController", urlPatterns = {"/home"})
-public class HomepageController extends HttpServlet {
+@WebServlet(name = "VNPayReturnController", urlPatterns = {"/vnpay_return"})
+public class VNPayReturnController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -43,10 +43,10 @@ public class HomepageController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet HomepageController</title>");
+            out.println("<title>Servlet VNPayReturnController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet HomepageController at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet VNPayReturnController at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -64,27 +64,44 @@ public class HomepageController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try {
-            FlightDAO dao = new FlightDAO();
-            TicketClassDAO ticketDAO = new TicketClassDAO();
-            List<Flight> flights = dao.getFlightsToday();
 
-            // Map chứa flightId -> giá Eco
-            Map<Integer, Double> ecoPrices = new HashMap<>();
-            for (Flight flight : flights) {
-                int flightId = flight.getFlightId();
-                Double price = ticketDAO.getEcoPriceByFlightId(flightId);
-                ecoPrices.put(flightId, price != null ? price : 0.0);
+        Map<String, String> fields = new HashMap<>();
+        for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements();) {
+            String fieldName = params.nextElement();
+            String fieldValue = request.getParameter(fieldName);
+            if ((fieldValue != null && fieldValue.length() > 0) && fieldName.startsWith("vnp_")) {
+                fields.put(fieldName, fieldValue);
             }
-
-            request.setAttribute("flights", flights);
-            request.setAttribute("ecoPrices", ecoPrices);
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
-        request.getRequestDispatcher("/WEB-INF/views/home.jsp").forward(request, response);
+        String vnp_SecureHash = fields.remove("vnp_SecureHash");
+        List<String> fieldNames = new ArrayList<>(fields.keySet());
+        Collections.sort(fieldNames);
+        StringBuilder hashData = new StringBuilder();
+        for (String fieldName : fieldNames) {
+            String fieldValue = fields.get(fieldName);
+            if (hashData.length() > 0) {
+                hashData.append('&');
+            }
+            hashData.append(fieldName).append('=').append(fieldValue);
+        }
+
+        String secureHash = Config.hmacSHA512(Config.vnp_HashSecret, hashData.toString());
+
+        if (secureHash.equals(vnp_SecureHash)) {
+            // Đúng chữ ký
+            String responseCode = request.getParameter("vnp_ResponseCode");
+            if ("00".equals(responseCode)) {
+                // Thanh toán thành công → xử lý booking
+                // Gợi ý: lấy từ session TEMP_BOOKING và lưu vào DB
+            } else {
+                // Thanh toán bị hủy
+                response.sendRedirect("orderStatus?status=false");
+            }
+        } else {
+            // Sai chữ ký → báo lỗi
+            response.sendRedirect("orderStatus?status=false&error=invalid_signature");
+        }
     }
 
     /**
