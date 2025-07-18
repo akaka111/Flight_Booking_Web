@@ -66,7 +66,7 @@
             </c:if>
 
             <!-- Form login thông thường -->
-           <form action="<c:url value='/login'/>" method="post">
+            <form action="<c:url value='/login'/>" method="post">
                 <div class="form-group">
                     <label for="username">Tài khoản</label>
                     <input type="text" id="username" name="username" required>
@@ -80,7 +80,14 @@
             </form>
 
             <hr style="margin: 20px 0;">
-
+            <%
+                String msg = (String) request.getAttribute("message");
+                if (msg != null) {
+            %>
+            <div style="color: red;"><%= msg%></div>
+            <%
+                }
+            %>
 
         </div>
     </body>

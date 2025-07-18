@@ -36,6 +36,7 @@ DAO\staff\messageDAO.class
 controller\user\PaymentPageController.class
 model\Booking.class
 model\Payment.class
+controller\admin\StatisticPerMonth.class
 DAO\Admin\BookingDAO.class
 model\Flight.class
 DAO\Admin\PassengerDAO.class
