@@ -1,80 +1,121 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html>
+<html lang="vi">
     <head>
         <meta charset="UTF-8">
-        <title>Thêm chuyến bay mới</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Thêm Chuyến Bay Mới - Hệ Thống Đặt Vé Máy Bay</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
         <style>
             body {
-                font-family: Arial;
+                font-family: 'Montserrat', sans-serif;
+                background-color: #f8f9fa;
+                color: #343a40;
                 padding: 40px;
-                background-color: #f9f9f9;
+            }
+            .form-container {
+                max-width: 900px;
+                margin: auto;
+                background: #fff;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             }
             h2 {
-                margin-bottom: 20px;
-            }
-            form label {
-                display: block;
-                margin-top: 10px;
-            }
-            form input, form select {
-                width: 300px;
-                padding: 8px;
-                margin-top: 4px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-            }
-            button {
-                margin-top: 20px;
-                padding: 10px 20px;
-                background-color: #28a745;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-            }
-            a {
-                display: inline-block;
-                margin-top: 20px;
-                text-decoration: none;
+                text-align: center;
+                margin-bottom: 30px;
                 color: #007bff;
+            }
+            .form-actions {
+                text-align: right;
+            }
+            .form-actions .btn {
+                min-width: 120px;
             }
         </style>
     </head>
     <body>
-        <h2>Thêm chuyến bay mới</h2>
-        <form method="post" action="FlightAdmin1">
-            <input type="hidden" name="action" value="addFlight" />
-            <label>Số hiệu chuyến bay:</label>
-            <input type="text" name="flightNumber" required>
+        <div class="container">
+            <div class="form-container">
+                <h2><i class="fa fa-plane"></i> Thêm Chuyến Bay Mới</h2>
 
-            <label>Điểm đi:</label>
-            <input type="text" name="routeFrom" required>
+                <!-- Thông báo -->
+                <c:if test="${not empty message}">
+                    <div class="alert alert-success">${message}</div>
+                </c:if>
+                <c:if test="${not empty error}">
+                    <div class="alert alert-danger">${error}</div>
+                </c:if>
 
-            <label>Điểm đến:</label>
-            <input type="text" name="routeTo" required>
+                <form method="post" action="FlightAdmin1">
+                    <input type="hidden" name="action" value="addFlight">                   
+                    <div class="form-group">
+                        <label for="airline">Hãng bay</label> 
+                        <select class="form-control" id="airline" name="airlineId" required>
+                            <option value="" disabled selected hidden>-- Chọn hãng bay --</option>
+                            <option value="1">VietJet Air (VJ)</option>
+                            <option value="2">Vietnam Airlines (VN)</option>
+                            <option value="3">Bamboo Airways (QH)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="flightNumber">Số hiệu chuyến bay</label>
+                        <input type="text" class="form-control" id="flightNumber" name="flightNumber" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="routeFrom">Điểm khởi hành</label>
+                        <input type="text" class="form-control" id="routeFrom" name="routeFrom" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="routeTo">Điểm đến</label>
+                        <input type="text" class="form-control" id="routeTo" name="routeTo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="departureTime">Thời gian khởi hành</label>
+                        <input type="datetime-local" class="form-control" id="departureTime" name="departureTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="arrivalTime">Thời gian đến</label>
+                        <input type="datetime-local" class="form-control" id="arrivalTime" name="arrivalTime" required>
+                    </div>     
+                    <div class="form-group">
+                        <label for="seatCount">Số ghế</label>
+                        <input type="number" class="form-control" id="seatCount" name="seatCount" required min="1">
+                    </div>     
+                    <div class="form-group">
+                        <label for="status">Trạng thái</label>
+                        <select class="form-control" id="status" name="status" required onclick="showOptions()">
+                            <option value="" disabled selected>-- Xác nhận trạng thái --</option>
+                            <option value="ON TIME" class="status-option d-none">ON TIME</option>
+                            <option value="DELAYED" class="status-option d-none">DELAYED</option>
+                            <option value="CANCELLED" class="status-option d-none">CANCELLED</option>
+                        </select>
+                    </div>
 
-            <label>Thời gian khởi hành:</label>
-            <input type="datetime-local" name="departureTime" required>
+                    <script>
+                        function showOptions() {
+                            const options = document.querySelectorAll('.status-option');
+                            options.forEach(opt => opt.classList.remove('d-none'));
+                        }
+                    </script>
+                    <div class="form-actions mt-4">
+                        <a href="FlightAdmin1" class="btn btn-secondary">
+                            <i class="fa fa-arrow-left"></i> Hủy
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa fa-save"></i> Lưu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
-            <label>Thời gian đến:</label>
-            <input type="datetime-local" name="arrivalTime" required>
-
-            <label>Giá vé (ECO):</label>
-            <input type="number" step="0.01" name="price" required>
-
-            <label>Loại máy bay:</label>
-            <input type="text" name="aircraft" required>
-
-            <label>Trạng thái:</label>
-            <select name="status">
-                <option value="Scheduled">Lên lịch</option>
-                <option value="Completed">Hoàn tất</option>
-            </select>
-
-            <button type="submit">Lưu chuyến bay</button>
-        </form>
-
-        <a href="FlightAdmin1">← Quay lại danh sách</a>
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     </body>
 </html>

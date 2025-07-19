@@ -9,8 +9,12 @@
         <servlet-class>controller.admin.DashboardAdmin</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>FlightAdmin1</servlet-name>
-        <servlet-class>controller.admin.FlightAdmin1</servlet-class>
+        <servlet-name>DashboardStaff</servlet-name>
+        <servlet-class>controller.staff.DashboardStaff</servlet-class>
+    </servlet>
+     <servlet>
+        <servlet-name>ManageProfileController</servlet-name>
+        <servlet-class>controller.user.ManageProfileController</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>HomepageController</servlet-name>
@@ -21,8 +25,12 @@
         <url-pattern>/admin</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>FlightAdmin1</servlet-name>
-        <url-pattern>/manageFlights</url-pattern>
+        <servlet-name>DashboardStaff</servlet-name>
+        <url-pattern>/staff</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ManageProfileController</servlet-name>
+        <url-pattern>/user</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

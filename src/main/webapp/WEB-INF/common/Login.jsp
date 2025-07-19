@@ -66,7 +66,7 @@
             </c:if>
 
             <!-- Form login thông thường -->
-            <form action="LoginController" method="post">
+           <form action="<c:url value='/login'/>" method="post">
                 <div class="form-group">
                     <label for="username">Tài khoản</label>
                     <input type="text" id="username" name="username" required>

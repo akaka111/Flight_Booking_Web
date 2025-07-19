@@ -20,16 +20,22 @@ public class Flight {
     private Timestamp departureTime;
     private Timestamp arrivalTime;
     private double price;
-    private String aircraft;
     private String status;
-    private double priceDeluxe;
-    private double priceSkyboss;
-    private double priceBusiness;
+    private Double ecoPrice;
+    private String airline;
+
+    public Double getEcoPrice() {
+        return ecoPrice;
+    }
+
+    public void setEcoPrice(Double ecoPrice) {
+        this.ecoPrice = ecoPrice;
+    }
 
     public Flight() {
     }
 
-    public Flight(int flightId, int airlineId, String flightNumber, String routeFrom, String routeTo, Timestamp departureTime, Timestamp arrivalTime, double price, String aircraft, String status, double priceDeluxe, double priceSkyboss, double priceBusiness) {
+    public Flight(int flightId, int airlineId, String flightNumber, String routeFrom, String routeTo, Timestamp departureTime, Timestamp arrivalTime, double price, String aircraft, String status) {
         this.flightId = flightId;
         this.airlineId = airlineId;
         this.flightNumber = flightNumber;
@@ -38,14 +44,17 @@ public class Flight {
         this.departureTime = departureTime;
         this.arrivalTime = arrivalTime;
         this.price = price;
-        this.aircraft = aircraft;
         this.status = status;
-        this.priceDeluxe = priceDeluxe;
-        this.priceSkyboss = priceSkyboss;
-        this.priceBusiness = priceBusiness;
+    }
+    private int seatCount;
+
+    public int getSeatCount() {
+        return seatCount;
     }
 
-
+    public void setSeatCount(int seatCount) {
+        this.seatCount = seatCount;
+    }
 
     public int getFlightId() {
         return flightId;
@@ -53,6 +62,14 @@ public class Flight {
 
     public void setFlightId(int flightId) {
         this.flightId = flightId;
+    }
+
+    public String getAirline() {
+        return airline;
+    }
+
+    public void setAirline(String airline) {
+        this.airline = airline;
     }
 
     public int getAirlineId() {
@@ -111,14 +128,6 @@ public class Flight {
         this.price = price;
     }
 
-    public String getAircraft() {
-        return aircraft;
-    }
-
-    public void setAircraft(String aircraft) {
-        this.aircraft = aircraft;
-    }
-
     public String getStatus() {
         return status;
     }
@@ -127,27 +136,4 @@ public class Flight {
         this.status = status;
     }
 
-    public double getPriceDeluxe() {
-        return priceDeluxe;
-    }
-
-    public void setPriceDeluxe(double priceDeluxe) {
-        this.priceDeluxe = priceDeluxe;
-    }
-
-    public double getPriceSkyboss() {
-        return priceSkyboss;
-    }
-
-    public void setPriceSkyboss(double priceSkyboss) {
-        this.priceSkyboss = priceSkyboss;
-    }
-
-    public double getPriceBusiness() {
-        return priceBusiness;
-    }
-
-    public void setPriceBusiness(double priceBusiness) {
-        this.priceBusiness = priceBusiness;
-    }
 }

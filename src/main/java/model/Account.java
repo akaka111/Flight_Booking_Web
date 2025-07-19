@@ -20,12 +20,13 @@ public class Account {
     private Date dob;
     private String role;
     private boolean status;
+    private String fullname;
 
     // Constructors
     public Account() {
     }
 
-    public Account(int userId, String username, String password, String email, String phone, Date dob, String role, boolean status) {
+    public Account(int userId, String username, String password, String email, String phone, Date dob, String role, boolean status, String fullname) {
         this.userId = userId;
         this.username = username;
         this.password = password;
@@ -34,9 +35,9 @@ public class Account {
         this.dob = dob;
         this.role = role;
         this.status = status;
+        this.fullname = fullname;
     }
 
-    // Getters and Setters
     public int getUserId() {
         return userId;
     }
@@ -100,6 +101,17 @@ public class Account {
     public void setStatus(boolean status) {
         this.status = status;
     }
+
+    public String getFullname() {
+        return fullname;
+    }
+
+    public void setFullname(String fullname) {
+        this.fullname = fullname;
+    }
+
+
+
 
     // toString() for debugging
     @Override
