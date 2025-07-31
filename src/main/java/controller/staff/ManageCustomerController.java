@@ -140,7 +140,7 @@ public class ManageCustomerController extends HttpServlet {
             user.setDob(null);
         }
 
-        accountDAO.updateAccountByAdmin(user);
+        accountDAO.updateAccountByStaff(user);
         response.sendRedirect("ManageCustomerController");
     }
 

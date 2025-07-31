@@ -183,7 +183,7 @@ public class AccountDAO {
         return null;
     }
 
-    public boolean addAccountByAdmin(Account user) {
+    public boolean addAccountByStaff(Account user) {
         String sql = "INSERT INTO Account (username, password, email, phone, role, status, fullname, dob) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user.getUsername());
@@ -208,7 +208,7 @@ public class AccountDAO {
      * @param user đối tượng Account chứa thông tin cần cập nhật
      * @return true nếu thành công, false nếu thất bại
      */
-    public boolean updateAccountByAdmin(Account user) {
+    public boolean updateAccountByStaff(Account user) {
         String sql = "UPDATE Account SET fullname = ?, email = ?, phone = ?, role = ?, status = ?, dob = ? WHERE user_id = ?";
         try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user.getFullname());

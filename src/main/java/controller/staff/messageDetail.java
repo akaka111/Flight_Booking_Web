@@ -63,7 +63,7 @@ public class messageDetail extends HttpServlet {
         if (idStr != null) {
             int id = Integer.parseInt(idStr);
             messageDAO dao = new messageDAO();
-            Message msg = dao.getMessageById(id); // bạn cần tạo hàm này trong DAO
+            Message msg = dao.getMessageById(id);
             request.setAttribute("message", msg);
             request.getRequestDispatcher("/WEB-INF/staff/messageDetail.jsp").forward(request, response);
         } else {
