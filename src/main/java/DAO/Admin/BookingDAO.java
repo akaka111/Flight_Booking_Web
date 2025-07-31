@@ -47,19 +47,24 @@ public class BookingDAO {
      */
     public int createBooking(Booking booking) {
         int generatedId = -1;
-        String sql = "INSERT INTO Booking (user_id, flight_id, booking_time, seat_class, total_price, status, booking_code) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        // Thêm seat_id vào câu lệnh INSERT
+        String sql = "INSERT INTO Booking (user_id, flight_id, seat_id, booking_time, seat_class, total_price, status, booking_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-        // Sinh mã đặt chỗ ngẫu nhiên, ví dụ: BK-20250730-XXXX
         String bookingCode = generateBookingCode();
 
-        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
             ps.setInt(1, booking.getUserId());
             ps.setInt(2, booking.getFlightId());
-            ps.setTimestamp(3, booking.getBookingDate());
-            ps.setString(4, booking.getSeatClass());
-            ps.setDouble(5, booking.getTotalPrice());
-            ps.setString(6, booking.getStatus());
-            ps.setString(7, bookingCode);  // Thêm booking_code
+
+            // <-- THAY ĐỔI QUAN TRỌNG: LƯU SEAT_ID VÀO DATABASE -->
+            ps.setInt(3, booking.getSeatId());
+
+            ps.setTimestamp(4, booking.getBookingDate());
+            ps.setString(5, booking.getSeatClass());
+            ps.setDouble(6, booking.getTotalPrice());
+            ps.setString(7, booking.getStatus());
+            ps.setString(8, bookingCode);
 
             int affectedRows = ps.executeUpdate();
 
@@ -67,19 +72,12 @@ public class BookingDAO {
                 try (ResultSet rs = ps.getGeneratedKeys()) {
                     if (rs.next()) {
                         generatedId = rs.getInt(1);
-                        System.out.println("==> Booking ID được tạo: " + generatedId);
-                        System.out.println("==> Mã đặt chỗ: " + bookingCode);
                     }
                 }
-            } else {
-                System.err.println("==> Không có dòng nào được thêm vào bảng Booking.");
             }
-
-        } catch (SQLException e) {
-            System.err.println("==> SQLException khi tạo booking: " + e.getMessage());
-            e.printStackTrace();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi tạo booking mới", e);
         }
-
         return generatedId;
     }
 
@@ -87,37 +85,54 @@ public class BookingDAO {
 // Phương thức để lấy một booking từ DB bằng ID
     public Booking getBookingById(int bookingId) {
         Booking booking = null;
-        String sql = "SELECT * FROM dbo.Booking WHERE booking_id = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        // Sửa câu SQL để bao gồm tất cả các cột cần thiết, đặc biệt là seat_id
+        String sql = "SELECT * FROM Booking WHERE booking_id = ?";
+
+        // Sử dụng try-with-resources để tự động quản lý kết nối
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setInt(1, bookingId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     booking = new Booking();
                     booking.setBookingId(rs.getInt("booking_id"));
                     booking.setUserId(rs.getInt("user_id"));
-                    // ... lấy các cột khác ...
+                    booking.setFlightId(rs.getInt("flight_id"));
+
+                    // <-- THAY ĐỔI QUAN TRỌNG: LẤY SEAT_ID TỪ DATABASE -->
+                   // booking.setSeatId(rs.getInt("seat_id"));
+                    // Kiểm tra xem giá trị có phải là NULL không
+                    if (rs.wasNull()) {
+                        booking.setSeatId(0); // Hoặc một giá trị mặc định nào đó nếu cần
+                    }
+
+                    booking.setBookingDate(rs.getTimestamp("booking_time"));
                     booking.setSeatClass(rs.getString("seat_class"));
                     booking.setTotalPrice(rs.getDouble("total_price"));
-                    booking.setStatus(rs.getString("CONFIRMED"));
+                    booking.setStatus(rs.getString("status"));
+                    booking.setBookingCode(rs.getString("booking_code"));
+                    // Lấy các cột khác nếu cần...
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy booking theo ID: " + bookingId, e);
         }
         return booking;
     }
 
 // Phương thức để cập nhật trạng thái của một booking
-    public boolean updateBookingStatus(int bookingId, String newStatus) {
-        String sql = "UPDATE dbo.Booking SET status = ? WHERE booking_id = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, newStatus);
+    public boolean updateBookingSeat(int bookingId, int newSeatId) {
+        String sql = "UPDATE Booking SET seat_id = ? WHERE booking_id = ?";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, newSeatId);
             ps.setInt(2, bookingId);
 
             int affectedRows = ps.executeUpdate();
-            return affectedRows > 0; // Trả về true nếu có ít nhất 1 dòng được cập nhật
-        } catch (SQLException e) {
-            e.printStackTrace();
+            return affectedRows > 0;
+
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật ghế cho booking ID: " + bookingId, e);
             return false;
         }
     }
@@ -476,4 +491,53 @@ public class BookingDAO {
         }
         return history;
     }
+
+    public boolean updateBookingStatus(int bookingId, String newStatus) {
+        String sql = "UPDATE Booking SET status = ? WHERE booking_id = ?";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newStatus);
+            ps.setInt(2, bookingId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật trạng thái booking", e);
+            return false;
+        }
+    }
+
+    public void updateCheckinStatus(int bookingId, String status) {
+        String sql = "UPDATE Booking SET checkin_status = ? WHERE booking_id = ?";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setInt(2, bookingId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Booking getBookingByCode(String bookingCode) {
+        String sql = "SELECT * FROM Booking WHERE booking_code = ?";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, bookingCode);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Booking booking = new Booking();
+                booking.setBookingId(rs.getInt("booking_id"));
+                booking.setUserId(rs.getInt("user_id"));
+                booking.setFlightId(rs.getInt("flight_id"));
+                booking.setBookingDate(rs.getTimestamp("booking_time"));
+                booking.setStatus(rs.getString("status"));
+                booking.setSeatClass(rs.getString("seat_class"));
+                booking.setTotalPrice(rs.getDouble("total_price"));
+                booking.setCheckinStatus(rs.getString("checkin_status"));
+                booking.setBookingCode(rs.getString("booking_code"));
+                // ... thêm các thuộc tính khác nếu cần
+                return booking;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

@@ -26,6 +26,7 @@ public class Booking {
     private String checkinStatus;
     private String bookingCode;
     private String voucherCode;
+    private int seatId;
 
     public Booking() {
     }
@@ -44,8 +45,6 @@ public class Booking {
         this.checkinStatus = checkinStatus;
     }
 
-    
-    
     // Getters and Setters
     public int getBookingId() {
         return bookingId;
@@ -150,6 +149,21 @@ public class Booking {
     public void setVoucherCode(String voucherCode) {
         this.voucherCode = voucherCode;
     }
-    
-    
+
+    public int getSeatId() {
+        return seatId;
+    }
+
+    public void setSeatId(int seatId) {
+        this.seatId = seatId;
+    }
+
+    @Override
+    public String toString() {
+        return "Booking{"
+                + "bookingCode='" + bookingCode + '\''
+                + ", flightId=" + flightId
+                + '}';
+    }
+
 }

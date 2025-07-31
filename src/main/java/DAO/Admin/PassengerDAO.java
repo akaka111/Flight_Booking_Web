@@ -6,6 +6,7 @@ package DAO.Admin;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,4 +50,34 @@ public class PassengerDAO {
         ps.setString(9, passenger.getAddress());
         ps.executeUpdate();
     }
+
+    public int insertPassengerAndReturnId(Passenger passenger) throws SQLException {
+        int generatedId = -1;
+        String sql = "INSERT INTO Passenger (booking_id, full_name, passport_number, dob, gender, phone_number, email, country, address) "
+                + "OUTPUT INSERTED.passenger_id VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, passenger.getBookingId());
+            ps.setString(2, passenger.getFullName());
+            ps.setString(3, passenger.getPassportNumber());
+            ps.setDate(4, passenger.getDob());
+            ps.setString(5, passenger.getGender());
+            ps.setString(6, passenger.getPhoneNumber());
+            ps.setString(7, passenger.getEmail());
+            ps.setString(8, passenger.getCountry());
+            ps.setString(9, passenger.getAddress());
+
+            int rowsAffected = ps.executeUpdate();
+
+            if (rowsAffected > 0) {
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        generatedId = rs.getInt(1);
+                    }
+                }
+            }
+        }
+        return generatedId;
+    }
+
 }

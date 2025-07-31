@@ -112,7 +112,7 @@
         </a>
         <nav class="main-nav">
             <a href="home">Trang Chủ</a>
-            <a href="#">Khuyến Mãi</a>
+            <a href="checkin-search">Check-In</a>
             <a href="#">Quản Lý Đặt Chỗ</a>
             <a href="ContactSupport">Liên Hệ</a>
         </nav>
