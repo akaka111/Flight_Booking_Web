@@ -23,8 +23,9 @@ import utils.DBContext;
  */
 @WebServlet(name = "AdminChangePassword", urlPatterns = {"/AdminChangePassword"})
 public class ChangePassword extends HttpServlet {
- 
+
     DBContext dbconnect = new DBContext();
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -90,6 +91,11 @@ public class ChangePassword extends HttpServlet {
         String username = request.getParameter("username");
         String oldPassword = request.getParameter("oldPassword");
         String newPassword = request.getParameter("newPassword");
+        String oldPasswordHashed = AccountDAO.hashSHA256(oldPassword);
+        String newPasswordHashed = AccountDAO.hashSHA256(newPassword);
+
+        System.out.println("oldPasswordHashed: " + oldPasswordHashed);
+        System.out.println("newPasswordHashed: " + newPasswordHashed);
 
         try (Connection conn = dbconnect.getConnection()) {
             if (conn != null) {
@@ -103,18 +109,22 @@ public class ChangePassword extends HttpServlet {
         }
 
         AccountDAO dao = new AccountDAO();
-        if (dao.checkOldPassword(username, oldPassword)) {
-            boolean updated = dao.updatePassword(username, newPassword);
+        if (dao.checkOldPassword(username, oldPasswordHashed)) {
+            boolean updated = dao.updatePassword(username, newPasswordHashed);
             if (updated) {
                 request.setAttribute("message", "Đổi mật khẩu thành công.");
+                request.setAttribute("messageType", "success");
             } else {
                 request.setAttribute("message", "Đổi mật khẩu thất bại.");
+                request.setAttribute("messageType", "error");
             }
         } else {
             request.setAttribute("message", "Mật khẩu cũ không đúng.");
+            request.setAttribute("messageType", "error");
         }
 
-        request.getRequestDispatcher("changePassword.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/admin/AdminChangePassword.jsp").forward(request, response);
+
     }
 
     /**

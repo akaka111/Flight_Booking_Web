@@ -10,15 +10,13 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import model.Message;
-import utils.DBContext;
+import utils.dbconnect;
 
 /**
  *
  * @author ADMIN
  */
 public class SupportContact {
-
-    DBContext dbconnect = new DBContext();
 
     public void insertMessage(Message msg) {
         String sql = "INSERT INTO Message (sender_email, recipient_email, subject, content) VALUES (?, ?, ?, ?)";
@@ -33,12 +31,11 @@ public class SupportContact {
         }
     }
 
-    public List<Message> getMessage(String recipientEmail) {
+    public List<Message> getMessagesByRecipient(String recipientEmail) {
         List<Message> list = new ArrayList<>();
-        String sql = "SELECT * FROM Message WHERE recipient_email = ? OR sender_email = ? ORDER BY sent_time DESC";
+        String sql = "SELECT * FROM Message WHERE recipient_email = ? ORDER BY sent_time DESC";
         try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, recipientEmail);
-            ps.setString(2, recipientEmail);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Message msg = new Message(

@@ -79,7 +79,7 @@ public class AccountDAO {
     }
 
     // Hàm hash password bằng SHA-256
-    private static String hashSHA256(String input) {
+    public static String hashSHA256(String input) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] messageDigest = md.digest(input.getBytes());
@@ -244,32 +244,30 @@ public class AccountDAO {
         }
         return false;
     }
-     public boolean checkOldPassword(String username, String oldPassword) {
-        
-        String sql = "SELECT * FROM Account WHERE username = ? AND password = ? AND role = 'ADMIN'";
-        try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, username);
-            ps.setString(2, oldPassword);
-            ResultSet rs = ps.executeQuery();
-            return rs.next(); // Trả về true nếu tồn tại username + oldPassword
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
 
-    public boolean updatePassword(String username, String newPassword) {
-        
-        String sql = "UPDATE Account SET password = ? WHERE username = ? AND role = 'ADMIN'";
-        try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, newPassword);
-            ps.setString(2, username);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+        public boolean checkOldPassword(String username, String pwd) {
+            String sql = "SELECT * FROM Account WHERE username = ? AND password = ? AND role = 'ADMIN'";
+            try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, username);
+                ps.setString(2, pwd);
+                ResultSet rs = ps.executeQuery();
+                return rs.next(); // Trả về true nếu tồn tại username + oldPassword
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
         }
-    }
 
-            
+        public boolean updatePassword(String username, String NewPwd) {
+            String sql = "UPDATE Account SET password = ? WHERE username = ? AND role = 'ADMIN'";
+            try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, NewPwd);
+                ps.setString(2, username);
+                return ps.executeUpdate() > 0;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
 }

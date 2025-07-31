@@ -13,7 +13,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Account;
-import utils.DBContext;
+import utils.dbconnect;
 
 /**
  *
@@ -21,12 +21,10 @@ import utils.DBContext;
  */
 public class AccountDAO {
 
-    DBContext dbContext = new DBContext();
-
     // Xác thực user bằng username và password
     public Account authenticateUser(String username, String password) {
         String sql = "SELECT * FROM Account WHERE username = ? AND password = ?";
-        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, username);
             stmt.setString(2, hashSHA256(password));
@@ -45,7 +43,7 @@ public class AccountDAO {
     // Lấy user bằng email
     public Account getUserByEmail(String email) {
         String sql = "SELECT * FROM Account WHERE email = ?";
-        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, email);
             ResultSet rs = stmt.executeQuery();
@@ -63,7 +61,7 @@ public class AccountDAO {
     // Lấy vai trò của user
     public String getUserRole(int userId) {
         String sql = "SELECT role FROM Account WHERE user_id = ?";
-        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
@@ -79,7 +77,7 @@ public class AccountDAO {
     }
 
     // Hàm hash password bằng SHA-256
-    private static String hashSHA256(String input) {
+    public static String hashSHA256(String input) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] messageDigest = md.digest(input.getBytes());
@@ -119,7 +117,7 @@ public class AccountDAO {
         String sql = "INSERT INTO Account (username, password, email, phone, dob, role, status, fullname) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, user.getUsername());
             stmt.setString(2, hashSHA256(user.getPassword())); // Hash mật khẩu
@@ -143,7 +141,7 @@ public class AccountDAO {
     public boolean isUserExist(String username, String email) {
         // Sửa lại đúng bảng Account
         String sql = "SELECT user_id FROM Account WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?)";
-        try (Connection conn = dbContext.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, username.toLowerCase());
             stmt.setString(2, email.toLowerCase());
             ResultSet rs = stmt.executeQuery();
@@ -158,7 +156,7 @@ public class AccountDAO {
         List<Account> list = new ArrayList<>();
         String sql = "SELECT * FROM Account";
 
-        try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 // Tái sử dụng phương thức mapResultSetToAccount để tránh lỗi và lặp code
@@ -173,7 +171,7 @@ public class AccountDAO {
 
     public Account getAccountById(int userId) {
         String sql = "SELECT * FROM Account WHERE user_id = ?";
-        try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -187,7 +185,7 @@ public class AccountDAO {
 
     public boolean addAccountByAdmin(Account user) {
         String sql = "INSERT INTO Account (username, password, email, phone, role, status, fullname, dob) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user.getUsername());
             ps.setString(2, hashSHA256(user.getPassword())); // Hash mật khẩu
             ps.setString(3, user.getEmail());
@@ -212,7 +210,7 @@ public class AccountDAO {
      */
     public boolean updateAccountByAdmin(Account user) {
         String sql = "UPDATE Account SET fullname = ?, email = ?, phone = ?, role = ?, status = ?, dob = ? WHERE user_id = ?";
-        try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user.getFullname());
             ps.setString(2, user.getEmail());
             ps.setString(3, user.getPhone());
@@ -236,7 +234,7 @@ public class AccountDAO {
      */
     public boolean deleteAccount(int userId) {
         String sql = "DELETE FROM Account WHERE user_id = ?";
-        try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -252,11 +250,11 @@ public class AccountDAO {
      * @param oldPassword
      * @return
      */
-    public boolean checkOldPassword(String username, String oldPassword) {
-        String sql = "SELECT * FROM [User] WHERE username = ? AND password = ? AND role = 'ADMIN'";
-        try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+    public boolean checkOldPassword(String username, String pwd) {
+        String sql = "SELECT * FROM Account WHERE username = ? AND password = ? AND role = 'staff'";
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, username);
-            ps.setString(2, oldPassword);
+            ps.setString(2, pwd);
             ResultSet rs = ps.executeQuery();
             return rs.next(); // Trả về true nếu tồn tại username + oldPassword
         } catch (Exception e) {
@@ -265,15 +263,56 @@ public class AccountDAO {
         }
     }
 
-    public boolean updatePassword(String username, String newPassword) {
-        String sql = "UPDATE [User] SET password = ? WHERE username = ? AND role = 'ADMIN'";
-        try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, newPassword);
+    public boolean updatePassword(String username, String NewPwd) {
+        String sql = "UPDATE Account SET password = ? WHERE username = ? AND role = 'staff'";
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, NewPwd);
             ps.setString(2, username);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public List<Account> getAllCustomers() {
+        int count = 0;
+        List<Account> list = new ArrayList<>();
+        String sql = "SELECT * FROM Account WHERE role = 'CUSTOMER'";
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            if (conn == null) {
+                System.out.println("Lỗi: Không thể kết nối DB!");
+            } else {
+                System.out.println("ok ket noi");
+            }
+            while (rs.next()) {
+                count++;
+                Account acc = new Account();
+                acc.setUserId(rs.getInt("user_id"));
+                acc.setUsername(rs.getString("username"));
+                acc.setEmail(rs.getString("email"));
+                acc.setPhone(rs.getString("phone"));
+                acc.setDob(rs.getDate("dob"));
+                acc.setRole(rs.getString("role"));
+                acc.setStatus(rs.getBoolean("status"));
+                acc.setFullname(rs.getString("fullname"));
+                list.add(acc);
+            }
+            System.out.println("Tổng số khách hàng tìm được: " + count);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public void updateCustomerPassword(int userId, String newPassword) {
+        String sql = "UPDATE Account SET password = ? WHERE user_Id = ? and role = 'customer'";
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newPassword);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }

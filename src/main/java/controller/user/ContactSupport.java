@@ -80,7 +80,6 @@ public class ContactSupport extends HttpServlet {
 
         String action = request.getParameter("action");
         HttpSession session = request.getSession(false);
-
         if ("openForm".equals(action)) {
             if (session != null && session.getAttribute("user") != null) {
                 request.getRequestDispatcher("/WEB-INF/views/sendMessage.jsp").forward(request, response);
@@ -108,15 +107,14 @@ public class ContactSupport extends HttpServlet {
                 Account acc = (Account) session.getAttribute("user");
                 String email = acc.getEmail();
                 SupportContact dao = new SupportContact();
-                List<Message> inbox = dao.getMessage(email);
+                List<Message> inbox = dao.getMessagesByRecipient(email);
                 request.setAttribute("messages", inbox);
                 request.getRequestDispatcher("/WEB-INF/views/mailBox.jsp").forward(request, response);
-                return;
             } else {
                 request.setAttribute("message", "Vui lòng đăng nhập để xem hòm thư.");
                 request.getRequestDispatcher("/WEB-INF/common/Login.jsp").forward(request, response);
-                
             }
+            request.getRequestDispatcher("/WEB-INF/views/mailBoxdetail.jsp").forward(request, response);
         }
     }
 
