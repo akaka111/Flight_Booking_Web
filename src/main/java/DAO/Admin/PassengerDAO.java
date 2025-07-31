@@ -7,7 +7,10 @@ package DAO.Admin;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import model.Passenger;
+import utils.DBContext;
 
 /**
  *
@@ -17,6 +20,17 @@ public class PassengerDAO {
 
     private Connection conn;
 
+    // Thêm constructor không tham số để tự động lấy kết nối
+    public PassengerDAO() {
+        try {
+            // Giả sử bạn có một lớp DBContext để lấy kết nối
+            this.conn = new DBContext().getConnection();
+        } catch (Exception ex) {
+            Logger.getLogger(PassengerDAO.class.getName()).log(Level.SEVERE, "Không thể kết nối đến cơ sở dữ liệu.", ex);
+        }
+    }
+
+    // Giữ lại constructor này nếu bạn muốn sử dụng cho các mục đích khác (ví dụ: testing)
     public PassengerDAO(Connection conn) {
         this.conn = conn;
     }

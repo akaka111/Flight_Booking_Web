@@ -56,6 +56,6 @@ public class TicketClassDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null; // Hoặc return 0.0 nếu muốn chắc chắn có giá trị
+        return null; 
     }
 }

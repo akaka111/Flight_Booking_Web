@@ -19,6 +19,21 @@ import utils.DBContext;
  */
 public class voucherDAO {
 
+    public voucherDAO() {
+        try {
+            this.conn = new DBContext().getConnection();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Connection conn;
+
+    // Constructor để nhận kết nối từ servlet
+    public voucherDAO(Connection conn) {
+        this.conn = conn;
+    }
+
     DBContext dbContext = new DBContext();
 
     public List<Voucher> getAllVouchers() {
@@ -103,6 +118,38 @@ public class voucherDAO {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public Voucher getVoucherByCode(String code) {
+        String sql = "SELECT * FROM Voucher WHERE code = ?";
+        try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, code);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Voucher(
+                        rs.getInt("voucher_id"),
+                        rs.getString("code"),
+                        rs.getInt("discount_percent"),
+                        rs.getString("valid_from"),
+                        rs.getString("valid_to"),
+                        rs.getInt("usage_limit"),
+                        rs.getInt("is_active")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void decreaseUsageLimit(int voucherId) {
+        String sql = "UPDATE Voucher SET usage_limit = usage_limit - 1 WHERE voucher_id = ? AND usage_limit > 0";
+        try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, voucherId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
 }

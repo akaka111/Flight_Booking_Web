@@ -5,6 +5,9 @@
 --%>
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
 <!DOCTYPE html>
 <html lang="vi">
     <head>
@@ -14,37 +17,67 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
         <style>
+            /* === ĐỒNG BỘ CSS VARIABLES VÀ STYLES CƠ BẢN VỚI FLIGHT-DETAIL.JSP === */
             :root {
-                --primary-color: #00529b;
-                --secondary-color: #e53935;
-                --text-color: #333;
+                --primary-color: #007bff;
+                --secondary-color: #ff6f61;
+                --text-color: #343a40;
                 --border-color: #dee2e6;
-                --background-light: #f8f9fa;
-                --white: #fff;
-                --success-color: #4CAF50;
-                --error-color: #d32f2f; /* Màu cho thông báo lỗi */
+                --light-gray: #f8f9fa;
+                --white: #ffffff;
+                --shadow: 0 5px 15px rgba(0,0,0,0.1);
+                --error-color: #d32f2f;
             }
             body {
                 font-family: 'Montserrat', sans-serif;
-                background-color: var(--background-light);
+                background-color: var(--light-gray);
                 margin: 0;
                 color: var(--text-color);
             }
+            main {
+                min-height: calc(100vh - 250px);
+            }
             .container {
-                max-width: 800px;
+                max-width: 1200px;
                 margin: 30px auto;
-                padding: 20px 40px;
+                padding: 0 20px;
+            }
+
+            /* === BỐ CỤC 2 CỘT TƯƠNG TỰ FLIGHT-DETAIL === */
+            .page-wrapper {
+                display: flex;
+                gap: 30px;
+                flex-wrap: wrap;
+            }
+            .main-content {
+                flex: 3;
+                min-width: 300px;
+            }
+            .sidebar {
+                flex: 1;
+                min-width: 280px;
+            }
+
+            /* === ÁP DỤNG KIỂU "CARD" CHO FORM VÀ SIDEBAR === */
+            .form-card, .price-summary {
                 background-color: var(--white);
                 border: 1px solid var(--border-color);
                 border-radius: 8px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+                box-shadow: var(--shadow);
             }
+            .form-card {
+                padding: 30px 40px;
+            }
+
             h1 {
                 color: var(--primary-color);
-                text-align: center;
+                margin-top: 0;
                 margin-bottom: 30px;
+                font-size: 1.8em;
             }
+
             .form-group {
                 margin-bottom: 20px;
             }
@@ -60,20 +93,23 @@
                 border-radius: 5px;
                 font-size: 1rem;
                 box-sizing: border-box;
+                font-family: 'Montserrat', sans-serif;
             }
             .form-control:focus {
                 outline: none;
                 border-color: var(--primary-color);
-                box-shadow: 0 0 5px rgba(0, 82, 155, 0.2);
+                box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
             }
             .form-row {
                 display: flex;
                 gap: 20px;
+                flex-wrap: wrap; /* Cho phép xuống hàng trên màn hình nhỏ */
             }
             .form-row .form-group {
                 flex: 1;
+                min-width: 200px; /* Đảm bảo các trường không quá hẹp */
             }
-            .btn {
+            .btn-continue {
                 display: block;
                 width: 100%;
                 padding: 15px;
@@ -86,22 +122,50 @@
                 border-radius: 5px;
                 margin-top: 20px;
                 color: var(--white);
-                background-color: var(--success-color);
+                background-color: var(--secondary-color);
                 transition: background-color 0.3s ease;
             }
-            .btn:hover {
-                background-color: #45a049;
+            .btn-continue:hover {
+                background-color: #e65c50;
             }
-
-            /* === CSS MỚI CHO VALIDATION === */
             .error-message {
                 color: var(--error-color);
                 font-size: 0.85em;
                 margin-top: 5px;
-                display: none; /* Ẩn mặc định */
+                display: none;
             }
             .form-control.error {
-                border-color: var(--error-color); /* Thêm viền đỏ khi có lỗi */
+                border-color: var(--error-color);
+            }
+
+            /* === CSS CHO SIDEBAR TÓM TẮT GIÁ (GIỮ NGUYÊN TỪ FLIGHT-DETAIL) === */
+            .price-summary-header {
+                background-color: var(--primary-color);
+                color: var(--white);
+                padding: 15px 20px;
+                border-top-left-radius: 8px;
+                border-top-right-radius: 8px;
+            }
+            .price-summary-header h3 {
+                margin: 0;
+            }
+            .price-summary-body {
+                padding: 20px;
+            }
+            .price-row {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 10px;
+            }
+            .price-total {
+                border-top: 1px solid var(--border-color);
+                margin-top: 15px;
+                padding-top: 15px;
+                font-weight: 700;
+                font-size: 1.2em;
+            }
+            .price-total .total-amount {
+                color: var(--secondary-color);
             }
         </style>
     </head>
@@ -110,144 +174,196 @@
             <jsp:include page="/WEB-INF/user/components/header.jsp" /> 
         </header>
 
-        <div class="container">
-            <h1>Thông tin hành khách</h1>
-            <p>Vui lòng điền chính xác thông tin bên dưới. Thông tin này sẽ được sử dụng để xuất vé.</p>
+        <main>
+            <%-- Tính toán giá trị thuế và giá gốc để hiển thị --%>
+            <c:set var="price" value="${param.finalPrice}" />
+            <c:set var="basePrice" value="${price / 1.08}" />
+            <c:set var="taxes" value="${price - basePrice}" />
 
-            <%-- Chú ý: form bây giờ có id="passengerForm" --%>
-            <form id="passengerForm" action="passenger" method="post">
-                <input type="hidden" name="step" value="addPassenger">
+            <div class="container">
+                <div class="page-wrapper">
+                    <div class="main-content">
+                        <div class="form-card">
+                            <h1>Thông tin hành khách</h1>
+                            <p style="margin-bottom: 30px;">Vui lòng điền chính xác thông tin bên dưới. Thông tin này sẽ được sử dụng để xuất vé.</p>
 
-                <div class="form-group">
-                    <label for="fullName">Họ và tên (như trên giấy tờ tùy thân)</label>
-                    <input type="text" id="fullName" name="fullName" class="form-control" required>
-                    <div class="error-message" id="fullNameError">Họ và tên không được để trống.</div>
+                            <form id="passengerForm" action="passenger" method="post" novalidate>
+                                <input type="hidden" name="step" value="addPassenger">
+                                <%-- Các trường ẩn để gửi thông tin chuyến bay đã chọn --%>
+                                <input type="hidden" name="flightId" value="${param.flightId}">
+                                <input type="hidden" name="selectedClass" value="${param.selectedClass}">
+                                <input type="hidden" name="finalPrice" value="${param.finalPrice}">
+
+                                <div class="form-group">
+                                    <label for="fullName">Họ và tên (như trên giấy tờ tùy thân)</label>
+                                    <input type="text" id="fullName" name="fullName" class="form-control" required>
+                                    <div class="error-message" id="fullNameError"></div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="passportNumber">Số hộ chiếu / CMND/CCCD</label>
+                                        <input type="text" id="passportNumber" name="passportNumber" class="form-control" required>
+                                        <div class="error-message" id="passportNumberError"></div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="dob">Ngày sinh</label>
+                                        <input type="date" id="dob" name="dob" class="form-control" required max="2025-07-30">
+                                        <div class="error-message" id="dobError"></div>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="gender">Giới tính</label>
+                                        <select id="gender" name="gender" class="form-control" required>
+                                            <option value="" disabled selected>-- Chọn giới tính --</option>
+                                            <option value="Nam">Nam</option>
+                                            <option value="Nữ">Nữ</option>
+                                            <option value="Khác">Khác</option>
+                                        </select>
+                                        <div class="error-message" id="genderError"></div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="country">Quốc tịch</label>
+                                        <select id="country" name="country" class="form-control" required>
+                                            <option value="Việt Nam">Việt Nam</option>
+                                            <option value="Hoa Kỳ">Hoa Kỳ</option>
+                                            <option value="Hàn Quốc">Hàn Quốc</option>
+                                            <option value="Nhật Bản">Nhật Bản</option>
+                                            <!-- Thêm các quốc gia khác nếu cần -->
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <hr style="border: none; border-top: 1px solid var(--border-color); margin: 30px 0;">
+                                <h3 style="color: var(--primary-color);">Thông tin liên hệ</h3>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="phoneNumber">Số điện thoại</label>
+                                        <input type="tel" id="phoneNumber" name="phoneNumber" class="form-control" required>
+                                        <div class="error-message" id="phoneNumberError"></div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="email">Email</label>
+                                        <input type="email" id="email" name="email" class="form-control" required>
+                                        <div class="error-message" id="emailError"></div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="address">Địa chỉ</label>
+                                    <input type="text" id="address" name="address" class="form-control" required>
+                                    <div class="error-message" id="addressError"></div>
+                                </div>
+
+                                <button type="submit" class="btn-continue">Tiếp tục đến thanh toán</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="sidebar">
+                        <div class="price-summary">
+                            <div class="price-summary-header"><h3>THÔNG TIN ĐẶT CHỖ</h3></div>
+                            <div class="price-summary-body">
+                                <h4>Chuyến đi: <span style="color: var(--secondary-color); font-weight: 700;">${param.selectedClass}</span></h4>
+                                    <c:if test="${not empty flight}">
+                                    <p style="font-weight: 500; margin-bottom: 5px;">${flight.routeFrom} - ${flight.routeTo}</p>
+                                    <p style="color: #6c757d; margin-top: 0;"><fmt:formatDate value="${flight.departureTime}" pattern="HH:mm, E, dd/MM/yyyy" /></p>
+                                </c:if>
+                                <hr>
+                                <div class="price-row">
+                                    <span>Giá vé</span>
+                                    <span><fmt:formatNumber value="${basePrice}" type="number" maxFractionDigits="0"/> VND</span>
+                                </div>
+                                <div class="price-row">
+                                    <span>Thuế, phí</span>
+                                    <span><fmt:formatNumber value="${taxes}" type="number" maxFractionDigits="0"/> VND</span>
+                                </div>
+                                <div class="price-row">
+                                    <span>Dịch vụ</span>
+                                    <span>0 VND</span>
+                                </div>
+                                <div class="price-row price-total">
+                                    <span>Tổng tiền</span>
+                                    <span class="total-amount"><fmt:formatNumber value="${price}" type="number" maxFractionDigits="0"/> VND</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </main>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="passportNumber">Số hộ chiếu / CMND/CCCD</label>
-                        <input type="text" id="passportNumber" name="passportNumber" class="form-control" required>
-                        <div class="error-message" id="passportNumberError">Số hộ chiếu không được để trống.</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="dob">Ngày sinh</label>
-                        <input type="text" id="dob" name="dob" class="form-control" placeholder="dd/MM/yyyy" required>
-                        <div class="error-message" id="dobError">Ngày sinh phải có định dạng dd/MM/yyyy.</div>
-                    </div>
-                </div>
+        <footer>
+            <jsp:include page="/WEB-INF/user/components/footer.jsp" /> 
+        </footer> 
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="gender">Giới tính</label>
-                        <select id="gender" name="gender" class="form-control" required>
-                            <option value="" disabled selected>-- Chọn giới tính --</option>
-                            <option value="Nam">Nam</option>
-                            <option value="Nữ">Nữ</option>
-                            <option value="Khác">Khác</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="country">Quốc tịch</label>
-                        <select id="country" name="country" class="form-control" required>
-                            <option value="Việt Nam">Việt Nam</option>
-                            <option value="Hoa Kỳ">Hoa Kỳ</option>
-                            <option value="Hàn Quốc">Hàn Quốc</option>
-                            <option value="Nhật Bản">Nhật Bản</option>
-                        </select>
-                    </div>
-                </div>
-
-                <hr style="border: none; border-top: 1px solid var(--border-color); margin: 30px 0;">
-                <h3>Thông tin liên hệ</h3>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="phoneNumber">Số điện thoại</label>
-                        <input type="tel" id="phoneNumber" name="phoneNumber" class="form-control" required>
-                        <div class="error-message" id="phoneNumberError">Số điện thoại không hợp lệ.</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" class="form-control" required>
-                        <div class="error-message" id="emailError">Email không hợp lệ.</div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="address">Địa chỉ</label>
-                    <input type="text" id="address" name="address" class="form-control" required>
-                    <div class="error-message" id="addressError">Địa chỉ không được để trống.</div>
-                </div>
-
-                <button type="submit" class="btn">Tiếp tục đến thanh toán</button>
-            </form>
-        </div>
-
-        <%-- SCRIPT MỚI CHO VALIDATION --%>
         <script>
-            document.getElementById('passengerForm').addEventListener('submit', function(event) {
-            // Ngăn form gửi đi ngay lập tức để kiểm tra
-            event.preventDefault();
+            document.addEventListener('DOMContentLoaded', function () {
+                const form = document.getElementById('passengerForm');
+                if (!form)
+                    return;
+
+                // Set max date for date of birth input to today
+                const dobInput = document.getElementById('dob');
+                if (dobInput) {
+                    dobInput.max = new Date().toISOString().split("T")[0];
+                }
+
+                form.addEventListener('submit', function (event) {
+                    if (!validateForm()) {
+                        event.preventDefault();
+                    }
+                });
+
+                function validateForm() {
                     let isValid = true;
-                    // BƯỚC 1: Xóa tất cả các lỗi cũ.
-                    // Đây là cách đúng để "ẩn lỗi", không cần hàm hideError()
+
                     document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
                     document.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
-                    // Hàm tiện ích để hiển thị lỗi
-                            function showError(inputId, errorId, message) {
-                            const input = document.getElementById(inputId);
-                                    const error = document.getElementById(errorId);
-                                    input.classList.add('error');
-                                    error.textContent = message;
-                                    error.style.display = 'block';
-                                    isValid = false;
-                            }
 
-                    // BƯỚC 2: Bắt đầu kiểm tra từng trường
+                    const showError = (inputId, message) => {
+                        const input = document.getElementById(inputId);
+                        const error = document.getElementById(inputId + 'Error');
+                        input.classList.add('error');
+                        if (error) {
+                            error.textContent = message;
+                            error.style.display = 'block';
+                        }
+                        isValid = false;
+                    };
 
-                    // Kiểm tra Họ và tên
-                    const fullName = document.getElementById('fullName').value.trim();
-                            if (fullName === '') {
-                    showError('fullName', 'fullNameError', 'Họ và tên không được để trống.');
-                    }
+                    // Validation logic
+                    if (document.getElementById('fullName').value.trim() === '')
+                        showError('fullName', 'Họ và tên không được để trống.');
+                    if (document.getElementById('passportNumber').value.trim() === '')
+                        showError('passportNumber', 'Số hộ chiếu/CCCD không được để trống.');
+                    if (document.getElementById('dob').value.trim() === '')
+                        showError('dob', 'Vui lòng chọn ngày sinh.');
+                    if (document.getElementById('gender').value.trim() === '')
+                        showError('genderError', 'Vui lòng chọn giới tính.'); // Custom id for select error
 
-                    // Kiểm tra Số hộ chiếu
-                    const passportNumber = document.getElementById('passportNumber').value.trim();
-                            if (passportNumber === '') {
-                    showError('passportNumber', 'passportNumberError', 'Số hộ chiếu không được để trống.');
-                    }
-
-                    // Kiểm tra Ngày sinh (định dạng dd-MM-yyyy)
-                    const dob = document.getElementById('dob').value.trim();
-                            const dateRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[012])-\d{4}$/;
-                            if (!dateRegex.test(dob)) {
-                    showError('dob', 'dobError', 'Ngày sinh phải có định dạng dd-MM-yyyy.');
-                    }
-
-                    // Kiểm tra Email
                     const email = document.getElementById('email').value.trim();
-                            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                            if (!emailRegex.test(email)) {
-                    showError('email', 'emailError', 'Địa chỉ email không hợp lệ.');
+                    if (email === '') {
+                        showError('email', 'Email không được để trống.');
+                    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                        showError('email', 'Địa chỉ email không hợp lệ.');
                     }
 
-                    // Kiểm tra Số điện thoại
                     const phoneNumber = document.getElementById('phoneNumber').value.trim();
-                            const phoneRegex = /^\d{10,11}$/; // Ví dụ: 10-11 chữ số
-                            if (!phoneRegex.test(phoneNumber)) {
-                    showError('phoneNumber', 'phoneNumberError', 'Số điện thoại phải có 10-11 chữ số.');
+                    if (phoneNumber === '') {
+                        showError('phoneNumber', 'Số điện thoại không được để trống.');
+                    } else if (!/^\d{10,11}$/.test(phoneNumber)) {
+                        showError('phoneNumber', 'Số điện thoại phải có 10-11 chữ số.');
                     }
 
-                    // Kiểm tra Địa chỉ
-                    const address = document.getElementById('address').value.trim();
-                            if (address === '') {
-                    showError('address', 'addressError', 'Địa chỉ không được để trống.');
-                    }
+                    if (document.getElementById('address').value.trim() === '')
+                        showError('address', 'Địa chỉ không được để trống.');
 
-                    // BƯỚC 3: Nếu tất cả đều hợp lệ, gửi form đi
-                    if (isValid) {
-                    this.submit();
-                    }
-                    });
-                    </body>
-            </html>
+                    return isValid;
+                }
+            });
+        </script>
+    </body>
+</html>

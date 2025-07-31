@@ -4,17 +4,10 @@
  */
 package controller.user;
 
-
 import VNPay.Config;
 import java.io.IOException;
-import java.io.PrintWriter;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -23,6 +16,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import model.Booking;
 
 /**
  *
@@ -30,47 +30,6 @@ import java.util.TimeZone;
  */
 @WebServlet(name = "PaymentProcessingController", urlPatterns = {"/process-payment"})
 public class PaymentProcessingController extends HttpServlet {
-
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet PaymentProcessingController</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet PaymentProcessingController at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
-
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
 
     /**
      * Handles the HTTP <code>POST</code> method.
@@ -83,32 +42,55 @@ public class PaymentProcessingController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Lấy dữ liệu từ session
+
+        System.out.println("================== BẮT ĐẦU XỬ LÝ GỬI YÊU CẦU THANH TOÁN ==================");
+
         HttpSession session = request.getSession();
-        model.Booking tempBooking = (model.Booking) session.getAttribute("tempBooking");
+        Booking tempBooking = (Booking) session.getAttribute("tempBooking");
 
         if (tempBooking == null) {
-            response.sendRedirect("error.jsp?message=BookingNotFound");
+            System.out.println(">>> LỖI: Không tìm thấy tempBooking trong session.");
+            response.sendRedirect(request.getContextPath() + "/home");
             return;
         }
 
-        // Kiểm tra phương thức thanh toán
-        String paymentMethod = request.getParameter("paymentMethod");
-        if ("COD".equals(paymentMethod)) {
-            // Xử lý thanh toán COD nếu cần
-            response.sendRedirect("payment-success.jsp");
-            return;
+        // ================== BẮT ĐẦU SỬA LỖI TẠI ĐÂY ==================
+        // 1. ĐỌC DỮ LIỆU TỪ FORM THAY VÌ CHỈ LẤY TỪ SESSION
+        String finalPriceStr = request.getParameter("finalPrice");
+        String voucherCode = request.getParameter("voucherCode");
+
+        if (finalPriceStr == null || finalPriceStr.isEmpty()) {
+            System.out.println(">>> LỖI: Không nhận được finalPrice từ form.");
+            // Sử dụng giá gốc nếu không có giá cuối cùng
+            finalPriceStr = String.valueOf(tempBooking.getTotalPrice());
         }
 
+        double finalPrice = Double.parseDouble(finalPriceStr);
+
+        // 2. CẬP NHẬT LẠI ĐỐI TƯỢNG BOOKING TRONG SESSION VỚI THÔNG TIN MỚI
+        tempBooking.setTotalPrice(finalPrice); // Cập nhật lại giá tiền trong booking object
+        tempBooking.setVoucherCode(voucherCode); // Lưu mã voucher vào booking object
+        session.setAttribute("tempBooking", tempBooking); // Quan trọng: Lưu lại session
+
+        System.out.println(">>> CHECKPOINT: Giá cuối cùng gửi đi: " + finalPrice + ", Voucher: " + voucherCode);
+
+        // ================== KẾT THÚC SỬA LỖI ==================
         // Bắt đầu xử lý thanh toán VNPay
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
-        String vnp_OrderInfo = "Thanh toán vé máy bay";
-        String orderType = "billpayment";
-        long amount = (long) tempBooking.getTotalPrice() * 100; // VNPay dùng đơn vị là VND * 100
-        String vnp_TxnRef = String.valueOf(System.currentTimeMillis()); // mã đơn ngẫu nhiên
 
-        String vnp_IpAddr = request.getRemoteAddr();
+        // Cập nhật OrderInfo để dễ theo dõi
+        String vnp_OrderInfo = "Thanh toan ve may bay. Ma ve: " + tempBooking.getBookingCode();
+        if (voucherCode != null && !voucherCode.isEmpty()) {
+            vnp_OrderInfo += ". Voucher: " + voucherCode;
+        }
+
+        String orderType = "other";
+        // 3. SỬ DỤNG GIÁ ĐÚNG (finalPrice) ĐỂ TẠO YÊU CẦU
+        long amount = (long) finalPrice * 100;
+        String vnp_TxnRef = Config.getRandomNumber(8);
+
+        String vnp_IpAddr = Config.getIpAddress(request);
         String vnp_TmnCode = Config.vnp_TmnCode;
 
         Map<String, String> vnp_Params = new HashMap<>();
@@ -124,54 +106,44 @@ public class PaymentProcessingController extends HttpServlet {
         vnp_Params.put("vnp_ReturnUrl", Config.vnp_ReturnUrl);
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
 
-        // Thời gian tạo và hết hạn
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         String vnp_CreateDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
 
-        cld.add(Calendar.MINUTE, 15); // Hết hạn sau 15 phút
+        cld.add(Calendar.MINUTE, 15);
         String vnp_ExpireDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
 
-        // Sắp xếp tham số
         List<String> fieldNames = new ArrayList<>(vnp_Params.keySet());
         Collections.sort(fieldNames);
         StringBuilder hashData = new StringBuilder();
         StringBuilder query = new StringBuilder();
-        for (String fieldName : fieldNames) {
-            String value = vnp_Params.get(fieldName);
-            if (hashData.length() > 0) {
-                hashData.append('&');
-                query.append('&');
-            }
-           hashData.append(fieldName).append('=').append(URLEncoder.encode(value, "UTF-8"));
 
-            query.append(fieldName).append('=').append(URLEncoder.encode(value, "UTF-8"));
+        for (String fieldName : fieldNames) {
+            String fieldValue = vnp_Params.get(fieldName);
+            if ((fieldValue != null) && (fieldValue.length() > 0)) {
+                //Build hash data
+                hashData.append(fieldName);
+                hashData.append('=');
+                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+                //Build query
+                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString()));
+                query.append('=');
+                query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+                if (!fieldName.equals(fieldNames.get(fieldNames.size() - 1))) {
+                    query.append('&');
+                    hashData.append('&');
+                }
+            }
         }
 
-        // Tạo chuỗi secure hash
         String queryUrl = query.toString();
         String vnp_SecureHash = Config.hmacSHA512(Config.vnp_HashSecret, hashData.toString());
         queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
-
-        // Tạo URL chuyển hướng
         String paymentUrl = Config.vnp_PayUrl + "?" + queryUrl;
 
-        // Redirect sang VNPay
+        System.out.println(">>> CHECKPOINT: Chuyển hướng tới URL thanh toán của VNPay.");
         response.sendRedirect(paymentUrl);
     }
-
-    
-
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
-
 }

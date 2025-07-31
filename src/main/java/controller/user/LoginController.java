@@ -95,7 +95,7 @@ public class LoginController extends HttpServlet {
                         break;
                     case "staff":
                         System.out.println("User is STAFF. Redirecting to staff dashboard...");
-                        response.sendRedirect(request.getContextPath() + "/staff/dashboard");
+                        response.sendRedirect(request.getContextPath() + "/staff");
                         break;
                     case "customer":
                     default:
@@ -161,7 +161,7 @@ public class LoginController extends HttpServlet {
                     case "staff":
                         // Chuyển hướng đến trang dashboard của nhân viên
                         System.out.println("User is STAFF. Redirecting to staff dashboard...");
-                        response.sendRedirect(request.getContextPath() + "/staff/dashboard");
+                        response.sendRedirect(request.getContextPath() + "/staff");
                         break;
                     case "customer":
                     default:

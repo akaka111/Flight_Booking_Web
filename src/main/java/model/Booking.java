@@ -19,6 +19,16 @@ public class Booking {
     private String status;
     private String seatClass; // Thêm thuộc tính này
     private double totalPrice;  // Thêm thuộc tính này
+    private String bookingCode;
+    private String voucherCode;
+
+    public String getBookingCode() {
+        return bookingCode;
+    }
+
+    public void setBookingCode(String bookingCode) {
+        this.bookingCode = bookingCode;
+    }
 
     public Booking() {
     }
@@ -33,8 +43,6 @@ public class Booking {
         this.totalPrice = totalPrice;
     }
 
-    
-    
     // Getters and Setters
     public int getBookingId() {
         return bookingId;
@@ -91,4 +99,13 @@ public class Booking {
     public void setTotalPrice(double totalPrice) {
         this.totalPrice = totalPrice;
     }
+
+    public String getVoucherCode() {
+        return voucherCode;
+    }
+
+    public void setVoucherCode(String voucherCode) {
+        this.voucherCode = voucherCode;
+    }
+
 }

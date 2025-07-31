@@ -5,6 +5,7 @@
 package controller.user;
 
 import DAO.Admin.FlightDAO;
+import DAO.Admin.TicketClassDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -12,9 +13,9 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.sql.Date;
 import java.util.List;
 import model.Flight;
+import model.TicketClass;
 
 /**
  *
@@ -64,7 +65,7 @@ public class SearchFlightController extends HttpServlet {
         String from = request.getParameter("from");
         String to = request.getParameter("to");
         String departureDateStr = request.getParameter("departureDate");
-
+        TicketClassDAO ticketDAO = new TicketClassDAO();
         List<Flight> flights = null;
 
         if (from != null && to != null && departureDateStr != null) {
@@ -73,9 +74,13 @@ public class SearchFlightController extends HttpServlet {
             FlightDAO dao = new FlightDAO();
             flights = dao.searchFlights(from, to, departureDate);
 
-            if (!flights.isEmpty()) {
+            if (flights != null && !flights.isEmpty()) {
                 Flight flight = flights.get(0);
+                int flightId = flight.getFlightId();
+                List<TicketClass> ticketClasses = ticketDAO.getTicketClassesByFlightId(flightId);
+
                 request.setAttribute("flight", flight);
+                request.setAttribute("ticketClasses", ticketClasses);
             }
 
             request.setAttribute("flights", flights);
