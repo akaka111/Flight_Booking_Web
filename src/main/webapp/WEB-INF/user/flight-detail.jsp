@@ -19,33 +19,41 @@
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
         <style>
+            /* === ĐỒNG BỘ CSS VARIABLES VỚI HOME.JSP === */
             :root {
-                --primary-color: #00529b;
-                --secondary-color: #e53935;
-                --text-color: #333;
+                --primary-color: #007bff;
+                --secondary-color: #ff6f61;
+                --text-color: #343a40;
                 --border-color: #dee2e6;
-                --background-light: #f8f9fa;
-                --white: #fff;
+                --light-gray: #f8f9fa;
+                --white: #ffffff;
+                --shadow: 0 5px 15px rgba(0,0,0,0.1);
             }
             body {
                 font-family: 'Montserrat', sans-serif;
-                background-color: var(--background-light);
+                background-color: var(--light-gray);
                 margin: 0;
             }
             .container {
                 max-width: 1200px;
-                margin: 20px auto;
+                margin: 30px auto;
                 padding: 0 20px;
+            }
+            main {
+                min-height: calc(100vh - 250px); /* Đảm bảo footer không bị bay lên nếu nội dung quá ngắn */
             }
             .page-wrapper {
                 display: flex;
                 gap: 30px;
+                flex-wrap: wrap; /* Cho phép xuống hàng trên màn hình nhỏ */
             }
             .main-content {
                 flex: 3;
+                min-width: 300px; /* Đảm bảo nội dung chính không bị quá hẹp */
             }
             .sidebar {
                 flex: 1;
+                min-width: 280px;
             }
 
             .itinerary-card, .price-summary {
@@ -53,6 +61,7 @@
                 border: 1px solid var(--border-color);
                 border-radius: 8px;
                 margin-bottom: 20px;
+                box-shadow: var(--shadow);
             }
             .itinerary-header {
                 padding: 15px 20px;
@@ -78,6 +87,7 @@
             .location .code {
                 font-size: 2em;
                 font-weight: 700;
+                color: var(--primary-color);
             }
             .location .name {
                 color: #6c757d;
@@ -105,7 +115,7 @@
             }
             .fare-option.active, .fare-option:hover {
                 border-color: var(--secondary-color);
-                background-color: #fff8f7;
+                box-shadow: 0 4px 10px rgba(255, 111, 97, 0.3);
             }
             .fare-option .class-name {
                 font-weight: 700;
@@ -147,7 +157,7 @@
             }
 
             .price-summary-header {
-                background-color: var(--secondary-color);
+                background-color: var(--primary-color);
                 color: var(--white);
                 padding: 15px 20px;
                 border-top-left-radius: 8px;
@@ -178,7 +188,7 @@
                 display: block;
                 width: 100%;
                 padding: 15px;
-                background: #f9c152;
+                background: var(--secondary-color);
                 border: none;
                 border-radius: 5px;
                 font-size: 1.1em;
@@ -186,10 +196,13 @@
                 cursor: pointer;
                 text-align: center;
                 text-decoration: none;
-                color: #333;
+                color: var(--white);
                 margin-top: 20px;
+                transition: background-color 0.3s ease;
             }
-
+            .btn-continue:hover {
+                background-color: #e65c50;
+            }
         </style>
     </head>
     <body>
@@ -197,175 +210,161 @@
         <header>
             <jsp:include page="/WEB-INF/user/components/header.jsp" /> 
         </header>
-        <c:if test="${not empty flight}">
-            <%-- Tính toán các giá trị để hiển thị --%>
-            <c:set var="basePrice" value="${flight.price / 1.1}" />
-            <c:set var="taxes" value="${flight.price - basePrice}" />
 
-            <div class="container">
-                <div class="page-wrapper">
-                    <div class="main-content">
-                        <div class="itinerary-card">
-                            <div class="itinerary-header">
-                                <div class="flight-path">
-                                    <div class="location">
-                                        <div class="code">${flight.routeFrom.substring(0,3).toUpperCase()}</div>
-                                        <div class="name">${flight.routeFrom}</div>
-                                    </div>
-                                    <i class="fa-solid fa-plane-departure flight-icon"></i>
-                                    <div class="location">
-                                        <div class="code">${flight.routeTo.substring(0,3).toUpperCase()}</div>
-                                        <div class="name">${flight.routeTo}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="itinerary-body">
-                                <%-- Sửa lại đoạn này trong flight-detail.jsp --%>
-                                <div class="fare-options">
-                                    <div class="fare-option" data-class="BUSINESS" data-price="${flight.priceBusiness}">
-                                        <span class="class-name">BUSINESS</span>
-                                        <span class="price"><fmt:formatNumber value="${flight.priceBusiness}" type="number" maxFractionDigits="0"/> <span class="currency">VND</span></span>
-                                    </div>
-                                    <div class="fare-option" data-class="SKYBOSS" data-price="${flight.priceSkyboss}">
-                                        <span class="class-name">SKYBOSS</span>
-                                        <span class="price"><fmt:formatNumber value="${flight.priceSkyboss}" type="number" maxFractionDigits="0"/> <span class="currency">VND</span></span>
-                                    </div>
-                                    <div class="fare-option" data-class="DELUXE" data-price="${flight.priceDeluxe}">
-                                        <span class="class-name">DELUXE</span>
-                                        <span class="price"><fmt:formatNumber value="${flight.priceDeluxe}" type="number" maxFractionDigits="0"/> <span class="currency">VND</span></span>
-                                    </div>
-                                    <div class="fare-option active" data-class="ECO" data-price="${flight.price}">
-                                        <span class="class-name">ECO</span>
-                                        <span class="price"><fmt:formatNumber value="${flight.price}" type="number" maxFractionDigits="0"/> <span class="currency">VND</span></span>
+        <main>
+            <c:if test="${not empty flight}">
+                <div class="container">
+                    <div class="page-wrapper">
+                        <div class="main-content">
+                            <div class="itinerary-card">
+                                <div class="itinerary-header">
+                                    <div class="flight-path">
+                                        <div class="location">
+                                            <div class="code">${flight.routeFrom.substring(0,3).toUpperCase()}</div>
+                                            <div class="name">${flight.routeFrom}</div>
+                                        </div>
+                                        <i class="fa-solid fa-plane-departure flight-icon"></i>
+                                        <div class="location">
+                                            <div class="code">${flight.routeTo.substring(0,3).toUpperCase()}</div>
+                                            <div class="name">${flight.routeTo}</div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="flight-timeline">
-                                    <div class="time-point">
-                                        <div class="time-info"><fmt:formatDate value="${flight.departureTime}" pattern="HH:mm" /></div>
-                                        <div class="location-info">${flight.routeFrom}</div>
+                                <div class="itinerary-body">
+                                    <div class="fare-options">
+                                        <c:forEach var="ticket" items="${ticketClasses}">
+                                            <div class="fare-option ${ticket.className == 'ECO' ? 'active' : ''}"
+                                                 data-class="${ticket.className}" 
+                                                 data-price="${ticket.price}">
+                                                <span class="class-name">${ticket.className}</span>
+                                                <span class="price">
+                                                    <fmt:formatNumber value="${ticket.price}" type="number" maxFractionDigits="0"/> 
+                                                    <span class="currency">VND</span>
+                                                </span>
+                                            </div>
+                                        </c:forEach>
                                     </div>
-                                    <div class="time-point" style="border: none; padding-left: 20px;">
-                                        <i class="fa-regular fa-clock"></i> Bay thẳng
-                                    </div>
-                                    <div class="time-point">
-                                        <div class="time-info"><fmt:formatDate value="${flight.arrivalTime}" pattern="HH:mm" /></div>
-                                        <div class="location-info">${flight.routeTo}</div>
+
+                                    <div class="flight-timeline">
+                                        <div class="time-point">
+                                            <div class="time-info"><fmt:formatDate value="${flight.departureTime}" pattern="HH:mm" /></div>
+                                            <div class="location-info">${flight.routeFrom}</div>
+                                        </div>
+                                        <div class="time-point" style="border: none; padding-left: 20px;">
+                                            <i class="fa-regular fa-clock"></i> Bay thẳng
+                                        </div>
+                                        <div class="time-point">
+                                            <div class="time-info"><fmt:formatDate value="${flight.arrivalTime}" pattern="HH:mm" /></div>
+                                            <div class="location-info">${flight.routeTo}</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <%-- Sửa lại đoạn này trong flight-detail.jsp --%>
-                    <div class="sidebar">
-                        <div class="price-summary">
-                            <div class="price-summary-header"><h3>THÔNG TIN ĐẶT CHỖ</h3></div>
-                            <form action="booking-confirmation" method="post">
-                                <div class="price-summary-body">
-                                    <h4>Chuyến đi: <span id="flight-class-summary" style="color: var(--secondary-color)"></span></h4>
-                                    <p>${flight.routeFrom} - ${flight.routeTo}</p>
-                                    <hr>
-                                    <div class="price-row">
-                                        <span>Giá vé</span>
-                                        <span id="summary-base-price">...</span>
-                                    </div>
-                                    <div class="price-row">
-                                        <span>Thuế, phí</span>
-                                        <span id="summary-taxes">...</span>
-                                    </div>
-                                    <div class="price-row">
-                                        <span>Dịch vụ</span>
-                                        <span>0 VND</span>
-                                    </div>
-                                    <div class="price-row price-total">
-                                        <span>Tổng tiền</span>
-                                        <span class="total-amount" id="summary-total-price">...</span>
-                                    </div>
+                        <div class="sidebar">
+                            <div class="price-summary">
+                                <div class="price-summary-header"><h3>THÔNG TIN ĐẶT CHỖ</h3></div>
+                                <form action="passenger" method="get">
+                                    <div class="price-summary-body">
+                                        <h4>Chuyến đi: <span id="flight-class-summary" style="color: var(--secondary-color)"></span></h4>
+                                        <p>${flight.routeFrom} - ${flight.routeTo}</p>
+                                        <hr>
+                                        <div class="price-row">
+                                            <span>Giá vé</span>
+                                            <span id="summary-base-price">...</span>
+                                        </div>
+                                        <div class="price-row">
+                                            <span>Thuế, phí</span>
+                                            <span id="summary-taxes">...</span>
+                                        </div>
+                                        <div class="price-row">
+                                            <span>Dịch vụ</span>
+                                            <span>0 VND</span>
+                                        </div>
+                                        <div class="price-row price-total">
+                                            <span>Tổng tiền</span>
+                                            <span class="total-amount" id="summary-total-price">...</span>
+                                        </div>
 
-                                    <!-- Input ẩn để gửi dữ liệu -->
-                                    <input type="hidden" name="flightId" value="${flight.flightId}">
-                                    <input type="hidden" name="selectedClass" id="selectedClass" value="">
-                                    <input type="hidden" name="finalPrice" id="finalPrice" value="">
+                                        <input type="hidden" name="flightId" value="${flight.flightId}">
+                                        <input type="hidden" name="selectedClass" id="selectedClass" value="">
+                                        <input type="hidden" name="finalPrice" id="finalPrice" value="">
 
-                                    <button type="submit" class="btn-continue">Đi tiếp</button>
-                                </div>
-                            </form>
+                                        <button type="submit" class="btn-continue">Đi tiếp</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </c:if>
-        <c:if test="${empty flight}">
-            <div class="container">
-                <h2>Không tìm thấy chuyến bay</h2>
-                <p>Rất tiếc, chuyến bay với ID bạn cung cấp không tồn tại hoặc đã bị xóa.</p>
-                <a href="home">Quay về trang chủ</a>
-            </div>
-        </c:if>
-        <%-- Dán đoạn này vào ngay trước thẻ </body> --%>
+            </c:if>
+            <c:if test="${empty flight}">
+                <div class="container">
+                    <h2>Không tìm thấy chuyến bay</h2>
+                    <p>Rất tiếc, chuyến bay với ID bạn cung cấp không tồn tại hoặc đã bị xóa.</p>
+                    <a href="home">Quay về trang chủ</a>
+                </div>
+            </c:if>
+        </main>
+
+        <footer>
+            <jsp:include page="/WEB-INF/user/components/footer.jsp" /> 
+        </footer> 
+
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 const fareOptions = document.querySelectorAll('.fare-option');
+                if (!fareOptions.length)
+                    return; // Thoát nếu không có lựa chọn nào
 
-                // Lấy các phần tử trong sidebar để cập nhật
                 const summaryClass = document.getElementById('flight-class-summary');
                 const summaryBasePrice = document.getElementById('summary-base-price');
                 const summaryTaxes = document.getElementById('summary-taxes');
                 const summaryTotalPrice = document.getElementById('summary-total-price');
-
-                // Lấy các input ẩn trong form
                 const selectedClassInput = document.getElementById('selectedClass');
                 const finalPriceInput = document.getElementById('finalPrice');
 
-                // Hàm định dạng tiền tệ Việt Nam
                 function formatCurrency(value) {
                     return new Intl.NumberFormat('vi-VN', {style: 'decimal'}).format(value) + ' VND';
                 }
 
-                // Hàm cập nhật bảng tóm tắt
                 function updateSummary(selectedElement) {
+                    if (!selectedElement)
+                        return;
                     const price = parseFloat(selectedElement.dataset.price);
                     const className = selectedElement.dataset.class;
 
-                    // Giả sử thuế VAT là 10%, bạn có thể thay đổi công thức này
-                    const basePrice = price / 1.1;
+                    // Giả sử thuế VAT là 8%, bạn nên điều chỉnh công thức này cho đúng
+                    const basePrice = price / 1.08;
                     const taxes = price - basePrice;
 
-                    // Cập nhật phần hiển thị trên sidebar
                     if (summaryClass)
                         summaryClass.textContent = className;
                     if (summaryBasePrice)
-                        summaryBasePrice.textContent = formatCurrency(basePrice.toFixed(0));
+                        summaryBasePrice.textContent = formatCurrency(Math.round(basePrice));
                     if (summaryTaxes)
-                        summaryTaxes.textContent = formatCurrency(taxes.toFixed(0));
+                        summaryTaxes.textContent = formatCurrency(Math.round(taxes));
                     if (summaryTotalPrice)
                         summaryTotalPrice.textContent = formatCurrency(price);
-
-                    // Cập nhật giá trị vào các input ẩn để gửi đi khi submit form
                     if (selectedClassInput)
                         selectedClassInput.value = className;
                     if (finalPriceInput)
                         finalPriceInput.value = price;
                 }
 
-                // Gắn sự kiện click cho từng thẻ hạng vé
                 fareOptions.forEach(option => {
                     option.addEventListener('click', function () {
-                        // Xóa class 'active' khỏi tất cả các thẻ
                         fareOptions.forEach(opt => opt.classList.remove('active'));
-                        // Thêm class 'active' vào thẻ vừa được click
                         this.classList.add('active');
-                        // Gọi hàm cập nhật bảng giá
                         updateSummary(this);
                     });
                 });
 
-                // Tự động cập nhật giá cho hạng vé đang active khi tải trang
                 const initialActiveOption = document.querySelector('.fare-option.active');
                 if (initialActiveOption) {
                     updateSummary(initialActiveOption);
                 }
             });
         </script>
-
     </body>
 </html>

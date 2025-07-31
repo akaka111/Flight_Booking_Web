@@ -5,6 +5,7 @@
 package controller.user;
 
 import DAO.Admin.FlightDAO;
+import DAO.Admin.TicketClassDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -12,8 +13,11 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import model.Flight;
+import model.TicketClass;
 
 /**
  *
@@ -60,32 +64,26 @@ public class HomepageController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        System.out.println("--- Bắt đầu xử lý HomepageController ---"); // Log bắt đầu
         try {
             FlightDAO dao = new FlightDAO();
-            List<Flight> flights = dao.getAllFlights();
+            TicketClassDAO ticketDAO = new TicketClassDAO();
+            List<Flight> flights = dao.getFlightsToday();
 
-            // === DÒNG DEBUG QUAN TRỌNG ===
-            if (flights != null) {
-                System.out.println("==> FlightDAO đã trả về danh sách. Số lượng: " + flights.size());
-                if (!flights.isEmpty()) {
-                    // In ra thông tin chuyến bay đầu tiên để kiểm tra
-                    Flight firstFlight = flights.get(0);
-                    System.out.println("==> Chuyến bay đầu tiên: " + firstFlight.getFlightNumber()
-                            + " | Giá: " + firstFlight.getPrice());
-                }
-            } else {
-                System.out.println("==> LỖI: FlightDAO trả về NULL!");
+            // Map chứa flightId -> giá Eco
+            Map<Integer, Double> ecoPrices = new HashMap<>();
+            for (Flight flight : flights) {
+                int flightId = flight.getFlightId();
+                Double price = ticketDAO.getEcoPriceByFlightId(flightId);
+                ecoPrices.put(flightId, price != null ? price : 0.0);
             }
-            // =============================
 
             request.setAttribute("flights", flights);
+            request.setAttribute("ecoPrices", ecoPrices);
+
         } catch (Exception e) {
-            System.out.println("==> LỖI NGOẠI LỆ TRONG SERVLET: ");
-            e.printStackTrace(); // In ra chi tiết lỗi nếu có
+            e.printStackTrace();
         }
 
-        System.out.println("--- Chuyển hướng đến home.jsp ---"); // Log kết thúc
         request.getRequestDispatcher("/WEB-INF/views/home.jsp").forward(request, response);
     }
 

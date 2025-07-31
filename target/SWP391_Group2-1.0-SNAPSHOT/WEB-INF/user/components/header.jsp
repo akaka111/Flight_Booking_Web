@@ -114,7 +114,7 @@
             <a href="home">Trang Chủ</a>
             <a href="#">Khuyến Mãi</a>
             <a href="#">Quản Lý Đặt Chỗ</a>
-            <a href="#">Liên Hệ</a>
+            <a href="ContactSupport">Liên Hệ</a>
         </nav>
         <%-- ================== PHẦN HIỂN THỊ ĐỘNG ================== --%>
         <div class="auth-buttons">

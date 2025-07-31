@@ -22,7 +22,7 @@
         <li><a href="${pageContext.request.contextPath}/AirlineAdmin"><i class="fa-solid fa-building"></i> Quản Lý Hãng Bay</a></li>
         <li><a href="${pageContext.request.contextPath}/manageVouchers"><i class="fa-solid fa-ticket"></i> Quản Lý Voucher</a></li>
         <li><a href="statistics.jsp"><i class="fa-solid fa-chart-line"></i> Thống Kê</a></li>
-        <li><a href="settings.jsp"><i class="fa-solid fa-cog"></i> Cài Đặt</a></li>
+        <li><a href="AdminChangePassword"><i class="fa-solid fa-cog"></i>Đổi Mật Khẩu</a></li>
         <li><a href="support.jsp"><i class="fa-solid fa-headset"></i> Hỗ Trợ</a></li>
     </ul>
 </div>

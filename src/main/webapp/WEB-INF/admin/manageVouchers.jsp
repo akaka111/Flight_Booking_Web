@@ -77,7 +77,7 @@
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>STT</th>
                             <th>Code</th>
                             <th>Discount %</th>
                             <th>Valid From</th>
@@ -87,9 +87,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <c:forEach var="v" items="${list}">
+                        <c:forEach var="v" items="${list}" varStatus="status">
                             <tr>
-                                <td>${v.voucher_id}</td>
+                                <td>${status.index + 1}</td>
                                 <td>${v.code}</td>
                                 <td>${v.discount_percent}</td>
                                 <td>${v.valid_from}</td>

@@ -72,7 +72,7 @@
         <table class="table table-bordered">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>STT</th>
                     <th>Tên</th>
                     <th>Email</th>
                     <th>Điện thoại</th>
@@ -82,9 +82,9 @@
                 </tr>
             </thead>
             <tbody>
-                <c:forEach var="user" items="${accountList}">
+                <c:forEach var="user" items="${accountList}" varStatus="status">
                     <tr>
-                        <td>${user.userId}</td>
+                        <td>${status.index + 1}</td>
                         <td>
                             <c:choose>
                                 <c:when test="${not empty user.fullname}">

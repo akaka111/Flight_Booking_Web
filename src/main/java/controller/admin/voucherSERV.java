@@ -89,7 +89,7 @@ public class voucherSERV extends HttpServlet {
 
         List<Voucher> list = dao.getAllVouchers();
         request.setAttribute("list", list);
-        request.setAttribute("message", "No voucher");
+        
         request.getRequestDispatcher("/WEB-INF/admin/manageVouchers.jsp").forward(request, response);
     }
 

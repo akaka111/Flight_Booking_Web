@@ -1,0 +1,111 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
+ */
+package controller.user;
+
+import DAO.Admin.BookingDAO;
+import DAO.Admin.PassengerDAO;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import model.Booking;
+import model.Passenger;
+import model.Account;
+import utils.DBContext;
+
+@WebServlet(name = "PassengerController", urlPatterns = {"/passenger"})
+public class PassengerController extends HttpServlet {
+
+    /**
+     * HIỂN THỊ TRANG NHẬP THÔNG TIN HÀNH KHÁCH Sẽ được gọi khi người dùng nhấn
+     * "Đi tiếp" từ trang flight-detail.jsp
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            int flightId = Integer.parseInt(request.getParameter("flightId"));
+            String selectedClass = request.getParameter("selectedClass");
+            double finalPrice = Double.parseDouble(request.getParameter("finalPrice"));
+
+            HttpSession session = request.getSession();
+            Account account = (Account) session.getAttribute("user");
+
+            if (account == null) {
+                request.getRequestDispatcher("/WEB-INF/common/Login.jsp").forward(request, response);
+                return;
+            }
+
+            Booking tempBooking = new Booking();
+            tempBooking.setUserId(account.getUserId());
+            tempBooking.setFlightId(flightId);
+            tempBooking.setBookingDate(new Timestamp(System.currentTimeMillis()));
+            tempBooking.setSeatClass(selectedClass);
+            tempBooking.setTotalPrice(finalPrice);
+            tempBooking.setStatus("PENDING");
+            tempBooking.setBookingCode("TEMP_" + System.currentTimeMillis());
+
+            session.setAttribute("tempBooking", tempBooking);
+
+            RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/user/passenger.jsp");
+            dispatcher.forward(request, response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendRedirect("error.jsp?message=BookingCreationError");
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        request.setCharacterEncoding("UTF-8");
+        HttpSession session = request.getSession();
+
+        String step = request.getParameter("step");
+
+        if ("addPassenger".equals(step)) {
+            try {
+                Booking booking = (Booking) session.getAttribute("tempBooking");
+                if (booking == null) {
+                    response.sendRedirect("error.jsp?message=BookingNotFound");
+                    return;
+                }
+
+                Passenger tempPassenger = new Passenger();
+                tempPassenger.setFullName(request.getParameter("fullName"));
+                tempPassenger.setPassportNumber(request.getParameter("passportNumber"));
+                tempPassenger.setGender(request.getParameter("gender"));
+                tempPassenger.setPhoneNumber(request.getParameter("phoneNumber"));
+                tempPassenger.setEmail(request.getParameter("email"));
+                tempPassenger.setCountry(request.getParameter("country"));
+                tempPassenger.setAddress(request.getParameter("address"));
+
+                String dobStr = request.getParameter("dob");
+                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+                java.util.Date utilDate = sdf.parse(dobStr);
+                java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
+
+                tempPassenger.setDob(sqlDate);
+
+                session.setAttribute("tempPassenger", tempPassenger);
+
+                request.getRequestDispatcher("/WEB-INF/user/payment.jsp").forward(request, response);
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.sendRedirect("error.jsp?message=PassengerInsertError");
+            }
+        }
+    }
+}
