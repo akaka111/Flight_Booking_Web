@@ -29,7 +29,7 @@ public class FlightDAO extends DBContext {
                 f.setRouteTo(rs.getString("route_to"));
                 f.setDepartureTime(rs.getTimestamp("departure_time"));
                 f.setArrivalTime(rs.getTimestamp("arrival_time"));
-                f.setPrice(rs.getDouble("price"));
+                //f.setPrice(rs.getDouble("price"));
                 f.setAircraft(rs.getString("aircraft"));
                 f.setStatus(rs.getString("status"));
                 flights.add(f);
@@ -69,8 +69,8 @@ public class FlightDAO extends DBContext {
     }
 
     public void insertFlight(Flight f) {
-        String sql = "INSERT INTO Flight (flight_number, route_from, route_to, departure_time, arrival_time, price, aircraft, status) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Flight (flight_number, route_from, route_to, departure_time, arrival_time, aircraft, status) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -79,9 +79,8 @@ public class FlightDAO extends DBContext {
             ps.setString(3, f.getRouteTo());
             ps.setTimestamp(4, f.getDepartureTime());
             ps.setTimestamp(5, f.getArrivalTime());
-            ps.setDouble(6, f.getPrice());
-            ps.setString(7, f.getAircraft());
-            ps.setString(8, f.getStatus());
+            ps.setString(6, f.getAircraft());
+            ps.setString(7, f.getStatus());
 
             ps.executeUpdate();
 
@@ -185,6 +184,4 @@ public class FlightDAO extends DBContext {
         return list;
     }
 
-    
-    
 }

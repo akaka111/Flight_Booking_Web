@@ -1,6 +1,6 @@
 <%-- 
     Document   : checkinSearch
-    Created on : 1 Aug 2025, 02:33:12
+    Created on : 1 Aug 2025
     Author     : Admin
 --%>
 
@@ -42,62 +42,6 @@
                 color: var(--text-color);
             }
 
-            .container {
-                max-width: 600px;
-                margin: 100px auto;
-                padding: 30px;
-                background-color: var(--white);
-                border-radius: 10px;
-                box-shadow: var(--shadow);
-                border: 1px solid #dee2e6;
-            }
-
-            h2 {
-                text-align: center;
-                color: var(--primary-color);
-                margin-bottom: 25px;
-            }
-
-            label {
-                display: block;
-                margin-bottom: 8px;
-                font-weight: 500;
-            }
-
-            input[type="text"] {
-                width: 100%;
-                padding: 12px;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                margin-bottom: 20px;
-                font-size: 1em;
-            }
-
-            input[type="submit"] {
-                width: 100%;
-                padding: 12px;
-                background-color: var(--secondary-color);
-                color: var(--white);
-                border: none;
-                border-radius: 5px;
-                font-size: 1em;
-                font-weight: 600;
-                cursor: pointer;
-                transition: background-color 0.3s ease;
-            }
-
-            input[type="submit"]:hover {
-                background-color: #e65c50;
-            }
-
-            .error-message {
-                color: red;
-                text-align: center;
-                margin-top: 15px;
-                font-weight: 500;
-            }
-
-            /* Header */
             .main-header {
                 background-color: var(--white);
                 box-shadow: var(--shadow);
@@ -167,25 +111,94 @@
             .btn-register:hover {
                 background-color: #0056b3;
             }
+
+            /* === Check-in Section === */
+            .checkin-section {
+                padding: 80px 20px;
+            }
+
+            .checkin-container {
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 40px;
+                background-color: var(--white);
+                border-radius: 10px;
+                box-shadow: var(--shadow);
+                border: 1px solid #dee2e6;
+            }
+
+            .checkin-container h2 {
+                text-align: center;
+                color: var(--primary-color);
+                margin-bottom: 25px;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 500;
+            }
+
+            input[type="text"] {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                margin-bottom: 20px;
+                font-size: 1em;
+            }
+
+            input[type="submit"] {
+                width: 100%;
+                padding: 12px;
+                background-color: var(--secondary-color);
+                color: var(--white);
+                border: none;
+                border-radius: 5px;
+                font-size: 1em;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+            }
+
+            input[type="submit"]:hover {
+                background-color: #e65c50;
+            }
+
+            .error-message {
+                color: red;
+                text-align: center;
+                margin-top: 15px;
+                font-weight: 500;
+            }
         </style>
     </head>
     <body>
+
+        <!-- ===== HEADER ===== -->
         <header>
             <jsp:include page="/WEB-INF/user/components/header.jsp" /> 
         </header>
-        <div class="container">
-            <h2>Check-in Online</h2>
-            <form action="checkin-search" method="get">
-                <label for="bookingCode">Nhập mã đặt chỗ (Booking Code):</label>
-                <input type="text" name="bookingCode" id="bookingCode" required />
-                <input type="submit" value="Tìm kiếm đặt chỗ" />
-            </form>
 
-            <c:if test="${not empty error}">
-                <p class="error-message">${error}</p>
-            </c:if>
-        </div>
- 
+        <!-- ===== CHECK-IN SEARCH SECTION ===== -->
+        <section class="checkin-section">
+            <div class="checkin-container">
+                <h2>Check-in Online</h2>
+                <form action="checkin-search" method="get">
+                    <label for="bookingCode"><i class="fa-solid fa-ticket"></i> Nhập mã đặt chỗ (Booking Code):</label>
+                    <input type="text" name="bookingCode" id="bookingCode" required placeholder="VD: ABC123" />
+                    <input type="submit" value="Tìm kiếm đặt chỗ" />
+                </form>
+
+                <c:if test="${not empty error}">
+                    <p class="error-message">${error}</p>
+                </c:if>
+            </div>
+        </section>
+
+        <!-- ===== FOOTER (optional) ===== -->
+        <footer>
+            <jsp:include page="/WEB-INF/user/components/footer.jsp" />
+        </footer>
     </body>
 </html>
-

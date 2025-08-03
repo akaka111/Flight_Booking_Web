@@ -66,6 +66,7 @@ public class PassengerController extends HttpServlet {
         }
     }
 
+    // ... (Các phần import và doGet giữ nguyên)
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -77,12 +78,14 @@ public class PassengerController extends HttpServlet {
 
         if ("addPassenger".equals(step)) {
             try {
+                // Lấy booking tạm từ session
                 Booking booking = (Booking) session.getAttribute("tempBooking");
                 if (booking == null) {
                     response.sendRedirect("error.jsp?message=BookingNotFound");
                     return;
                 }
 
+                // Tạo và lưu thông tin hành khách tạm
                 Passenger tempPassenger = new Passenger();
                 tempPassenger.setFullName(request.getParameter("fullName"));
                 tempPassenger.setPassportNumber(request.getParameter("passportNumber"));
@@ -93,15 +96,20 @@ public class PassengerController extends HttpServlet {
                 tempPassenger.setAddress(request.getParameter("address"));
 
                 String dobStr = request.getParameter("dob");
-                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+                // LƯU Ý: Định dạng ngày tháng của input type="date" là yyyy-MM-dd
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 java.util.Date utilDate = sdf.parse(dobStr);
                 java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
-
                 tempPassenger.setDob(sqlDate);
 
                 session.setAttribute("tempPassenger", tempPassenger);
 
-                request.getRequestDispatcher("/WEB-INF/user/payment.jsp").forward(request, response);
+                // === THAY ĐỔI QUAN TRỌNG Ở ĐÂY ===
+                // SAI: request.getRequestDispatcher("/WEB-INF/user/seatSelection.jsp").forward(request, response);
+                // ĐÚNG: Chuyển hướng đến ManageSeatController và gửi kèm flightId
+                // Controller sẽ lấy flightId này để truy vấn danh sách ghế
+                response.sendRedirect("manageSeatController?flightId=" + booking.getFlightId());
+
             } catch (Exception e) {
                 e.printStackTrace();
                 response.sendRedirect("error.jsp?message=PassengerInsertError");

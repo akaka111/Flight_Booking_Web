@@ -25,145 +25,256 @@
 %>
 
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Check-in Online</title>
-        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Check-in Online</title>
 
-        <style>
-            body {
-                font-family: 'Montserrat', sans-serif;
-                background-color: #f8f9fa;
-                color: #343a40;
-                padding: 50px 20px;
-            }
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
 
-            .checkin-container {
-                max-width: 700px;
-                margin: 0 auto;
-                background: #fff;
-                padding: 30px;
-                border-radius: 10px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            }
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
-            h2 {
-                text-align: center;
-                margin-bottom: 30px;
-                color: #007bff;
-            }
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #ff6f61;
+            --text-color: #343a40;
+            --light-gray: #f8f9fa;
+            --white: #ffffff;
+            --shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
 
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-bottom: 20px;
-            }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-            td {
-                padding: 12px;
-                border: 1px solid #dee2e6;
-            }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--light-gray);
+            color: var(--text-color);
+        }
 
-            .alert {
-                padding: 15px;
-                border-radius: 5px;
-                margin-bottom: 20px;
-            }
+        .main-header {
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
 
-            .alert-error {
-                background-color: #f8d7da;
-                color: #721c24;
-            }
+        .main-header .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-            .alert-success {
-                background-color: #d4edda;
-                color: #155724;
-            }
+        .logo {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
 
-            .alert-warning {
-                background-color: #fff3cd;
-                color: #856404;
-            }
+        .main-nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
 
-            .btn-checkin {
-                display: block;
-                width: 100%;
-                background-color: #28a745;
-                color: #fff;
-                padding: 12px;
-                font-size: 1.1em;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                transition: background-color 0.3s ease;
-            }
+        .main-nav a:hover {
+            color: var(--primary-color);
+        }
 
-            .btn-checkin:hover {
-                background-color: #218838;
-            }
+        .auth-buttons .btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
 
-            .text-center {
-                text-align: center;
-            }
-        </style>
-    </head>
-    <body>
-        <header>
-            <jsp:include page="/WEB-INF/user/components/header.jsp" /> 
-        </header>
+        .btn-login {
+            background-color: transparent;
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
 
-        <div class="checkin-container">
-            <h2><i class="fa-solid fa-plane"></i> Check-in Online</h2>
+        .btn-login:hover {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
 
-            <c:if test="${not empty error}">
-                <div class="alert alert-error">${error}</div>
-            </c:if>
-            <c:if test="${not empty message}">
-                <div class="alert alert-success">${message}</div>
-            </c:if>
+        .btn-register {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
 
-            <c:choose>
-                <c:when test="${booking != null && flight != null}">
-                    <table>
-                        <tr><td>Mã đặt chỗ:</td><td><%= booking.getBookingCode()%></td></tr>
-                        <tr><td>Chuyến bay:</td><td><%= flight.getFlightNumber()%></td></tr>
-                        <tr><td>Điểm đi:</td><td><%= flight.getRouteFrom()%></td></tr>
-                        <tr><td>Điểm đến:</td><td><%= flight.getRouteTo()%></td></tr>
-                        <tr><td>Giờ khởi hành:</td>
-                            <td><%= departureTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))%></td>
-                        </tr>
-                        <tr><td>Trạng thái check-in:</td><td><%= booking.getCheckinStatus()%></td></tr>
-                    </table>
+        .btn-register:hover {
+            background-color: #0056b3;
+        }
 
-                    <%
-                        if (now.isBefore(openTime)) {
-                    %>
-                    <div class="alert alert-warning">Chưa đến giờ check-in. Hệ thống sẽ mở vào lúc <strong><%= openTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))%></strong></div>
-                    <%
-                    } else if (now.isAfter(closeTime)) {
-                    %>
-                    <div class="alert alert-error">Đã hết hạn check-in. Check-in đóng lúc <strong><%= closeTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))%></strong></div>
-                    <%
-                    } else if ("Checked-in".equalsIgnoreCase(booking.getCheckinStatus())) {
-                    %>
+        .checkin-section {
+            padding: 80px 20px;
+        }
+
+        .checkin-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            border: 1px solid #dee2e6;
+        }
+
+        .checkin-container h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+        }
+
+        .error-message {
+            color: red;
+            text-align: center;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .checkin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 1em;
+        }
+
+        .checkin-table th, .checkin-table td {
+            padding: 12px 15px;
+            border: 1px solid #dee2e6;
+            text-align: left;
+        }
+
+        .checkin-table th {
+            background-color: #f1f1f1;
+            font-weight: 600;
+            color: #333;
+            width: 35%;
+        }
+
+        .checkin-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .checkin-table tr:hover {
+            background-color: #f1f8ff;
+        }
+
+        .btn {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background-color: var(--secondary-color);
+            color: var(--white);
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #e65c50;
+        }
+    </style>
+</head>
+<body>
+<jsp:include page="/WEB-INF/user/components/header.jsp" />
+
+<section class="checkin-section">
+    <div class="checkin-container">
+        <h2><i class="fa-solid fa-plane"></i> Check-in Online</h2>
+
+        <c:if test="${not empty error}">
+            <div class="alert alert-error">${error}</div>
+        </c:if>
+        <c:if test="${not empty message}">
+            <div class="alert alert-success">${message}</div>
+        </c:if>
+
+        <c:choose>
+            <c:when test="${booking != null && flight != null}">
+                <table class="checkin-table">
+                    <tr><th>Mã đặt chỗ</th><td>${booking.bookingCode}</td></tr>
+                    <tr><th>Chuyến bay</th><td>${flight.flightNumber}</td></tr>
+                    <tr><th>Điểm đi</th><td>${flight.routeFrom}</td></tr>
+                    <tr><th>Điểm đến</th><td>${flight.routeTo}</td></tr>
+                    <tr><th>Giờ khởi hành</th><td><fmt:formatDate value="${flight.departureTime}" pattern="yyyy-MM-dd HH:mm" /></td></tr>
+                    <tr><th>Trạng thái check-in</th><td>${booking.checkinStatus}</td></tr>
+                </table>
+
+                <% if (now.isBefore(openTime)) { %>
+                    <div class="alert alert-warning">
+                        Chưa đến giờ check-in. Hệ thống sẽ mở vào lúc <strong><%= openTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) %></strong>
+                    </div>
+                <% } else if (now.isAfter(closeTime)) { %>
+                    <div class="alert alert-error">
+                        Đã hết hạn check-in. Check-in đóng lúc <strong><%= closeTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) %></strong>
+                    </div>
+                <% } else if ("Checked-in".equalsIgnoreCase(booking.getCheckinStatus())) { %>
                     <div class="alert alert-success">Bạn đã check-in thành công.</div>
-                    <%
-                    } else {
-                    %>
-                    <form action="checkinController" method="post">
-                        <input type="hidden" name="bookingId" value="<%= booking.getBookingId()%>"/>
-                        <button type="submit" class="btn-checkin">Check-in ngay</button>
+                <% } else { %>
+                    <form action="checkinController" method="get">
+                        <input type="hidden" name="step" value="confirm" />
+                        <input type="hidden" name="bookingId" value="<%= booking.getBookingId() %>" />
+                        <button type="submit" class="btn"><i class="fa-solid fa-circle-right"></i> Tiếp tục</button>
                     </form>
-                    <%
-                        }
-                    %>
-                </c:when>
-                <c:otherwise>
-                    <div class="alert alert-error">Không tìm thấy thông tin đặt chỗ phù hợp.</div>
-                </c:otherwise>
-            </c:choose>
-        </div>
+                <% } %>
+            </c:when>
+            <c:otherwise>
+                <div class="alert alert-error">Không tìm thấy thông tin đặt chỗ phù hợp.</div>
+            </c:otherwise>
+        </c:choose>
+    </div>
+</section>
 
+<jsp:include page="/WEB-INF/user/components/footer.jsp" />
+</body>
 </html>

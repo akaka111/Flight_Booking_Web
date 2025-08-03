@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package controller.user;
 
 import DAO.Admin.BookingDAO;
@@ -21,199 +17,111 @@ import model.CheckIn;
 import model.Flight;
 import model.Passenger;
 
-/**
- *
- * @author Admin
- */
 @WebServlet(name = "CheckinController", urlPatterns = {"/checkinController"})
 public class CheckinController extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet CheckinController</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet CheckinController at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
-
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String code = request.getParameter("code");
+        String step = request.getParameter("step");
+        if (step == null || step.equals("enter")) {
+            request.getRequestDispatcher("/WEB-INF/user/checkin_enter_code.jsp").forward(request, response);
+        } else if (step.equals("flight")) {
+            String code = request.getParameter("code");
+            BookingDAO bookingDAO = new BookingDAO();
+            Booking booking = bookingDAO.getBookingByCode(code);
 
-        if (code == null || code.trim().isEmpty()) {
-            request.setAttribute("error", "Vui lòng nhập mã đặt chỗ.");
-            request.getRequestDispatcher("/WEB-INF/user/checkin.jsp").forward(request, response);
-            return;
-        }
+            System.out.println("DEBUG - Mã code nhập vào: " + code);
+            System.out.println("DEBUG - Booking tìm được: " + (booking != null ? booking.getBookingCode() : "null"));
 
-        BookingDAO bookingDAO = new BookingDAO();
-        Booking booking = bookingDAO.getBookingByCode(code); // phải có hàm này
-
-        if (booking == null) {
-            request.setAttribute("error", "Không tìm thấy thông tin đặt chỗ phù hợp.");
-            request.getRequestDispatcher("/WEB-INF/user/checkin.jsp").forward(request, response);
-            return;
-        }
-
-        FlightDAO flightDAO = new FlightDAO();
-        Flight flight = flightDAO.getFlightById(booking.getFlightId());
-
-        request.setAttribute("booking", booking);
-        request.setAttribute("flight", flight);
-        request.getRequestDispatcher("/WEB-INF/user/checkin.jsp").forward(request, response);
-    }
-
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        int bookingId = Integer.parseInt(request.getParameter("bookingId"));
-        System.out.println("=== DEBUG: bookingId = " + bookingId);
-
-        BookingDAO bookingDAO = new BookingDAO();
-        Booking booking = bookingDAO.getBookingById(bookingId);
-
-        if (booking == null) {
-            request.setAttribute("error", "Không tìm thấy thông tin đặt chỗ.");
-            request.getRequestDispatcher("/WEB-INF/user/checkin.jsp").forward(request, response);
-            return;
-        }
-
-        FlightDAO flightDAO = new FlightDAO();
-        Flight flight = flightDAO.getFlightById(booking.getFlightId());
-
-        LocalDateTime departureTime = flight.getDepartureTime().toLocalDateTime();
-        LocalDateTime open = departureTime.minusHours(24);
-        LocalDateTime close = departureTime.minusHours(2);
-        LocalDateTime now = LocalDateTime.now();
-
-        System.out.println("=== DEBUG TIME ===");
-        System.out.println("Now: " + now);
-        System.out.println("Open: " + open);
-        System.out.println("Close: " + close);
-
-        if (now.isBefore(open) || now.isAfter(close)) {
-            request.setAttribute("error", "Check-in không khả dụng tại thời điểm này.");
-            request.setAttribute("booking", booking);
-            request.setAttribute("flight", flight);
-            request.getRequestDispatcher("/WEB-INF/user/checkin.jsp").forward(request, response);
-            return;
-        }
-
-        try {
-            Passenger passenger = new Passenger();
-            passenger.setBookingId(bookingId);
-            passenger.setFullName(request.getParameter("fullName"));
-            passenger.setPassportNumber(request.getParameter("passportNumber"));
-            try {
-                passenger.setDob(java.sql.Date.valueOf(request.getParameter("dob")));
-            } catch (IllegalArgumentException e) {
-                System.out.println("=== DOB FORMAT ERROR ===");
-                e.printStackTrace();
-                request.setAttribute("error", "Ngày sinh không hợp lệ. Định dạng đúng: yyyy-MM-dd");
-                request.getRequestDispatcher("/WEB-INF/user/checkin.jsp").forward(request, response);
+            if (booking == null) {
+                request.setAttribute("error", "Không tìm thấy mã đặt chỗ.");
+                request.getRequestDispatcher("/WEB-INF/user/checkin_enter_code.jsp").forward(request, response);
                 return;
             }
 
-            passenger.setGender(request.getParameter("gender"));
-            passenger.setPhoneNumber(request.getParameter("phoneNumber"));
-            passenger.setEmail(request.getParameter("email"));
-            passenger.setCountry(request.getParameter("country"));
-            passenger.setAddress(request.getParameter("address"));
+            Flight flight = new FlightDAO().getFlightById(booking.getFlightId());
+            System.out.println("DEBUG - Flight tìm được: " + (flight != null ? flight.getFlightNumber() : "null"));
 
-            System.out.println("=== DEBUG Passenger ===");
-            System.out.println("FullName: " + passenger.getFullName());
-            System.out.println("Passport: " + passenger.getPassportNumber());
-            System.out.println("DOB: " + passenger.getDob());
-            System.out.println("Gender: " + passenger.getGender());
-            System.out.println("Phone: " + passenger.getPhoneNumber());
-            System.out.println("Email: " + passenger.getEmail());
-            System.out.println("Country: " + passenger.getCountry());
-            System.out.println("Address: " + passenger.getAddress());
-
-            PassengerDAO passengerDAO = new PassengerDAO();
-            int passengerId = passengerDAO.insertPassengerAndReturnId(passenger);
-            System.out.println("=== DEBUG: passengerId after insert = " + passengerId);
-
-            if (passengerId == -1) {
-                throw new Exception("Không thể chèn hành khách.");
-            }
-
-            CheckIn checkIn = new CheckIn();
-            checkIn.setPassengerId(passengerId);
-            checkIn.setBookingId(bookingId);
-            checkIn.setFlightId(flight.getFlightId());
-            checkIn.setCheckinTime(LocalDateTime.now());
-            checkIn.setStatus("Checked-in");
-
-            System.out.println("=== DEBUG CheckIn ===");
-            System.out.println("Passenger ID: " + checkIn.getPassengerId());
-            System.out.println("Booking ID: " + checkIn.getBookingId());
-            System.out.println("Flight ID: " + checkIn.getFlightId());
-            System.out.println("Check-in Time: " + checkIn.getCheckinTime());
-            System.out.println("Status: " + checkIn.getStatus());
-
-            CheckInDAO checkInDAO = new CheckInDAO();
-            checkInDAO.insertCheckin(checkIn);
-System.out.println("=== DEBUG: Check-in record inserted successfully");
-            bookingDAO.updateCheckinStatus(bookingId, "Checked-in");
-
-            request.setAttribute("message", "Check-in thành công!");
             request.setAttribute("booking", booking);
             request.setAttribute("flight", flight);
+            request.getRequestDispatcher("/WEB-INF/user/checkin_flight_info.jsp").forward(request, response);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("error", "Đã xảy ra lỗi khi check-in. Vui lòng thử lại.");
+        } else if (step.equals("confirm")) {
+            int bookingId = Integer.parseInt(request.getParameter("bookingId"));
+            BookingDAO bookingDAO = new BookingDAO();
+            Booking booking = bookingDAO.getBookingById(bookingId);
+            System.out.println("DEBUG - Booking tìm theo ID: " + bookingId + " → " + (booking != null ? booking.getBookingCode() : "null"));
+
+            Flight flight = new FlightDAO().getFlightById(booking.getFlightId());
+            System.out.println("DEBUG - Flight tìm được: " + (flight != null ? flight.getFlightNumber() : "null"));
+
+            Passenger passenger = new PassengerDAO().getPassengerByBookingId(bookingId);
+            System.out.println("DEBUG - Passenger tìm được: " + (passenger != null ? passenger.getFullName() : "null"));
+
+            request.setAttribute("booking", booking);
+            request.setAttribute("flight", flight);
+            request.setAttribute("passenger", passenger);
+            request.getRequestDispatcher("/WEB-INF/user/checkin-passenger.jsp").forward(request, response);
         }
-
-        request.getRequestDispatcher("/WEB-INF/user/checkin.jsp").forward(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String step = request.getParameter("step");
+
+        if ("complete".equals(step)) {
+            int bookingId = Integer.parseInt(request.getParameter("bookingId"));
+            BookingDAO bookingDAO = new BookingDAO();
+            Booking booking = bookingDAO.getBookingById(bookingId);
+            System.out.println("DEBUG - POST bookingId: " + bookingId);
+
+            if (booking == null || "Checked-in".equalsIgnoreCase(booking.getCheckinStatus())) {
+                System.out.println("DEBUG - Booking null hoặc đã check-in.");
+                response.sendRedirect("checkinController?step=confirm&bookingId=" + bookingId);
+                return;
+            }
+
+            Flight flight = new FlightDAO().getFlightById(booking.getFlightId());
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime departure = flight.getDepartureTime().toLocalDateTime();
+
+            System.out.println("DEBUG - Giờ hiện tại: " + now);
+            System.out.println("DEBUG - Giờ khởi hành: " + departure);
+
+            if (now.isBefore(departure.minusHours(24)) || now.isAfter(departure.minusHours(2))) {
+                System.out.println("DEBUG - Không nằm trong khoảng 24h - 2h trước khi bay.");
+                response.sendRedirect("checkinController?step=confirm&bookingId=" + bookingId);
+                return;
+            }
+
+            // Check-in cho tất cả hành khách
+            CheckInDAO checkInDAO = new CheckInDAO();
+            PassengerDAO passengerDAO = new PassengerDAO();
+            for (Passenger passenger : passengerDAO.getPassengersByBookingId(bookingId)) {
+                CheckIn checkIn = new CheckIn();
+                checkIn.setPassengerId(passenger.getPassengerId());
+                checkIn.setBookingId(bookingId);
+                checkIn.setFlightId(flight.getFlightId());
+                checkIn.setCheckinTime(now);
+                checkIn.setStatus("Checked-in");
+                checkInDAO.insertCheckin(checkIn);
+            }
+
+            bookingDAO.updateCheckinStatus(bookingId, "Checked-in");
+            System.out.println("DEBUG - Đã check-in tất cả hành khách và cập nhật trạng thái.");
+
+            // Chuyển sang trang success
+            request.setAttribute("booking", booking);
+            request.setAttribute("flight", flight);
+            request.setAttribute("passengers", passengerDAO.getPassengersByBookingId(bookingId));
+            request.getRequestDispatcher("/WEB-INF/user/checkin-success.jsp").forward(request, response);
+        }
+    }
+
     @Override
     public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
-
+        return "Check-in Controller";
+    }
 }

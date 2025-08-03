@@ -271,6 +271,7 @@
                                     </div>
 
                                     <button type="submit" class="btn-continue" id="submit-button" disabled>Chọn ghế và tiếp tục</button>
+                                    <button type="button" onclick="history.back()" class="btn-continue" style="background-color: var(--primary-color);">Quay lại</button>
                                 </div>
                             </div>
                         </div>

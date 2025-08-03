@@ -257,7 +257,11 @@
                                     <div class="error-message" id="addressError"></div>
                                 </div>
 
-                                <button type="submit" class="btn-continue">Tiếp tục đến thanh toán</button>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <button type="submit" class="btn-continue">Tiếp tục</button>
+                                    <button type="button" onclick="history.back()" class="btn-continue" style="background-color: var(--primary-color);">Quay lại</button>                                   
+                                </div>
+
                             </form>
                         </div>
                     </div>
