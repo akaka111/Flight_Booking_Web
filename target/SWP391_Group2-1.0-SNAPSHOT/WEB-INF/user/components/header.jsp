@@ -1,3 +1,4 @@
+
 <%-- 
     Document   : header
     Created on : 23 Jun 2025, 00:31:33
@@ -70,7 +71,6 @@
         left: 0;
     }
 
-
     .auth-buttons .btn {
         padding: 10px 22px;
         border-radius: 20px;
@@ -101,25 +101,52 @@
         background-color: #0056b3;
         border-color: #0056b3;
     }
+
+    .btn-logout {
+        color: #ffffff !important; /* Đặt màu chữ thành trắng */
+        background-color: var(--primary-color); /* Giữ nền xanh để đồng bộ */
+        padding: 8px 16px; /* Đảm bảo kích thước nút hài hòa */
+        border-radius: 6px; /* Đồng bộ với các nút khác */
+        text-decoration: none; /* Loại bỏ gạch chân */
+        font-weight: 500; /* Đồng bộ với font-weight của .btn */
+        transition: background-color 0.3s ease; /* Hiệu ứng mượt mà */
+    }
+
+    .btn-logout:hover {
+        background-color: #0056b3; /* Nền đậm hơn khi hover, đồng bộ với .btn */
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .user-info a {
+        color: #343a40;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .user-info a:hover {
+        color: #007bff;
+    }
 </style>
 
 <header class="main-header">
     <div class="container">
-        <%-- Sử dụng c:url để tạo link an toàn, tự động thêm context path --%>
         <a href="<c:url value='/home'/>" class="logo">
             <i class="fa-solid fa-plane-up"></i>
             Flight Booking Web
         </a>
         <nav class="main-nav">
-            <a href="home">Trang Chủ</a>
-            <a href="#">Khuyến Mãi</a>
+            <a href="<c:url value='/home'/>">Trang Chủ</a>
+            <a href="checkin-search">Check-In</a>
             <a href="#">Quản Lý Đặt Chỗ</a>
-            <a href="ContactSupport">Liên Hệ</a>
+            <a href="<c:url value='/ContactSupport'/>">Liên Hệ</a>
         </nav>
-        <%-- ================== PHẦN HIỂN THỊ ĐỘNG ================== --%>
         <div class="auth-buttons">
             <c:choose>
-                <%-- TRƯỜNG HỢP: ĐÃ ĐĂNG NHẬP (user không rỗng) --%>
                 <c:when test="${not empty sessionScope.user}">
                     <div class="user-info">
                         <a href="#">
@@ -129,15 +156,11 @@
                         <a href="<c:url value='/logout'/>" class="btn btn-logout">Đăng Xuất</a>
                     </div>
                 </c:when>
-
-                <%-- TRƯỜNG HỢP: CHƯA ĐĂNG NHẬP --%>
                 <c:otherwise>
                     <a href="<c:url value='/login'/>" class="btn btn-login">Đăng Nhập</a>
                     <a href="<c:url value='/register'/>" class="btn btn-register">Đăng Ký</a>
                 </c:otherwise>
             </c:choose>
         </div>
-        <%-- ======================================================== --%>
-
     </div>
 </header>

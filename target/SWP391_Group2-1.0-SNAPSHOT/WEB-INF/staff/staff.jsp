@@ -333,7 +333,7 @@
 
         <div class="content">
             <div class="header">
-                <div class="greeting">Staff</div>
+                <div class="greeting">Xin Chào, Staff</div>
                 <div class="actions">
                     <a href="exportDashboard.jsp" class="btn-export" id="exportButton">Xuất PDF</a>
                     <div class="dropdown">

@@ -22,15 +22,16 @@ public class Booking {
     private double totalPrice;  // Thêm thuộc tính này
     private String staffNote;
     private Integer lastUpdatedBy;
-    private LocalDateTime lastUpdatedAt;
+    private Timestamp lastUpdatedAt;
     private String checkinStatus;
     private String bookingCode;
     private String voucherCode;
+    private int seatId;
 
     public Booking() {
     }
 
-    public Booking(int bookingId, int userId, int flightId, Timestamp bookingDate, String status, String seatClass, double totalPrice, String staffNote, Integer lastUpdatedBy, LocalDateTime lastUpdatedAt, String checkinStatus) {
+    public Booking(int bookingId, int userId, int flightId, Timestamp bookingDate, String status, String seatClass, double totalPrice, String staffNote, Integer lastUpdatedBy, Timestamp lastUpdatedAt, String checkinStatus) {
         this.bookingId = bookingId;
         this.userId = userId;
         this.flightId = flightId;
@@ -44,8 +45,6 @@ public class Booking {
         this.checkinStatus = checkinStatus;
     }
 
-    
-    
     // Getters and Setters
     public int getBookingId() {
         return bookingId;
@@ -119,11 +118,11 @@ public class Booking {
         this.lastUpdatedBy = lastUpdatedBy;
     }
 
-    public LocalDateTime getLastUpdatedAt() {
+    public Timestamp getLastUpdatedAt() {
         return lastUpdatedAt;
     }
 
-    public void setLastUpdatedAt(LocalDateTime lastUpdatedAt) {
+    public void setLastUpdatedAt(Timestamp lastUpdatedAt) {
         this.lastUpdatedAt = lastUpdatedAt;
     }
 
@@ -150,6 +149,21 @@ public class Booking {
     public void setVoucherCode(String voucherCode) {
         this.voucherCode = voucherCode;
     }
-    
-    
+
+    public int getSeatId() {
+        return seatId;
+    }
+
+    public void setSeatId(int seatId) {
+        this.seatId = seatId;
+    }
+
+    @Override
+    public String toString() {
+        return "Booking{"
+                + "bookingCode='" + bookingCode + '\''
+                + ", flightId=" + flightId
+                + '}';
+    }
+
 }

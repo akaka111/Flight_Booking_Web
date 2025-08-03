@@ -1,6 +1,6 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Click nbfs://.netbeans.org/templates/license.txt to change this license
+ * Click nfs://NetBeans/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package model;
 
@@ -13,13 +13,16 @@ import java.time.LocalDateTime;
 public class BookingHistory {
     private int historyId;
     private int bookingId;
-    private int staffId;
     private String action;
     private String description;
     private LocalDateTime actionTime;
+    private String role; // Thêm vai trò
+    private String staffName; // Thêm tên nhân viên
 
-    
+    // Constructor
+    public BookingHistory() {}
 
+    // Getter và Setter
     public int getHistoryId() {
         return historyId;
     }
@@ -34,14 +37,6 @@ public class BookingHistory {
 
     public void setBookingId(int bookingId) {
         this.bookingId = bookingId;
-    }
-
-    public int getStaffId() {
-        return staffId;
-    }
-
-    public void setStaffId(int staffId) {
-        this.staffId = staffId;
     }
 
     public String getAction() {
@@ -67,7 +62,20 @@ public class BookingHistory {
     public void setActionTime(LocalDateTime actionTime) {
         this.actionTime = actionTime;
     }
-    
-    
-    
+
+    public String getRole() { // Thêm getter cho vai trò
+        return role;
+    }
+
+    public void setRole(String role) { // Thêm setter cho vai trò
+        this.role = role;
+    }
+
+    public String getStaffName() { // Thêm getter cho tên nhân viên
+        return staffName;
+    }
+
+    public void setStaffName(String staffName) { // Thêm setter cho tên nhân viên
+        this.staffName = staffName;
+    }
 }

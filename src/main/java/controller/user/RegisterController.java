@@ -1,25 +1,37 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
+ * Click nbfs://SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
 package controller.user;
 
 import DAO.Admin.AccountDAO;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.FileInputStream;
+import java.util.Properties;
+import java.util.Random;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import java.io.PrintWriter;
 import java.sql.Date;
 import model.Account;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeUtility;
 
 /**
  *
  * @author Admin
  */
-@WebServlet(name = "RegisterController", urlPatterns = {"/register"})
+@WebServlet(name = "RegisterController", urlPatterns = {"/register", "/verify-otp"})
 public class RegisterController extends HttpServlet {
 
     /**
@@ -35,7 +47,6 @@ public class RegisterController extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
@@ -48,7 +59,6 @@ public class RegisterController extends HttpServlet {
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
      *
@@ -60,13 +70,31 @@ public class RegisterController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/WEB-INF/user/register.jsp").forward(request, response);
+        String path = request.getServletPath();
+        if ("/verify-otp".equals(path)) {
+            request.getRequestDispatcher("/WEB-INF/user/otp_verification.jsp").forward(request, response);
+        } else {
+            request.getRequestDispatcher("/WEB-INF/user/register.jsp").forward(request, response);
+        }
     }
 
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        handleUserRegistration(request, response);
+        String path = request.getServletPath();
+        if ("/register".equals(path)) {
+            handleUserRegistration(request, response);
+        } else if ("/verify-otp".equals(path)) {
+            handleOtpVerification(request, response);
+        }
     }
 
     private void handleUserRegistration(HttpServletRequest request, HttpServletResponse response)
@@ -77,42 +105,42 @@ public class RegisterController extends HttpServlet {
         String fullName = request.getParameter("fullName");
         String email = request.getParameter("email");
         String numberPhone = request.getParameter("numberPhone");
-        
+        String dobRaw = request.getParameter("dob");
 
         // Kiểm tra input rỗng
         if (username == null || password == null || confirmPassword == null || fullName == null || email == null
+                || numberPhone == null || dobRaw == null
                 || username.trim().isEmpty() || password.trim().isEmpty() || confirmPassword.trim().isEmpty()
-                || fullName.trim().isEmpty() || email.trim().isEmpty() || numberPhone.trim().isEmpty()) {
-
-            request.setAttribute("error", "All fields must be filled.");
+                || fullName.trim().isEmpty() || email.trim().isEmpty() || numberPhone.trim().isEmpty() || dobRaw.trim().isEmpty()) {
+            request.setAttribute("error", "Vui lòng điền đầy đủ tất cả các trường.");
             request.getRequestDispatcher("/WEB-INF/user/register.jsp").forward(request, response);
             return;
         }
 
         // Kiểm tra username phải có ít nhất 3 ký tự
         if (username.length() < 3) {
-            request.setAttribute("error", "Username must be at least 3 characters long.");
+            request.setAttribute("error", "Tài khoản phải có ít nhất 3 ký tự.");
             request.getRequestDispatcher("/WEB-INF/user/register.jsp").forward(request, response);
             return;
         }
 
         // Kiểm tra mật khẩu nhập lại có giống nhau không
         if (!password.equals(confirmPassword)) {
-            request.setAttribute("error", "Password must be the same.");
+            request.setAttribute("error", "Mật khẩu và xác nhận mật khẩu không khớp.");
             request.getRequestDispatcher("/WEB-INF/user/register.jsp").forward(request, response);
             return;
         }
 
         // Kiểm tra email có đúng định dạng @gmail.com không
         if (!email.matches("^[a-zA-Z0-9._%+-]+@gmail\\.com$")) {
-            request.setAttribute("error", "Email must be a valid Gmail address (e.g., example@gmail.com).");
+            request.setAttribute("error", "Email phải là địa chỉ Gmail hợp lệ (ví dụ: example@gmail.com).");
             request.getRequestDispatcher("/WEB-INF/user/register.jsp").forward(request, response);
             return;
         }
 
         // Kiểm tra xem số điện thoại có phải số không
         if (!numberPhone.matches("\\d+")) {
-            request.setAttribute("error", "Phone numbers must be entered numerically.");
+            request.setAttribute("error", "Số điện thoại phải được nhập bằng số.");
             request.getRequestDispatcher("/WEB-INF/user/register.jsp").forward(request, response);
             return;
         }
@@ -121,43 +149,134 @@ public class RegisterController extends HttpServlet {
 
         // Kiểm tra xem username hoặc email đã tồn tại chưa
         if (userDao.isUserExist(username, email)) {
-            request.setAttribute("error", "Username or Email already exists.");
+            request.setAttribute("error", "Tài khoản hoặc email đã tồn tại.");
             request.getRequestDispatcher("/WEB-INF/user/register.jsp").forward(request, response);
             return;
         }
 
-        String dobRaw = request.getParameter("dob");
         Date dob = null;
         try {
             dob = Date.valueOf(dobRaw); // Chuyển chuỗi từ input sang java.sql.Date
         } catch (IllegalArgumentException e) {
-            request.setAttribute("error", "Invalid date of birth format.");
+            request.setAttribute("error", "Định dạng ngày sinh không hợp lệ.");
             request.getRequestDispatcher("/WEB-INF/user/register.jsp").forward(request, response);
             return;
         }
 
-        // Tạo user mới
-        Account newUser = new Account();
-        newUser.setUsername(username);
-        newUser.setPassword(password);
-        newUser.setEmail(email);
-        newUser.setPhone(numberPhone);
-        newUser.setDob(dob);
-        newUser.setRole("CUSTOMER");
-        newUser.setStatus(true);
-        newUser.setFullname(fullName);
+        // Tạo OTP
+        String otp = generateOtp();
+        HttpSession session = request.getSession();
+        session.setAttribute("otp", otp);
+        session.setAttribute("tempUser", new Account(0, username, password, email, numberPhone, dob, "CUSTOMER", true, fullName));
 
-
-        boolean isRegistered = userDao.registerUser(newUser);
-
-        if (isRegistered) {
-            // ✅ Chuyển hướng hợp lý sau khi đăng ký
-            request.setAttribute("message", "Registration successful! Please log in.");
-            request.getRequestDispatcher("/WEB-INF/common/Login.jsp").forward(request, response);
-        } else {
-            request.setAttribute("error", "Registration failed. Try again.");
+        // Gửi OTP qua email
+        boolean emailSent = sendOtpEmail(email, otp);
+        if (!emailSent) {
+            request.setAttribute("error", "Không thể gửi OTP. Vui lòng thử lại.");
             request.getRequestDispatcher("/WEB-INF/user/register.jsp").forward(request, response);
+            return;
         }
 
+        // Chuyển hướng đến trang xác thực OTP
+        request.setAttribute("email", email);
+        request.getRequestDispatcher("/WEB-INF/user/otp_verification.jsp").forward(request, response);
+    }
+
+    private void handleOtpVerification(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        String submittedOtp = request.getParameter("otp");
+        String storedOtp = (String) session.getAttribute("otp");
+        Account tempUser = (Account) session.getAttribute("tempUser");
+
+        if (submittedOtp == null || submittedOtp.trim().isEmpty()) {
+            request.setAttribute("error", "Vui lòng nhập mã OTP.");
+            request.setAttribute("email", tempUser.getEmail());
+            request.getRequestDispatcher("/WEB-INF/user/otp_verification.jsp").forward(request, response);
+            return;
+        }
+
+        if (!submittedOtp.equals(storedOtp)) {
+            request.setAttribute("error", "Mã OTP không hợp lệ. Vui lòng thử lại.");
+            request.setAttribute("email", tempUser.getEmail());
+            request.getRequestDispatcher("/WEB-INF/user/otp_verification.jsp").forward(request, response);
+            return;
+        }
+
+        // OTP hợp lệ, tiến hành đăng ký
+        AccountDAO userDao = new AccountDAO();
+        boolean isRegistered = userDao.registerUser(tempUser);
+
+        if (isRegistered) {
+            // Xóa các thuộc tính session
+            session.removeAttribute("otp");
+            session.removeAttribute("tempUser");
+            request.setAttribute("message", "Đăng ký thành công! Vui lòng đăng nhập.");
+            request.getRequestDispatcher("/WEB-INF/common/Login.jsp").forward(request, response);
+        } else {
+            request.setAttribute("error", "Đăng ký thất bại. Vui lòng thử lại.");
+            request.setAttribute("email", tempUser.getEmail());
+            request.getRequestDispatcher("/WEB-INF/user/otp_verification.jsp").forward(request, response);
+        }
+    }
+
+    private String generateOtp() {
+        Random random = new Random();
+        int otp = 100000 + random.nextInt(900000); // Tạo OTP 6 chữ số
+        return String.valueOf(otp);
+    }
+
+    private boolean sendOtpEmail(String toEmail, String otp) {
+        Properties config = new Properties();
+        try (FileInputStream fis = new FileInputStream(getServletContext().getRealPath("/WEB-INF/config.properties"))) {
+            config.load(fis);
+        } catch (IOException e) {
+            System.err.println("Không thể tải tệp cấu hình: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+
+        String host = config.getProperty("smtp.host");
+        String port = config.getProperty("smtp.port");
+        final String username = config.getProperty("smtp.username");
+        final String password = config.getProperty("smtp.password");
+
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", host);
+        props.put("mail.smtp.port", port);
+
+        Session session = Session.getInstance(props, new javax.mail.Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(username, password);
+            }
+        });
+
+        try {
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(username));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+            message.setSubject(MimeUtility.encodeText("Xác thực OTP đăng ký tài khoản - Flight Booking Web", "UTF-8", null));
+            String emailContent = "Kính gửi Quý khách,\n\n" +
+                                 "Cảm ơn Quý khách đã đăng ký tài khoản trên hệ thống Flight Booking Web. Để hoàn tất quá trình đăng ký, vui lòng sử dụng mã OTP dưới đây:\n\n" +
+                                 "Mã OTP của Quý khách là: " + otp + "\n\n" +
+                                 "Vui lòng nhập mã này vào trang xác thực trong vòng 5 phút để hoàn tất đăng ký tài khoản. Mã OTP chỉ có hiệu lực trong thời gian này để đảm bảo an toàn.\n\n" +
+                                 "Nếu Quý khách không thực hiện yêu cầu này, xin vui lòng bỏ qua email.\n\n" +
+                                 "Trân trọng,\n" +
+                                 "Đội ngũ Flight Booking Web";
+            message.setText(emailContent, "UTF-8");
+            Transport.send(message);
+            System.out.println("Gửi email OTP thành công đến: " + toEmail);
+            return true;
+        } catch (MessagingException e) {
+            System.err.println("Không thể gửi email OTP đến: " + toEmail);
+            e.printStackTrace();
+            return false;
+        } catch (Exception e) {
+            System.err.println("Lỗi khi mã hóa tiêu đề email: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 }

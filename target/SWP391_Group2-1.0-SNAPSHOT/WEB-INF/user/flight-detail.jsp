@@ -324,6 +324,15 @@
                 const selectedClassInput = document.getElementById('selectedClass');
                 const finalPriceInput = document.getElementById('finalPrice');
 
+                const bookingForm = document.querySelector('form');
+                bookingForm.addEventListener('submit', function (e) {
+                    if (!selectedClassInput.value || !finalPriceInput.value) {
+                        alert('Vui lòng chọn hạng vé trước khi tiếp tục.');
+                        e.preventDefault(); // Ngăn submit form
+                    }
+                });
+
+
                 function formatCurrency(value) {
                     return new Intl.NumberFormat('vi-VN', {style: 'decimal'}).format(value) + ' VND';
                 }

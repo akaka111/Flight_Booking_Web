@@ -8,7 +8,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <div class="sidebar">
-    <div class="logo">Admin <i class="fa-solid fa-plane"></i></div>
+    <div class="logo">FBS <i class="fa-solid fa-plane"></i></div>
     <ul>
         <li><a href="admin.jsp"><i class="fa-solid fa-tachometer-alt"></i> Bảng Điều Khiển</a></li>
         <li>

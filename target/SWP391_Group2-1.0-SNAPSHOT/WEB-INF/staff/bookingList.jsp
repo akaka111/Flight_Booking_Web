@@ -13,21 +13,72 @@
     <style>
         .table { margin-top: 20px; }
         .form-group { margin-bottom: 15px; }
-        .error { color: red; }
-        .success { color: green; }
+        .alert { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; }
     </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Xử lý thông báo ban đầu từ server
+            <c:if test="${not empty error}">
+                showAlert("${error}", "danger");
+            </c:if>
+            <c:if test="${not empty success}">
+                showAlert("${success}", "success");
+            </c:if>
+
+            // Hàm hiển thị và tự động ẩn thông báo
+            function showAlert(message, type) {
+                var alertDiv = $('<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' +
+                    message +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                    '</div>');
+                $(".container").prepend(alertDiv);
+                setTimeout(function() {
+                    alertDiv.alert('close');
+                }, 3000); // Ẩn sau 3 giây
+            }
+
+            // Xử lý submit form lọc với AJAX (tuỳ chọn, có thể bỏ nếu không cần)
+            $("form[action='${pageContext.request.contextPath}/staff/booking/list']").submit(function(e) {
+                e.preventDefault();
+                var formData = $(this).serialize();
+                $.ajax({
+                    url: '${pageContext.request.contextPath}/staff/booking/list',
+                    type: 'GET',
+                    data: formData,
+                    success: function(response) {
+                        $("#bookingListTable").html($(response).find("tbody").html());
+                        showAlert("Lọc thành công!", "success");
+                    },
+                    error: function(xhr) {
+                        showAlert("Lọc thất bại: " + xhr.responseText, "danger");
+                    }
+                });
+            });
+
+            // Xử lý submit form tìm kiếm với AJAX (tuỳ chọn, có thể bỏ nếu không cần)
+            $("form[action='${pageContext.request.contextPath}/staff/booking/search']").submit(function(e) {
+                e.preventDefault();
+                var formData = $(this).serialize();
+                $.ajax({
+                    url: '${pageContext.request.contextPath}/staff/booking/search',
+                    type: 'GET',
+                    data: formData,
+                    success: function(response) {
+                        $("#bookingListTable").html($(response).find("tbody").html());
+                        showAlert("Tìm kiếm thành công!", "success");
+                    },
+                    error: function(xhr) {
+                        showAlert("Tìm kiếm thất bại: " + xhr.responseText, "danger");
+                    }
+                });
+            });
+        });
+    </script>
 </head>
 <body>
     <div class="container">
         <h2 class="mt-4">Quản Lý Đặt Vé</h2>
-
-        <!-- Thông báo -->
-        <c:if test="${not empty error}">
-            <div class="alert alert-danger">${error}</div>
-        </c:if>
-        <c:if test="${not empty success}">
-            <div class="alert alert-success">${success}</div>
-        </c:if>
 
         <!-- Form Lọc -->
         <form action="${pageContext.request.contextPath}/staff/booking/list" method="get" class="form-inline mb-3">
@@ -35,10 +86,10 @@
                 <label for="statusFilter" class="me-2">Lọc theo trạng thái:</label>
                 <select name="statusFilter" id="statusFilter" class="form-select">
                     <option value="">Tất cả</option>
-                    <option value="CONFIRMED">Đã xác nhận</option>
-                    <option value="CANCELLED">Đã hủy</option>
-                    <option value="CHECKED-IN">Đã check-in</option>
-                    <option value="BOARDED">Đã lên máy bay</option>
+                    <option value="CONFIRMED" ${param.statusFilter == 'CONFIRMED' ? 'selected' : ''}>Đã xác nhận</option>
+                    <option value="CANCELLED" ${param.statusFilter == 'CANCELLED' ? 'selected' : ''}>Đã hủy</option>
+                    <option value="CHECKED-IN" ${param.statusFilter == 'CHECKED-IN' ? 'selected' : ''}>Đã check-in</option>
+                    <option value="BOARDED" ${param.statusFilter == 'BOARDED' ? 'selected' : ''}>Đã lên máy bay</option>
                 </select>
             </div>
             <button type="submit" class="btn btn-primary">Lọc</button>
@@ -54,7 +105,7 @@
         </form>
 
         <!-- Danh sách Booking -->
-        <table class="table table-bordered">
+        <table class="table table-bordered" id="bookingListTable">
             <thead>
                 <tr>
                     <th>Mã Booking</th>
@@ -104,5 +155,3 @@
         </table>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>

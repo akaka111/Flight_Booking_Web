@@ -8,6 +8,7 @@ import DAO.Admin.BookingDAO;
 import DAO.Admin.BookingVoucherDAO; // <-- IMPORT MỚI
 import DAO.Admin.PassengerDAO;
 import DAO.Admin.PaymentDAO;
+import DAO.Admin.SeatDAO;
 import DAO.Admin.voucherDAO; // <-- IMPORT MỚI
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -118,6 +119,11 @@ public class VNPayReturnController extends HttpServlet {
                         if (booking != null && passenger != null) {
                             BookingDAO bookingDAO = new BookingDAO();
                             int newBookingId = bookingDAO.insertAndGetId(booking);
+
+                            SeatDAO seatDAO = new SeatDAO();
+                            seatDAO.updateSeatBooking(booking.getSeatId(), true);
+                            System.out.println(">>> Đã cập nhật ghế " + booking.getSeatId() + " là đã được đặt (is_booked = true)");
+
                             if (newBookingId == -1) {
                                 throw new Exception("Không thể tạo booking trong DB.");
                             }
@@ -156,15 +162,14 @@ public class VNPayReturnController extends HttpServlet {
                                     bookingVoucher.setVoucherId(voucher.getVoucher_id());
 
                                     bvDAO.insertBookingVoucher(bookingVoucher);
-                                    
-                                    vDAO.decreaseUsageLimit(voucher.getVoucher_id()); 
+                                    seatDAO.updateSeatBooking(booking.getSeatId(), true);
+                                    vDAO.decreaseUsageLimit(voucher.getVoucher_id());
 
-                                    System.out.println(">>> KẾT QUẢ: Đã lưu liên kết và giảm số lượt dùng của voucher thành công.");
                                 } else {
                                     System.out.println(">>> CẢNH BÁO: Không tìm thấy voucher '" + appliedVoucherCode + "' trong DB để cập nhật. Có thể voucher đã bị xóa.");
                                 }
                             }
-                            // ================== KẾT THÚC LOGIC XỬ LÝ VOUCHER ==================
+
 
                             request.setAttribute("status", "true");
 
@@ -186,10 +191,10 @@ public class VNPayReturnController extends HttpServlet {
             request.setAttribute("status", "false");
             request.setAttribute("error", "Đã xảy ra lỗi hệ thống. Vui lòng xem log của server.");
         } finally {
-            System.out.println(">>> CHECKPOINT 6: Dọn dẹp session và chuyển hướng tới trang kết quả.");
             session.removeAttribute("tempBooking");
             session.removeAttribute("tempPassenger");
-            session.removeAttribute("appliedVoucher"); // Cũng nên xóa voucher trong session nếu có
+            session.removeAttribute("appliedVoucher"); 
+            
 
             request.getRequestDispatcher("/WEB-INF/user/orderStatus.jsp").forward(request, response);
         }
