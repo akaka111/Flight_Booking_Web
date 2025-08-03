@@ -332,7 +332,12 @@
                         </div>
                         <div class="form-group">
                             <label for="departureDate"><i class="fa-solid fa-calendar-days"></i> Ngày đi</label>
-                            <input type="date" id="departureDate" name="departureDate" required>
+                            <%
+                                java.text.SimpleDateFormat todayFormat = new java.text.SimpleDateFormat("yyyy-MM-dd");
+                                String today = todayFormat.format(new java.util.Date());
+                            %>
+                            <input type="date" id="departureDate" name="departureDate" required min="<%= today%>">
+
                         </div>
                         <button type="submit" class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm</button>
                     </form>
@@ -350,7 +355,7 @@
                     <c:choose>
                         <c:when test="${not empty flights}">
                             <c:forEach var="flight" items="${flights}" begin="0" end="4">                               
-                                 <a href="flight-detail?id=${flight.flightId}" class="deal-card">
+                                <a href="flight-detail?id=${flight.flightId}" class="deal-card">
                                     <div class="deal-card-inner">
                                         <div class="from-location">Từ <span>${flight.routeFrom}</span></div>
                                         <div class="price-tag">Chỉ từ</div>

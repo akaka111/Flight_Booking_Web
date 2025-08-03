@@ -100,7 +100,7 @@ public class BookingDAO {
                     booking.setFlightId(rs.getInt("flight_id"));
 
                     // <-- THAY ĐỔI QUAN TRỌNG: LẤY SEAT_ID TỪ DATABASE -->
-                   // booking.setSeatId(rs.getInt("seat_id"));
+                    // booking.setSeatId(rs.getInt("seat_id"));
                     // Kiểm tra xem giá trị có phải là NULL không
                     if (rs.wasNull()) {
                         booking.setSeatId(0); // Hoặc một giá trị mặc định nào đó nếu cần
@@ -137,7 +137,7 @@ public class BookingDAO {
         }
     }
 
-    private String generateBookingCode() {
+    public String generateBookingCode() {
         String prefix = "BK";
         String datePart = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
         String randomDigits = String.valueOf((int) (Math.random() * 9000 + 1000)); // 4 chữ số ngẫu nhiên
@@ -150,8 +150,6 @@ public class BookingDAO {
 
         // Sử dụng try-with-resources để đảm bảo kết nối luôn được đóng
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-            System.out.println("==> [BookingDAO] Đang chuẩn bị thực thi câu lệnh INSERT...");
 
             ps.setInt(1, booking.getUserId());
             ps.setInt(2, booking.getFlightId());
@@ -178,7 +176,7 @@ public class BookingDAO {
         return generatedId;
     }
 
-     public boolean updateBookingStatus(int bookingId, String newStatus) {
+    public boolean updateBookingStatus(int bookingId, String newStatus) {
         String sql = "UPDATE Booking SET status = ? WHERE booking_id = ?";
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, newStatus);
@@ -225,6 +223,7 @@ public class BookingDAO {
         }
         return null;
     }
+
     public void updateBookingAmount(Booking booking) {
         String sql = "UPDATE Booking SET total_amount = ? WHERE booking_id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -493,5 +492,61 @@ public class BookingDAO {
         }
         return history;
     }
-    
+
+    public String getBookingCodeById(int bookingId) {
+        String sql = "SELECT booking_code FROM Booking WHERE booking_id = ?";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, bookingId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("booking_code");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<Booking> getBookingsByUserId(int userId) {
+        List<Booking> list = new ArrayList<>();
+        String sql = "SELECT * FROM Booking WHERE user_id = ?";
+
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Booking b = new Booking();
+                b.setBookingId(rs.getInt("booking_id"));
+                b.setUserId(rs.getInt("user_id"));
+                b.setBookingCode(rs.getString("booking_code"));
+                b.setStatus(rs.getString("status"));
+                b.setTotalPrice(rs.getBigDecimal("total_price").doubleValue());
+                b.setBookingDate(rs.getTimestamp("booking_time"));
+                b.setSeatClass(rs.getString("seat_class"));
+                b.setFlightId(rs.getInt("flight_id")); // <-- bổ sung dòng này
+                list.add(b);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public void cancelBooking(int bookingId) {
+        String sql = "UPDATE Booking SET status = 'Cancelled' WHERE booking_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
