@@ -4,6 +4,7 @@
  */
 package model;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 /**
@@ -15,9 +16,18 @@ public class BookingHistory {
     private int bookingId;
     private String action;
     private String description;
-    private LocalDateTime actionTime;
+    private Timestamp actionTime;
     private String role; // Thêm vai trò
     private String staffName; // Thêm tên nhân viên
+    private int staffId;
+
+    public int getStaffId() {
+        return staffId;
+    }
+
+    public void setStaffId(int staffId) {
+        this.staffId = staffId;
+    }
 
     // Constructor
     public BookingHistory() {}
@@ -55,11 +65,11 @@ public class BookingHistory {
         this.description = description;
     }
 
-    public LocalDateTime getActionTime() {
+    public Timestamp getActionTime() {
         return actionTime;
     }
 
-    public void setActionTime(LocalDateTime actionTime) {
+    public void setActionTime(Timestamp actionTime) {
         this.actionTime = actionTime;
     }
 

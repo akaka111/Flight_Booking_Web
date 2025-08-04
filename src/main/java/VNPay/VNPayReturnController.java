@@ -27,6 +27,7 @@ import model.BookingVoucher; // <-- IMPORT MỚI
 import model.Passenger;
 import model.Payment;
 import model.Voucher; // <-- IMPORT MỚI
+import utils.MailService;
 
 /**
  *
@@ -73,10 +74,9 @@ public class VNPayReturnController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        ConfigLoader.load(getServletContext());
+        request.getParameterMap().forEach((key, value) -> System.out.println(" - " + key + " = " + value[0]));
 
-        System.out.println("================== BẮT ĐẦU XỬ LÝ VNPAY RETURN ==================");
-
-        System.out.println(">>> CHECKPOINT 1: VNPayReturnController.doGet() đã được gọi.");
         HttpSession session = request.getSession();
         try {
             Map<String, String> fields = new HashMap<>();
@@ -100,25 +100,22 @@ public class VNPayReturnController extends HttpServlet {
                 String vnp_TransactionStatus = request.getParameter("vnp_TransactionStatus");
                 String transactionId = request.getParameter("vnp_TransactionNo");
 
-                System.out.println(" - vnp_ResponseCode: " + vnp_ResponseCode);
-                System.out.println(" - vnp_TransactionStatus: " + vnp_TransactionStatus);
-
                 if ("00".equals(vnp_ResponseCode) && "00".equals(vnp_TransactionStatus)) {
-                    System.out.println(">>> KẾT QUẢ: Giao dịch THÀNH CÔNG từ VNPay.");
 
                     PaymentDAO paymentDAO = new PaymentDAO();
                     if (paymentDAO.existsByTransactionId(transactionId)) {
-                        System.out.println(">>> CẢNH BÁO: Giao dịch này (VNPay TransactionNo: " + transactionId + ") đã được xử lý trước đó. Bỏ qua.");
                         request.setAttribute("status", "true");
                     } else {
-                        System.out.println(">>> CHECKPOINT 4: Chuẩn bị lưu dữ liệu vào database.");
 
                         Booking booking = (Booking) session.getAttribute("tempBooking");
                         Passenger passenger = (Passenger) session.getAttribute("tempPassenger");
 
                         if (booking != null && passenger != null) {
                             BookingDAO bookingDAO = new BookingDAO();
+
                             int newBookingId = bookingDAO.insertAndGetId(booking);
+                            String bookingCode = bookingDAO.getBookingCodeById(newBookingId);
+                            booking.setBookingCode(bookingCode);
 
                             SeatDAO seatDAO = new SeatDAO();
                             seatDAO.updateSeatBooking(booking.getSeatId(), true);
@@ -144,12 +141,46 @@ public class VNPayReturnController extends HttpServlet {
                             payment.setStatus("Success");
                             payment.setPaymentNote(paymentNote);
                             paymentDAO.insert(payment);
-                            System.out.println(">>> KẾT QUẢ: Đã lưu Booking, Passenger, Payment thành công.");
 
-                            // ================== BẮT ĐẦU LOGIC XỬ LÝ VOUCHER ==================
+                            // GỬI EMAIL XÁC NHẬN
+                            try {
+                                String to = passenger.getEmail();
+                                String subject = "Xác nhận đặt vé thành công - Mã đơn: " + newBookingId;
+                                StringBuilder contentBuilder = new StringBuilder();
+                                contentBuilder.append("Xin chào ").append(passenger.getFullName()).append(",\n\n")
+                                        .append("Cảm ơn bạn đã đặt vé với chúng tôi.\n\n")
+                                        .append("Dưới đây là chi tiết đơn hàng của bạn:\n\n")
+                                        .append("=== Thông tin đặt vé ===\n")
+                                        .append("Mã đặt chỗ      : ").append(booking.getBookingCode()).append("\n")
+                                        .append("Tên hành khách  : ").append(passenger.getFullName()).append("\n")
+                                        .append("Email           : ").append(passenger.getEmail()).append("\n")
+                                        .append("Số điện thoại   : ").append(passenger.getPhoneNumber()).append("\n")
+                                        .append("Số ghế          : ").append(booking.getSeatId()).append("\n")
+                                        .append("Chuyến bay      : ").append(booking.getFlightId()).append("\n")
+                                        .append("Ngày đặt        : ").append(LocalDateTime.now()).append("\n");
+
+                                if (booking.getVoucherCode() != null && !booking.getVoucherCode().isEmpty()) {
+                                    contentBuilder.append("Voucher áp dụng : ").append(booking.getVoucherCode()).append("\n");
+                                }
+
+                                contentBuilder.append("=== Thông tin thanh toán ===\n")
+                                        .append("Số tiền         : ").append(amount).append(" VND\n")
+                                        .append("Phương thức     : VNPay\n")
+                                        .append("Mã giao dịch    : ").append(transactionId).append("\n")
+                                        .append("Tình trạng      : Thành công\n\n")
+                                        .append("Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.\n")
+                                        .append("Trân trọng,\nHệ thống đặt vé.");
+
+                                System.out.println(">>> DEBUG: Email hành khách: " + to);
+                                MailService.sendEmail(to, subject, contentBuilder.toString());
+                                System.out.println(">>> ĐÃ GỬI EMAIL đến " + to);
+                            } catch (Exception ex) {
+                                System.out.println(">>> LỖI khi gửi email xác nhận: " + ex.getMessage());
+                                ex.printStackTrace();
+                            }
+
                             String appliedVoucherCode = booking.getVoucherCode();
                             if (appliedVoucherCode != null && !appliedVoucherCode.isEmpty()) {
-                                System.out.println(">>> CHECKPOINT 5: Xử lý voucher code: " + appliedVoucherCode);
 
                                 voucherDAO vDAO = new voucherDAO();
                                 Voucher voucher = vDAO.getVoucherByCode(appliedVoucherCode);
@@ -169,7 +200,6 @@ public class VNPayReturnController extends HttpServlet {
                                     System.out.println(">>> CẢNH BÁO: Không tìm thấy voucher '" + appliedVoucherCode + "' trong DB để cập nhật. Có thể voucher đã bị xóa.");
                                 }
                             }
-
 
                             request.setAttribute("status", "true");
 
@@ -193,8 +223,7 @@ public class VNPayReturnController extends HttpServlet {
         } finally {
             session.removeAttribute("tempBooking");
             session.removeAttribute("tempPassenger");
-            session.removeAttribute("appliedVoucher"); 
-            
+            session.removeAttribute("appliedVoucher");
 
             request.getRequestDispatcher("/WEB-INF/user/orderStatus.jsp").forward(request, response);
         }

@@ -142,7 +142,8 @@
         <nav class="main-nav">
             <a href="<c:url value='/home'/>">Trang Chủ</a>
             <a href="checkin-search">Check-In</a>
-            <a href="#">Quản Lý Đặt Chỗ</a>
+            
+             <a href="manageBooking">Quản Lý Đặt Chỗ</a>
             <a href="<c:url value='/ContactSupport'/>">Liên Hệ</a>
         </nav>
         <div class="auth-buttons">

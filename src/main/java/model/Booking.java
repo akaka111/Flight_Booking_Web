@@ -27,11 +27,13 @@ public class Booking {
     private String bookingCode;
     private String voucherCode;
     private int seatId;
+    private String userFullName; // Thêm thuộc tính cho tên người dùng
+    private String flightNumber; // Thêm thuộc tính cho số hiệu chuyến bay
 
     public Booking() {
     }
 
-    public Booking(int bookingId, int userId, int flightId, Timestamp bookingDate, String status, String seatClass, double totalPrice, String staffNote, Integer lastUpdatedBy, Timestamp lastUpdatedAt, String checkinStatus) {
+    public Booking(int bookingId, int userId, int flightId, Timestamp bookingDate, String status, String seatClass, double totalPrice, String staffNote, Integer lastUpdatedBy, Timestamp lastUpdatedAt, String checkinStatus, String bookingCode, String voucherCode, int seatId, String userFullName, String flightNumber) {
         this.bookingId = bookingId;
         this.userId = userId;
         this.flightId = flightId;
@@ -43,6 +45,11 @@ public class Booking {
         this.lastUpdatedBy = lastUpdatedBy;
         this.lastUpdatedAt = lastUpdatedAt;
         this.checkinStatus = checkinStatus;
+        this.bookingCode = bookingCode;
+        this.voucherCode = voucherCode;
+        this.seatId = seatId;
+        this.userFullName = userFullName;
+        this.flightNumber = flightNumber;
     }
 
     // Getters and Setters
@@ -156,6 +163,22 @@ public class Booking {
 
     public void setSeatId(int seatId) {
         this.seatId = seatId;
+    }
+
+    public String getUserFullName() {
+        return userFullName;
+    }
+
+    public void setUserFullName(String userFullName) {
+        this.userFullName = userFullName;
+    }
+
+    public String getFlightNumber() {
+        return flightNumber;
+    }
+
+    public void setFlightNumber(String flightNumber) {
+        this.flightNumber = flightNumber;
     }
 
     @Override

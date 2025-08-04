@@ -79,7 +79,7 @@ public class AccountDAO {
     }
 
     // Hàm hash password bằng SHA-256
-    private static String hashSHA256(String input) {
+    public static String hashSHA256(String input) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] messageDigest = md.digest(input.getBytes());
@@ -253,7 +253,7 @@ public class AccountDAO {
      * @return
      */
     public boolean checkOldPassword(String username, String oldPassword) {
-        String sql = "SELECT * FROM [User] WHERE username = ? AND password = ? AND role = 'ADMIN'";
+        String sql = "SELECT * FROM Account WHERE username = ? AND password = ? AND role = 'staff'";
         try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, username);
             ps.setString(2, oldPassword);
@@ -265,15 +265,55 @@ public class AccountDAO {
         }
     }
 
-    public boolean updatePassword(String username, String newPassword) {
-        String sql = "UPDATE [User] SET password = ? WHERE username = ? AND role = 'ADMIN'";
+    public boolean updatePassword(String username, String NewPwd) {
+        String sql = "UPDATE Account SET password = ? WHERE username = ? AND role = 'staff'";
         try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, newPassword);
+            ps.setString(1, NewPwd);
             ps.setString(2, username);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
+        }
+    }
+    public List<Account> getAllCustomers() {
+        int count = 0;
+        List<Account> list = new ArrayList<>();
+        String sql = "SELECT * FROM Account WHERE role = 'CUSTOMER'";
+        try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            if (conn == null) {
+                System.out.println("Lỗi: Không thể kết nối DB!");
+            } else {
+                System.out.println("ok ket noi");
+            }
+            while (rs.next()) {
+                count++;
+                Account acc = new Account();
+                acc.setUserId(rs.getInt("user_id"));
+                acc.setUsername(rs.getString("username"));
+                acc.setEmail(rs.getString("email"));
+                acc.setPhone(rs.getString("phone"));
+                acc.setDob(rs.getDate("dob"));
+                acc.setRole(rs.getString("role"));
+                acc.setStatus(rs.getBoolean("status"));
+                acc.setFullname(rs.getString("fullname"));
+                list.add(acc);
+            }
+            System.out.println("Tổng số khách hàng tìm được: " + count);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public void updateCustomerPassword(int userId, String newPassword) {
+        String sql = "UPDATE Account SET password = ? WHERE user_Id = ? and role = 'customer'";
+        try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newPassword);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }

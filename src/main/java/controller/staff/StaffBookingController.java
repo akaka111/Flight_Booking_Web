@@ -1,6 +1,8 @@
 package controller.staff;
 
+import DAO.Admin.AccountDAO;
 import DAO.Admin.BookingDAO;
+import model.Account;
 import model.Booking;
 import model.BookingHistory;
 import model.CheckIn;
@@ -10,10 +12,10 @@ import model.Flight;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -33,6 +35,7 @@ import java.util.logging.Logger;
 public class StaffBookingController extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger(StaffBookingController.class.getName());
     private BookingDAO bookingDAO;
+    private AccountDAO accountDAO;
     private Connection connection;
     private DBContext dbContext;
 
@@ -42,6 +45,7 @@ public class StaffBookingController extends HttpServlet {
             dbContext = new DBContext();
             connection = dbContext.getConnection();
             bookingDAO = new BookingDAO(connection);
+            accountDAO = new AccountDAO();
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Không thể khởi tạo kết nối cơ sở dữ liệu", e);
             throw new ServletException("Không thể khởi tạo kết nối cơ sở dữ liệu", e);
@@ -103,6 +107,13 @@ public class StaffBookingController extends HttpServlet {
     private void handleListBookings(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String statusFilter = request.getParameter("statusFilter");
         List<Booking> bookings = bookingDAO.getAllBookings(statusFilter);
+        // Lấy thông tin tên người dùng và số hiệu chuyến bay
+        for (Booking booking : bookings) {
+            Account account = accountDAO.getAccountById(booking.getUserId());
+            booking.setUserFullName(account != null ? account.getFullname() : "Unknown");
+            Flight flight = bookingDAO.getFlightDetails(booking.getBookingId());
+            booking.setFlightNumber(flight != null ? flight.getFlightNumber() : "Unknown");
+        }
         request.setAttribute("bookings", bookings);
         request.getRequestDispatcher("/WEB-INF/staff/bookingList.jsp").forward(request, response);
     }
@@ -114,6 +125,13 @@ public class StaffBookingController extends HttpServlet {
             return;
         }
         List<Booking> bookings = bookingDAO.searchBookings(searchTerm);
+        // Lấy thông tin tên người dùng và số hiệu chuyến bay
+        for (Booking booking : bookings) {
+            Account account = accountDAO.getAccountById(booking.getUserId());
+            booking.setUserFullName(account != null ? account.getFullname() : "Unknown");
+            Flight flight = bookingDAO.getFlightDetails(booking.getBookingId());
+            booking.setFlightNumber(flight != null ? flight.getFlightNumber() : "Unknown");
+        }
         request.setAttribute("bookings", bookings);
         request.getRequestDispatcher("/WEB-INF/staff/bookingList.jsp").forward(request, response);
     }
@@ -136,6 +154,10 @@ public class StaffBookingController extends HttpServlet {
             return;
         }
 
+        Account account = accountDAO.getAccountById(booking.getUserId());
+        booking.setUserFullName(account != null ? account.getFullname() : "Unknown");
+        booking.setFlightNumber(flight != null ? flight.getFlightNumber() : "Unknown");
+
         request.getSession().removeAttribute("error");
         request.getSession().removeAttribute("success");
 
@@ -148,21 +170,27 @@ public class StaffBookingController extends HttpServlet {
 
     private void handleUpdateBooking(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
+            HttpSession session = request.getSession();
+            Integer staffId = (Integer) session.getAttribute("staffId");
+            String staffRole = (String) session.getAttribute("staffRole");
+            String staffName = (String) session.getAttribute("staffName");
+
+            if (staffId == null || staffId <= 0 || staffRole == null || staffName == null) {
+                throw new IllegalStateException("Thông tin nhân viên không hợp lệ, vui lòng đăng nhập lại.");
+            }
+
             int bookingId = Integer.parseInt(request.getParameter("bookingId"));
             String status = request.getParameter("status");
             String seatClass = request.getParameter("seatClass");
             double totalPrice = Double.parseDouble(request.getParameter("totalPrice"));
             String staffNote = request.getParameter("staffNote");
             String checkinStatus = request.getParameter("checkinStatus");
-            int staffId = getStaffIdFromCookie(request);
-            String staffRole = getStaffRoleFromCookie(request); // Giả định lấy vai trò từ cookie
-            String staffName = getStaffNameFromCookie(request); // Giả định lấy tên từ cookie
 
             LOGGER.info("Dữ liệu nhận được - bookingId: " + bookingId + ", status: " + status + ", seatClass: " + seatClass +
                        ", totalPrice: " + totalPrice + ", staffId: " + staffId);
 
-            if (bookingId <= 0 || status == null || seatClass == null || totalPrice <= 0 || staffId <= 0) {
-                throw new IllegalArgumentException("Dữ liệu không hợp lệ! bookingId: " + bookingId + ", totalPrice: " + totalPrice + ", staffId: " + staffId);
+            if (bookingId <= 0 || status == null || seatClass == null || totalPrice <= 0) {
+                throw new IllegalArgumentException("Dữ liệu không hợp lệ! bookingId: " + bookingId + ", totalPrice: " + totalPrice);
             }
 
             Booking booking = new Booking();
@@ -179,9 +207,10 @@ public class StaffBookingController extends HttpServlet {
                 history.setBookingId(bookingId);
                 history.setAction("CẬP NHẬT");
                 history.setDescription("Cập nhật trạng thái booking thành " + status + ", hạng ghế thành " + seatClass + ", ghi chú: " + staffNote);
-                history.setActionTime(LocalDateTime.now());
-                history.setRole(staffRole); // Thêm vai trò
-                history.setStaffName(staffName); // Thêm tên nhân viên
+                history.setActionTime(Timestamp.from(Instant.now()));
+                history.setRole(staffRole);
+                history.setStaffName(staffName);
+                history.setStaffId(staffId);
                 bookingDAO.addBookingHistory(history);
                 request.getSession().setAttribute("success", "Cập nhật booking thành công!");
             } else {
@@ -190,7 +219,7 @@ public class StaffBookingController extends HttpServlet {
         } catch (NumberFormatException e) {
             LOGGER.log(Level.SEVERE, "Lỗi định dạng số: " + e.getMessage(), e);
             request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             LOGGER.log(Level.SEVERE, "Lỗi dữ liệu không hợp lệ: " + e.getMessage(), e);
             request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
         } catch (Exception e) {
@@ -204,16 +233,22 @@ public class StaffBookingController extends HttpServlet {
 
     private void handleCancelBooking(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
+            HttpSession session = request.getSession();
+            Integer staffId = (Integer) session.getAttribute("staffId");
+            String staffRole = (String) session.getAttribute("staffRole");
+            String staffName = (String) session.getAttribute("staffName");
+
+            if (staffId == null || staffId <= 0 || staffRole == null || staffName == null) {
+                throw new IllegalStateException("Thông tin nhân viên không hợp lệ, vui lòng đăng nhập lại.");
+            }
+
             int bookingId = Integer.parseInt(request.getParameter("bookingId"));
             String reason = request.getParameter("reason");
-            int staffId = getStaffIdFromCookie(request);
-            String staffRole = getStaffRoleFromCookie(request); // Giả định lấy vai trò từ cookie
-            String staffName = getStaffNameFromCookie(request); // Giả định lấy tên từ cookie
 
             LOGGER.info("Dữ liệu nhận được - bookingId: " + bookingId + ", reason: " + reason + ", staffId: " + staffId);
 
-            if (bookingId <= 0 || staffId <= 0) {
-                throw new IllegalArgumentException("Dữ liệu không hợp lệ! bookingId: " + bookingId + ", staffId: " + staffId);
+            if (bookingId <= 0) {
+                throw new IllegalArgumentException("Dữ liệu không hợp lệ! bookingId: " + bookingId);
             }
 
             Booking booking = new Booking();
@@ -228,9 +263,10 @@ public class StaffBookingController extends HttpServlet {
                 history.setBookingId(bookingId);
                 history.setAction("HỦY");
                 history.setDescription("Hủy booking: " + reason);
-                history.setActionTime(LocalDateTime.now());
-                history.setRole(staffRole); // Thêm vai trò
-                history.setStaffName(staffName); // Thêm tên nhân viên
+                history.setActionTime(Timestamp.from(Instant.now()));
+                history.setRole(staffRole);
+                history.setStaffName(staffName);
+                history.setStaffId(staffId);
                 bookingDAO.addBookingHistory(history);
                 request.getSession().setAttribute("success", "Hủy booking thành công!");
             } else {
@@ -239,7 +275,7 @@ public class StaffBookingController extends HttpServlet {
         } catch (NumberFormatException e) {
             LOGGER.log(Level.SEVERE, "Lỗi định dạng số: " + e.getMessage(), e);
             request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             LOGGER.log(Level.SEVERE, "Lỗi dữ liệu không hợp lệ: " + e.getMessage(), e);
             request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
         } catch (Exception e) {
@@ -253,20 +289,26 @@ public class StaffBookingController extends HttpServlet {
 
     private void handlePerformCheckIn(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
+            HttpSession session = request.getSession();
+            Integer staffId = (Integer) session.getAttribute("staffId");
+            String staffRole = (String) session.getAttribute("staffRole");
+            String staffName = (String) session.getAttribute("staffName");
+
+            if (staffId == null || staffId <= 0 || staffRole == null || staffName == null) {
+                throw new IllegalStateException("Thông tin nhân viên không hợp lệ, vui lòng đăng nhập lại.");
+            }
+
             int bookingId = Integer.parseInt(request.getParameter("bookingId"));
             int passengerId = Integer.parseInt(request.getParameter("passengerId"));
             int flightId = Integer.parseInt(request.getParameter("flightId"));
             String status = request.getParameter("checkinStatus");
-            int staffId = getStaffIdFromCookie(request);
-            String staffRole = getStaffRoleFromCookie(request); // Giả định lấy vai trò từ cookie
-            String staffName = getStaffNameFromCookie(request); // Giả định lấy tên từ cookie
 
             LOGGER.info("Dữ liệu nhận được - bookingId: " + bookingId + ", passengerId: " + passengerId + ", flightId: " + flightId +
                        ", status: " + status + ", staffId: " + staffId);
 
-            if (bookingId <= 0 || passengerId <= 0 || flightId <= 0 || staffId <= 0 || !status.equals("CHECKED-IN") && !status.equals("BOARDED")) {
+            if (bookingId <= 0 || passengerId <= 0 || flightId <= 0 || !status.equals("CHECKED-IN") && !status.equals("BOARDED")) {
                 throw new IllegalArgumentException("Dữ liệu không hợp lệ! bookingId: " + bookingId + ", passengerId: " + passengerId + 
-                                                  ", flightId: " + flightId + ", staffId: " + staffId);
+                                                  ", flightId: " + flightId);
             }
 
             CheckIn checkIn = new CheckIn();
@@ -290,9 +332,10 @@ public class StaffBookingController extends HttpServlet {
                 history.setBookingId(bookingId);
                 history.setAction(status);
                 history.setDescription("Cập nhật trạng thái check-in thành " + status);
-                history.setActionTime(LocalDateTime.now());
-                history.setRole(staffRole); // Thêm vai trò
-                history.setStaffName(staffName); // Thêm tên nhân viên
+                history.setActionTime(Timestamp.from(Instant.now()));
+                history.setRole(staffRole);
+                history.setStaffName(staffName);
+                history.setStaffId(staffId);
                 bookingDAO.addBookingHistory(history);
                 request.getSession().setAttribute("success", "Check-in thành công!");
             } else {
@@ -301,7 +344,7 @@ public class StaffBookingController extends HttpServlet {
         } catch (NumberFormatException e) {
             LOGGER.log(Level.SEVERE, "Lỗi định dạng số: " + e.getMessage(), e);
             request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             LOGGER.log(Level.SEVERE, "Lỗi dữ liệu không hợp lệ: " + e.getMessage(), e);
             request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
         } catch (Exception e) {
@@ -315,6 +358,15 @@ public class StaffBookingController extends HttpServlet {
 
     private void handleUpdatePassenger(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
+            HttpSession session = request.getSession();
+            Integer staffId = (Integer) session.getAttribute("staffId");
+            String staffRole = (String) session.getAttribute("staffRole");
+            String staffName = (String) session.getAttribute("staffName");
+
+            if (staffId == null || staffId <= 0 || staffRole == null || staffName == null) {
+                throw new IllegalStateException("Thông tin nhân viên không hợp lệ, vui lòng đăng nhập lại.");
+            }
+
             int passengerId = Integer.parseInt(request.getParameter("passengerId"));
             String fullName = request.getParameter("fullName");
             String passportNumber = request.getParameter("passportNumber");
@@ -324,17 +376,14 @@ public class StaffBookingController extends HttpServlet {
             String email = request.getParameter("email");
             String country = request.getParameter("country");
             String address = request.getParameter("address");
-            int staffId = getStaffIdFromCookie(request);
             int bookingId = Integer.parseInt(request.getParameter("bookingId"));
-            String staffRole = getStaffRoleFromCookie(request); // Giả định lấy vai trò từ cookie
-            String staffName = getStaffNameFromCookie(request); // Giả định lấy tên từ cookie
 
             LOGGER.info("Dữ liệu nhận được - passengerId: " + passengerId + ", fullName: " + fullName + ", dobStr: " + dobStr +
                        ", bookingId: " + bookingId + ", staffId: " + staffId);
 
             if (passengerId <= 0 || fullName == null || passportNumber == null || dobStr == null || gender == null ||
-                phoneNumber == null || email == null || country == null || address == null || staffId <= 0) {
-                throw new IllegalArgumentException("Dữ liệu không hợp lệ! passengerId: " + passengerId + ", staffId: " + staffId);
+                phoneNumber == null || email == null || country == null || address == null) {
+                throw new IllegalArgumentException("Dữ liệu không hợp lệ! passengerId: " + passengerId);
             }
 
             Date dob = null;
@@ -361,9 +410,10 @@ public class StaffBookingController extends HttpServlet {
                 history.setBookingId(bookingId);
                 history.setAction("CẬP NHẬT HÀNH KHÁCH");
                 history.setDescription("Cập nhật thông tin hành khách cho " + fullName);
-                history.setActionTime(LocalDateTime.now());
-                history.setRole(staffRole); // Thêm vai trò
-                history.setStaffName(staffName); // Thêm tên nhân viên
+                history.setActionTime(Timestamp.from(Instant.now()));
+                history.setRole(staffRole);
+                history.setStaffName(staffName);
+                history.setStaffId(staffId);
                 bookingDAO.addBookingHistory(history);
                 request.getSession().setAttribute("success", "Cập nhật thông tin hành khách thành công!");
             } else {
@@ -372,7 +422,7 @@ public class StaffBookingController extends HttpServlet {
         } catch (NumberFormatException e) {
             LOGGER.log(Level.SEVERE, "Lỗi định dạng số: " + e.getMessage(), e);
             request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             LOGGER.log(Level.SEVERE, "Lỗi dữ liệu không hợp lệ: " + e.getMessage(), e);
             request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
         } catch (java.text.ParseException e) {
@@ -385,52 +435,5 @@ public class StaffBookingController extends HttpServlet {
         request.getSession().removeAttribute("error");
         request.getSession().removeAttribute("success");
         response.sendRedirect(request.getContextPath() + "/staff/booking/details?bookingId=" + request.getParameter("bookingId"));
-    }
-
-    private int getStaffIdFromCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("staffId".equals(cookie.getName())) {
-                    try {
-                        int staffId = Integer.parseInt(cookie.getValue());
-                        LOGGER.info("Staff ID from cookie: " + staffId);
-                        return staffId;
-                    } catch (NumberFormatException e) {
-                        LOGGER.log(Level.SEVERE, "Lỗi định dạng staffId từ cookie: " + e.getMessage(), e);
-                    }
-                }
-            }
-        }
-        LOGGER.warning("Không tìm thấy staffId trong cookie, trả về -1");
-        return -1;
-    }
-
-    // Giả định phương thức lấy vai trò từ cookie (cần triển khai theo logic thực tế)
-    private String getStaffRoleFromCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("staffRole".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        LOGGER.warning("Không tìm thấy staffRole trong cookie, trả về mặc định");
-        return "STAFF"; // Giá trị mặc định, cần thay bằng logic thực tế
-    }
-
-    // Giả định phương thức lấy tên nhân viên từ cookie (cần triển khai theo logic thực tế)
-    private String getStaffNameFromCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("staffName".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        LOGGER.warning("Không tìm thấy staffName trong cookie, trả về mặc định");
-        return "Unknown Staff"; // Giá trị mặc định, cần thay bằng logic thực tế
     }
 }

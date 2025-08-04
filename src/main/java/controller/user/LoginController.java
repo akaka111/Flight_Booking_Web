@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import jakarta.servlet.http.Cookie;
 import model.Account;
 import utils.GoogleUtils;
 import org.apache.logging.log4j.LogManager;
@@ -16,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 
 @WebServlet(name = "LoginController", urlPatterns = {"/login"})
 public class LoginController extends HttpServlet {
+
     private static final Logger logger = LogManager.getLogger(LoginController.class);
 
     @Override
@@ -79,19 +79,23 @@ public class LoginController extends HttpServlet {
 
             if (user != null) {
                 HttpSession session = request.getSession(true);
+                logger.info("Session created with ID: {}", session.getId());
                 session.setAttribute("user", user);
                 String redirectURL = (String) session.getAttribute("redirectURL");
                 session.removeAttribute("redirectURL");
 
-                // Thêm cookie staffId nếu là staff
+                int userId = user.getUserId();
                 String role = user.getRole() != null ? user.getRole().toLowerCase() : "customer";
-                if ("staff".equals(role)) {
-                    Cookie staffIdCookie = new Cookie("staffId", String.valueOf(user.getUserId()));
-                    staffIdCookie.setMaxAge(7 * 24 * 60 * 60); // 7 ngày
-                    staffIdCookie.setPath("/"); // Áp dụng cho toàn bộ ứng dụng
-                    staffIdCookie.setHttpOnly(true); // Bảo mật
-                    response.addCookie(staffIdCookie);
-                    logger.info("Đã tạo cookie staffId: {} cho user {}", user.getUserId(), email);
+                String fullname = user.getFullname() != null ? user.getFullname().trim().replaceAll("\\s+", "_") : "Unknown_Staff";
+                logger.info("User details - userId: {}, role: {}, fullname: {}", userId, role, fullname);
+
+                if ("staff".equalsIgnoreCase(role) && userId > 0) {
+                    session.setAttribute("staffId", userId);
+                    session.setAttribute("staffRole", user.getRole());
+                    session.setAttribute("staffName", fullname);
+                    logger.info("Saved session for staff - staffId: {}, staffRole: {}, staffName: {}", userId, user.getRole(), fullname);
+                } else {
+                    logger.info("No staff session saved - role: {}, userId: {}, fullname: {}", role, userId, fullname);
                 }
 
                 switch (role) {
@@ -137,6 +141,7 @@ public class LoginController extends HttpServlet {
         String password = request.getParameter("password");
 
         HttpSession session = request.getSession(true);
+        logger.info("Session created with ID: {}", session.getId());
         String redirectURL = (String) session.getAttribute("redirectURL");
 
         AccountDAO userDao = new AccountDAO();
@@ -150,15 +155,18 @@ public class LoginController extends HttpServlet {
             session.setAttribute("user", user);
             session.removeAttribute("redirectURL");
 
-            // Thêm cookie staffId nếu là staff
+            int userId = user.getUserId();
             String role = user.getRole() != null ? user.getRole().toLowerCase() : "customer";
-            if ("staff".equals(role)) {
-                Cookie staffIdCookie = new Cookie("staffId", String.valueOf(user.getUserId()));
-                staffIdCookie.setMaxAge(7 * 24 * 60 * 60); // 7 ngày
-                staffIdCookie.setPath("/"); // Áp dụng cho toàn bộ ứng dụng
-                staffIdCookie.setHttpOnly(true); // Bảo mật
-                response.addCookie(staffIdCookie);
-                logger.info("Đã tạo cookie staffId: {} cho user {}", user.getUserId(), username);
+            String fullname = user.getFullname() != null ? user.getFullname().trim().replaceAll("\\s+", "_") : "Unknown_Staff";
+            logger.info("User details - userId: {}, role: {}, fullname: {}", userId, role, fullname);
+
+            if ("staff".equalsIgnoreCase(role)) {
+                session.setAttribute("staffId", userId);
+                session.setAttribute("staffRole", user.getRole());
+                session.setAttribute("staffName", fullname);
+                logger.info("Saved session for staff - staffId: {}, staffRole: {}, staffName: {}", userId, user.getRole(), fullname);
+            } else {
+                logger.info("No staff session saved - role: {}, userId: {}, fullname: {}", role, userId, fullname);
             }
 
             switch (role) {

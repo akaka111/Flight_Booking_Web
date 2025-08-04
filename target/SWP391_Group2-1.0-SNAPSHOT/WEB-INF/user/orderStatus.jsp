@@ -9,7 +9,6 @@
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
         <style>
-            /* === ĐỒNG BỘ CSS VARIABLES VỚI HOME.JSP === */
             :root {
                 --primary-color: #007bff;
                 --secondary-color: #ff6f61;
@@ -80,14 +79,14 @@
     </head>
     <body>
         <header>
-            <jsp:include page="/WEB-INF/user/components/header.jsp" /> 
+            <jsp:include page="/WEB-INF/user/components/header.jsp" />
         </header>
 
         <main>
             <div class="container">
                 <%
-                    String status = request.getParameter("status");
-                    String error = request.getParameter("error");
+                    String status = (String) request.getAttribute("status");
+                    String error = (String) request.getAttribute("error");
 
                     if ("false".equals(status)) {
                 %>
@@ -119,7 +118,7 @@
         </main>
 
         <footer>
-            <jsp:include page="/WEB-INF/user/components/footer.jsp" /> 
+            <jsp:include page="/WEB-INF/user/components/footer.jsp" />
         </footer>
     </body>
 </html>

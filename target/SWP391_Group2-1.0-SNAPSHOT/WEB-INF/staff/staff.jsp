@@ -339,7 +339,7 @@
                     <div class="dropdown">
                         <button><i class="fa-solid fa-user"></i> Hồ Sơ</button>
                         <div class="dropdown-content">
-                            <a href="viewProfile.jsp">Xem Hồ Sơ Admin</a>
+                            <a href="StaffProfileServlet">Xem Hồ Sơ Admin</a>
                             <a href="<c:url value='/logout'/>" id="logoutBtn">Đăng Xuất</a>
                         </div>
                     </div>
@@ -348,8 +348,7 @@
 
             <div class="hero-section">
                 <div class="slider">
-                    <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1530521954074-e64f6810b32d?q=80&w=2070');"></div>
-                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074');"></div>
+                    <div class="slide active" style="background-image: url('https://voicefpt.com.vn/wp-content/uploads/2019/12/dich-vu-tong-dai-doanh-nghiep-voice-fpt.jpeg');"></div>                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074');"></div>
                     <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1569154941061-e231b4725ef1?q=80&w=2070');"></div>
                 </div>
                 <div class="hero-overlay"></div>
@@ -358,32 +357,7 @@
                 </div>
             </div>
 
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Doanh Thu Tháng (Tháng 6/2025)</h3>
-                    <p><fmt:formatNumber value="250000000" type="currency" currencyCode="VND" /></p>
-                </div>
-                <div class="stat-card">
-                    <h3>Tỷ Lệ Chiếm Chỗ</h3>
-                    <p>78%</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Phân Loại Vé</h3>
-                    <p>Vé Phổ Thông: 450<br>Vé Thương Gia: 120<br>Vé Hạng Nhất: 25</p>
-                </div>
-                <div class="stat-card">
-                    <h3>5 Tuyến Đường Đứng Đầu Theo Doanh Thu</h3>
-                    <p>1. SGN-HAN: 80 triệu VND<br>2. HAN-DAD: 60 triệu VND<br>3. DAD-SGN: 45 triệu VND<br>4. SGN-CXR: 35 triệu VND<br>5. HAN-HUI: 25 triệu VND</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Hiệu Suất Phi Công</h3>
-                    <p>Phi Công A: 18 chuyến - 320 vé<br>Phi Công B: 14 chuyến - 250 vé</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Thống Kê Chi Tiết Hàng Ngày (<%= new SimpleDateFormat("dd/MM/yyyy").format(new Date())%>)</h3>
-                    <p>Doanh Thu: 12,500,000 VND<br>Số Vé Đặt: 45<br>Tỷ Lệ Đặt Chỗ: 82%</p>
-                </div>
-            </div>
+            
 
             <iframe class="iframe-container" id="contentFrame"></iframe>
 

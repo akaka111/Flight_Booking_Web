@@ -5,6 +5,7 @@
 package controller.user;
 
 import DAO.user.SupportContact;
+import DAO.user.SupportContact;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -80,9 +81,8 @@ public class ContactSupport extends HttpServlet {
 
         String action = request.getParameter("action");
         HttpSession session = request.getSession(false);
-
         if ("openForm".equals(action)) {
-            if (session != null && session.getAttribute("account") != null) {
+            if (session != null && session.getAttribute("user") != null) {
                 request.getRequestDispatcher("/WEB-INF/views/sendMessage.jsp").forward(request, response);
             } else {
                 request.setAttribute("message", "Vui lòng đăng nhập để liên hệ hỗ trợ.");
@@ -90,7 +90,7 @@ public class ContactSupport extends HttpServlet {
             }
 
         } else if ("send".equals(action)) {
-            String email = ((Account) session.getAttribute("account")).getEmail();
+            String email = ((Account) session.getAttribute("user")).getEmail();
             String subject = request.getParameter("subject");
             String content = request.getParameter("content");
             String recipient = request.getParameter("recipient");
@@ -104,8 +104,8 @@ public class ContactSupport extends HttpServlet {
             request.setAttribute("notify", "✅ Tin nhắn của bạn đã được gửi thành công!");
             request.getRequestDispatcher("/WEB-INF/views/sendMessage.jsp").forward(request, response);
         } else if ("inbox".equals(action)) {
-            if (session != null && session.getAttribute("account") != null) {
-                Account acc = (Account) session.getAttribute("account");
+            if (session != null && session.getAttribute("user") != null) {
+                Account acc = (Account) session.getAttribute("user");
                 String email = acc.getEmail();
                 SupportContact dao = new SupportContact();
                 List<Message> inbox = dao.getMessagesByRecipient(email);

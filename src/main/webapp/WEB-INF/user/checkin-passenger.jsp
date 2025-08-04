@@ -111,6 +111,10 @@
                         <th>Giới tính</th>
                         <th>Ngày sinh</th>
                         <th>Quốc tịch</th>
+                        <th>Số hộ chiếu</th>
+                        <th>Số điện thoại</th>
+                        <th>Email</th>
+                        <th>Địa chỉ</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -119,9 +123,14 @@
                         <td><%= passenger.getGender()%></td>
                         <td><%= passenger.getDob()%></td>
                         <td><%= passenger.getCountry()%></td>
+                        <td><%= passenger.getPassportNumber()%></td>
+                        <td><%= passenger.getPhoneNumber()%></td>
+                        <td><%= passenger.getEmail()%></td>
+                        <td><%= passenger.getAddress()%></td>
                     </tr>
                 </tbody>
             </table>
+
 
             <form action="checkinController" method="post">
                 <input type="hidden" name="step" value="complete" />

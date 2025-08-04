@@ -56,10 +56,8 @@ public class BookingDAO {
 
             ps.setInt(1, booking.getUserId());
             ps.setInt(2, booking.getFlightId());
-
             // <-- THAY ĐỔI QUAN TRỌNG: LƯU SEAT_ID VÀO DATABASE -->
             ps.setInt(3, booking.getSeatId());
-
             ps.setTimestamp(4, booking.getBookingDate());
             ps.setString(5, booking.getSeatClass());
             ps.setDouble(6, booking.getTotalPrice());
@@ -82,7 +80,7 @@ public class BookingDAO {
     }
 
     // Trong file BookingDAO.java
-// Phương thức để lấy một booking từ DB bằng ID
+    // Phương thức để lấy một booking từ DB bằng ID
     public Booking getBookingById(int bookingId) {
         Booking booking = null;
         // Sửa câu SQL để bao gồm tất cả các cột cần thiết, đặc biệt là seat_id
@@ -90,7 +88,6 @@ public class BookingDAO {
 
         // Sử dụng try-with-resources để tự động quản lý kết nối
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setInt(1, bookingId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -98,14 +95,12 @@ public class BookingDAO {
                     booking.setBookingId(rs.getInt("booking_id"));
                     booking.setUserId(rs.getInt("user_id"));
                     booking.setFlightId(rs.getInt("flight_id"));
-
                     // <-- THAY ĐỔI QUAN TRỌNG: LẤY SEAT_ID TỪ DATABASE -->
-                   // booking.setSeatId(rs.getInt("seat_id"));
-                    // Kiểm tra xem giá trị có phải là NULL không
-                    if (rs.wasNull()) {
+                    if (rs.getObject("seat_id") != null) {
+                        booking.setSeatId(rs.getInt("seat_id"));
+                    } else {
                         booking.setSeatId(0); // Hoặc một giá trị mặc định nào đó nếu cần
                     }
-
                     booking.setBookingDate(rs.getTimestamp("booking_time"));
                     booking.setSeatClass(rs.getString("seat_class"));
                     booking.setTotalPrice(rs.getDouble("total_price"));
@@ -120,17 +115,14 @@ public class BookingDAO {
         return booking;
     }
 
-// Phương thức để cập nhật trạng thái của một booking
+    // Phương thức để cập nhật trạng thái của một booking
     public boolean updateBookingSeat(int bookingId, int newSeatId) {
         String sql = "UPDATE Booking SET seat_id = ? WHERE booking_id = ?";
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setInt(1, newSeatId);
             ps.setInt(2, bookingId);
-
             int affectedRows = ps.executeUpdate();
             return affectedRows > 0;
-
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật ghế cho booking ID: " + bookingId, e);
             return false;
@@ -150,9 +142,7 @@ public class BookingDAO {
 
         // Sử dụng try-with-resources để đảm bảo kết nối luôn được đóng
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
             System.out.println("==> [BookingDAO] Đang chuẩn bị thực thi câu lệnh INSERT...");
-
             ps.setInt(1, booking.getUserId());
             ps.setInt(2, booking.getFlightId());
             ps.setTimestamp(3, new java.sql.Timestamp(booking.getBookingDate().getTime()));
@@ -170,15 +160,13 @@ public class BookingDAO {
                     }
                 }
             }
-
         } catch (Exception e) {
-
             e.printStackTrace();
         }
         return generatedId;
     }
 
-     public boolean updateBookingStatus(int bookingId, String newStatus) {
+    public boolean updateBookingStatus(int bookingId, String newStatus) {
         String sql = "UPDATE Booking SET status = ? WHERE booking_id = ?";
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, newStatus);
@@ -225,6 +213,7 @@ public class BookingDAO {
         }
         return null;
     }
+
     public void updateBookingAmount(Booking booking) {
         String sql = "UPDATE Booking SET total_amount = ? WHERE booking_id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -238,7 +227,7 @@ public class BookingDAO {
 
     public List<Booking> getAllBookings(String statusFilter) {
         List<Booking> bookings = new ArrayList<>();
-        String query = "SELECT b.booking_id, b.user_id, b.flight_id, b.booking_time, b.status, b.seat_class, b.total_price, b.staff_note, b.last_updated_by, b.last_updated_at, b.checkin_status, "
+        String query = "SELECT b.booking_id, b.user_id, b.flight_id, b.booking_time, b.status, b.seat_class, b.total_price, b.booking_code, b.staff_note, b.last_updated_by, b.last_updated_at, b.checkin_status, "
                 + "p.passenger_id, p.full_name, p.passport_number, p.dob, p.gender, p.phone_number, p.email, p.country, p.address "
                 + "FROM Booking b "
                 + "LEFT JOIN Passenger p ON b.booking_id = p.booking_id";
@@ -258,6 +247,7 @@ public class BookingDAO {
                 booking.setStatus(rs.getString("status"));
                 booking.setSeatClass(rs.getString("seat_class"));
                 booking.setTotalPrice(rs.getBigDecimal("total_price").doubleValue());
+                booking.setBookingCode(rs.getString("booking_code"));
                 booking.setStaffNote(rs.getString("staff_note"));
                 booking.setLastUpdatedBy(rs.getInt("last_updated_by"));
                 booking.setLastUpdatedAt(rs.getTimestamp("last_updated_at"));
@@ -273,11 +263,11 @@ public class BookingDAO {
     public List<Booking> searchBookings(String searchTerm) {
         List<Booking> bookings = new ArrayList<>();
         String searchPattern = "%" + searchTerm + "%";
-        String query = "SELECT b.booking_id, b.user_id, b.flight_id, b.booking_time, b.status, b.seat_class, b.total_price, b.staff_note, b.last_updated_by, b.last_updated_at, b.checkin_status, "
+        String query = "SELECT b.booking_id, b.user_id, b.flight_id, b.booking_time, b.status, b.seat_class, b.total_price, b.booking_code, b.staff_note, b.last_updated_by, b.last_updated_at, b.checkin_status, "
                 + "p.passenger_id, p.full_name, p.passport_number, p.dob, p.gender, p.phone_number, p.email, p.country, p.address "
                 + "FROM Booking b "
                 + "LEFT JOIN Passenger p ON b.booking_id = p.booking_id "
-                + "WHERE b.booking_id LIKE ? OR p.full_name LIKE ? OR p.passport_number LIKE ?";
+                + "WHERE b.booking_code LIKE ? OR p.full_name LIKE ? OR p.passport_number LIKE ?";
         Object[] params = new Object[]{searchPattern, searchPattern, searchPattern};
 
         try (ResultSet rs = dbContext.execSelectQuery(query, params)) {
@@ -290,6 +280,7 @@ public class BookingDAO {
                 booking.setStatus(rs.getString("status"));
                 booking.setSeatClass(rs.getString("seat_class"));
                 booking.setTotalPrice(rs.getBigDecimal("total_price").doubleValue());
+                booking.setBookingCode(rs.getString("booking_code"));
                 booking.setStaffNote(rs.getString("staff_note"));
                 booking.setLastUpdatedBy(rs.getInt("last_updated_by"));
                 booking.setLastUpdatedAt(rs.getTimestamp("last_updated_at"));
@@ -303,7 +294,7 @@ public class BookingDAO {
     }
 
     public Booking getBookingDetails(int bookingId) {
-        String query = "SELECT b.booking_id, b.user_id, b.flight_id, b.booking_time, b.status, b.seat_class, b.total_price, b.staff_note, b.last_updated_by, b.last_updated_at, b.checkin_status, "
+        String query = "SELECT b.booking_id, b.user_id, b.flight_id, b.booking_time, b.status, b.seat_class, b.total_price, b.booking_code, b.staff_note, b.last_updated_by, b.last_updated_at, b.checkin_status, "
                 + "p.passenger_id, p.full_name, p.passport_number, p.dob, p.gender, p.phone_number, p.email, p.country, p.address, "
                 + "f.flight_id, f.airline_id, f.flight_number, f.route_from, f.route_to, f.departure_time, f.arrival_time, f.aircraft, f.status "
                 + "FROM Booking b "
@@ -320,6 +311,7 @@ public class BookingDAO {
                 booking.setStatus(rs.getString("status"));
                 booking.setSeatClass(rs.getString("seat_class"));
                 booking.setTotalPrice(rs.getBigDecimal("total_price").doubleValue());
+                booking.setBookingCode(rs.getString("booking_code"));
                 booking.setStaffNote(rs.getString("staff_note"));
                 booking.setLastUpdatedBy(rs.getInt("last_updated_by"));
                 booking.setLastUpdatedAt(rs.getTimestamp("last_updated_at"));
@@ -451,12 +443,13 @@ public class BookingDAO {
     }
 
     public boolean addBookingHistory(BookingHistory history) {
-        String query = "INSERT INTO BookingHistory (booking_id, action, description, action_time) VALUES (?, ?, ?, ?)";
+        String query = "INSERT INTO BookingHistory (booking_id, staff_id, action, description, action_time ) VALUES (?, ?, ?, ?, ?)";
         Object[] params = new Object[]{
             history.getBookingId(),
             history.getAction(),
             history.getDescription(),
-            new Timestamp(history.getActionTime().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli())
+            history.getActionTime(),
+            history.getStaffId()
         };
         try {
             int affectedRows = dbContext.execQuery(query, params);
@@ -483,7 +476,7 @@ public class BookingDAO {
                 bh.setBookingId(rs.getInt("booking_id"));
                 bh.setAction(rs.getString("action"));
                 bh.setDescription(rs.getString("description"));
-                bh.setActionTime(rs.getTimestamp("action_time").toLocalDateTime()); // Chuyển đổi sang LocalDateTime nếu cần
+                bh.setActionTime(rs.getTimestamp("action_time")); // Chuyển đổi sang LocalDateTime nếu cần
                 bh.setRole(rs.getString("role")); // Lấy vai trò
                 bh.setStaffName(rs.getString("staff_name")); // Lấy tên nhân viên
                 history.add(bh);
@@ -493,5 +486,60 @@ public class BookingDAO {
         }
         return history;
     }
-    
+
+    public String getBookingCodeById(int bookingId) {
+        String sql = "SELECT booking_code FROM Booking WHERE booking_id = ?";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, bookingId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("booking_code");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<Booking> getBookingsByUserId(int userId) {
+        List<Booking> list = new ArrayList<>();
+        String sql = "SELECT * FROM Booking WHERE user_id = ?";
+
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Booking b = new Booking();
+                b.setBookingId(rs.getInt("booking_id"));
+                b.setUserId(rs.getInt("user_id"));
+                b.setBookingCode(rs.getString("booking_code"));
+                b.setStatus(rs.getString("status"));
+                b.setTotalPrice(rs.getBigDecimal("total_price").doubleValue());
+                b.setBookingDate(rs.getTimestamp("booking_time"));
+                b.setSeatClass(rs.getString("seat_class"));
+                b.setFlightId(rs.getInt("flight_id")); // <-- bổ sung dòng này
+                list.add(b);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public void cancelBooking(int bookingId) {
+        String sql = "UPDATE Booking SET status = 'Cancelled' WHERE booking_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

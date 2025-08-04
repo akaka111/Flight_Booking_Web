@@ -14,6 +14,16 @@
         .table { margin-top: 20px; }
         .form-group { margin-bottom: 15px; }
         .alert { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; }
+        /* Đảm bảo nút giữ màu xanh */
+        .btn-info {
+            background-color: #0d6efd !important;
+            color: #fff !important;
+            border-color: #0d6efd !important;
+        }
+        .btn-info:hover {
+            background-color: #0b5ed7 !important;
+            border-color: #0a58ca !important;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -38,7 +48,7 @@
                 }, 3000); // Ẩn sau 3 giây
             }
 
-            // Xử lý submit form lọc với AJAX (tuỳ chọn, có thể bỏ nếu không cần)
+            // Xử lý submit form lọc với AJAX
             $("form[action='${pageContext.request.contextPath}/staff/booking/list']").submit(function(e) {
                 e.preventDefault();
                 var formData = $(this).serialize();
@@ -47,7 +57,8 @@
                     type: 'GET',
                     data: formData,
                     success: function(response) {
-                        $("#bookingListTable").html($(response).find("tbody").html());
+                        // Cập nhật toàn bộ bảng thay vì chỉ tbody
+                        $("#bookingListTable").html($(response).find("#bookingListTable").html());
                         showAlert("Lọc thành công!", "success");
                     },
                     error: function(xhr) {
@@ -56,7 +67,7 @@
                 });
             });
 
-            // Xử lý submit form tìm kiếm với AJAX (tuỳ chọn, có thể bỏ nếu không cần)
+            // Xử lý submit form tìm kiếm với AJAX
             $("form[action='${pageContext.request.contextPath}/staff/booking/search']").submit(function(e) {
                 e.preventDefault();
                 var formData = $(this).serialize();
@@ -65,7 +76,8 @@
                     type: 'GET',
                     data: formData,
                     success: function(response) {
-                        $("#bookingListTable").html($(response).find("tbody").html());
+                        // Cập nhật toàn bộ bảng thay vì chỉ tbody
+                        $("#bookingListTable").html($(response).find("#bookingListTable").html());
                         showAlert("Tìm kiếm thành công!", "success");
                     },
                     error: function(xhr) {
@@ -108,9 +120,9 @@
         <table class="table table-bordered" id="bookingListTable">
             <thead>
                 <tr>
-                    <th>Mã Booking</th>
-                    <th>Mã Người Dùng</th>
-                    <th>Mã Chuyến Bay</th>
+                    <th>Mã Đặt Chỗ</th>
+                    <th>Tên Người Dùng</th>
+                    <th>Số Hiệu Chuyến Bay</th>
                     <th>Thời Gian Đặt</th>
                     <th>Trạng Thái</th>
                     <th>Hạng Ghế</th>
@@ -123,15 +135,16 @@
             <tbody>
                 <c:forEach var="booking" items="${bookings}">
                     <tr>
-                        <td>${booking.bookingId}</td>
-                        <td>${booking.userId}</td>
-                        <td>${booking.flightId}</td>
+                        <td>${booking.bookingCode}</td>
+                        <td>${booking.userFullName}</td>
+                        <td>${booking.flightNumber}</td>
                         <td>${booking.bookingDate}</td>
                         <td>
                             <c:choose>
                                 <c:when test="${booking.status == 'CONFIRMED'}">Đã xác nhận</c:when>
                                 <c:when test="${booking.status == 'CANCELLED'}">Đã hủy</c:when>
-                                <c:when test="${booking.status == 'CHANGED'}">Đã thay đổi</c:when>
+                                <c:when test="${booking.status == 'CHECKED-IN'}">Đã check-in</c:when>
+                                <c:when test="${booking.status == 'BOARDED'}">Đã lên máy bay</c:when>
                                 <c:otherwise>${booking.status}</c:otherwise>
                             </c:choose>
                         </td>
@@ -155,3 +168,5 @@
         </table>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
