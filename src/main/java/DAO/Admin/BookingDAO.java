@@ -542,4 +542,20 @@ public class BookingDAO {
             e.printStackTrace();
         }
     }
+
+    public Timestamp getDepartureTimeByFlightId(int flightId) {
+        String sql = "SELECT departure_time FROM Flight WHERE flight_id = ?";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, flightId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getTimestamp("departure_time");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

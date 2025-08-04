@@ -46,6 +46,25 @@ public class PassengerController extends HttpServlet {
                 return;
             }
 
+            // === KIỂM TRA GIỜ BAY CÓ QUÁ GIỜ HIỆN TẠI KHÔNG ===
+            // === KIỂM TRA GIỜ BAY CÓ CÒN ĐỦ HƠN 2 TIẾNG KHÔNG ===
+            BookingDAO bookingDAO = new BookingDAO();
+            Timestamp departureTime = bookingDAO.getDepartureTimeByFlightId(flightId);
+
+            if (departureTime != null) {
+                long currentTimeMillis = System.currentTimeMillis();
+                long twoHoursBeforeFlight = departureTime.getTime() - (2 * 60 * 60 * 1000); // trừ 2 tiếng
+
+                if (currentTimeMillis > twoHoursBeforeFlight) {
+                    request.setAttribute("errorMessage", "Chuyến bay này sẽ khởi hành trong vòng 2 tiếng. Hệ thống đã đóng chức năng đặt vé.");
+                    RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/user/error.jsp");
+                    dispatcher.forward(request, response);
+                    return;
+                }
+
+            }
+
+            // Booking tạm
             Booking tempBooking = new Booking();
             tempBooking.setUserId(account.getUserId());
             tempBooking.setFlightId(flightId);

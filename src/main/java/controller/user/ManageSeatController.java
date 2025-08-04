@@ -51,7 +51,7 @@ public class ManageSeatController extends HttpServlet {
 
                 flightId = booking.getFlightId();
                 seatClass = booking.getSeatClass();
-                classId = convertSeatClassToId(seatClass);
+                classId = seatDAO.getClassId(seatClass);
 
                 System.out.println("Editing Booking: flightId=" + flightId + ", seatClass=" + seatClass + ", classId=" + classId);
 
@@ -75,7 +75,7 @@ public class ManageSeatController extends HttpServlet {
                 }
 
                 seatClass = tempBooking.getSeatClass();
-                classId = convertSeatClassToId(seatClass);
+                classId = seatDAO.getClassId(seatClass);
 
                 System.out.println("New Booking: flightId=" + flightId + ", seatClass=" + seatClass + ", classId=" + classId);
 

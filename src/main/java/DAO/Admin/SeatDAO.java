@@ -112,4 +112,20 @@ public class SeatDAO extends DBContext {
         }
         return list;
     }
+
+    public int getClassId(String seatClassName) {
+        String sql = "SELECT class_id FROM TicketClass WHERE class_name = ?";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, seatClassName);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("class_id");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
 }

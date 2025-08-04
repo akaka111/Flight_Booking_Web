@@ -56,6 +56,28 @@ public class TicketClassDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null; 
+        return null;
     }
+
+    public int getClassIdByFlightIdAndName(int flightId, String className) {
+        String sql = "SELECT class_id FROM TicketClass WHERE flight_id = ? AND class_name = ?";
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, flightId);
+            ps.setString(2, className);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    int id = rs.getInt("class_id");
+                    System.out.println("Found class_id = " + id + " for flightId = " + flightId + " and className = " + className);
+                    return id;
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
 }

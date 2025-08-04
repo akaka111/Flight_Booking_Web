@@ -11,6 +11,7 @@
         <meta charset="UTF-8">
         <title>Đã xảy ra lỗi</title>
         <%-- Sao chép <style> từ các trang khác để đồng bộ --%>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
         <style>
             :root {
                 --primary-color: #007bff;
@@ -84,11 +85,27 @@
                     <p>Chúng tôi không thể xử lý yêu cầu của bạn vào lúc này.</p>
 
                     <%-- Lấy thông báo lỗi từ request attribute --%>
-                    <c:if test="${not empty errorMessage}">
-                        <div class="error-details">
-                            ${errorMessage}
-                        </div>
-                    </c:if>
+                    <c:choose>
+                        <c:when test="${not empty param.errorMessage}">
+                            <div class="error-details">${param.errorMessage}</div>
+                        </c:when>
+                        <c:when test="${param.message == 'BookingClosedForThisFlight'}">
+                            <div class="error-details">Chuyến bay sẽ khởi hành trong vòng 2 tiếng. Hệ thống đã đóng chức năng đặt vé.</div>
+                        </c:when>
+                        <c:when test="${param.message == 'BookingNotFound'}">
+                            <div class="error-details">Không tìm thấy thông tin đặt chỗ. Vui lòng thử lại từ đầu.</div>
+                        </c:when>
+                        <c:when test="${param.message == 'PassengerInsertError'}">
+                            <div class="error-details">Không thể lưu thông tin hành khách. Vui lòng kiểm tra và thử lại.</div>
+                        </c:when>
+                        <c:when test="${param.message == 'BookingCreationError'}">
+                            <div class="error-details">Lỗi khởi tạo đơn đặt vé. Vui lòng thử lại sau.</div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="error-details">Đã có lỗi xảy ra. Vui lòng thử lại.</div>
+                        </c:otherwise>
+                    </c:choose>
+
 
                     <a href="home" class="btn-home">Quay về trang chủ</a>
                 </div>

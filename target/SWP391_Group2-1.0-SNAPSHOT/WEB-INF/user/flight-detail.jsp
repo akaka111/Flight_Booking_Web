@@ -213,6 +213,27 @@
 
         <main>
             <c:if test="${not empty flight}">
+                <%
+                    java.util.Date now = new java.util.Date();
+                    java.util.Date departure = (java.util.Date) request.getAttribute("flightDepartureTime");
+                    boolean bookingClosed = false;
+
+                    if (departure != null) {
+                        long millisBeforeFlight = departure.getTime() - now.getTime();
+                        long twoHoursMillis = 2 * 60 * 60 * 1000;
+                        if (millisBeforeFlight <= twoHoursMillis) {
+                            bookingClosed = true;
+                        }
+                    }
+                    request.setAttribute("bookingClosed", bookingClosed);
+                %>
+
+                <c:if test="${bookingClosed}">
+                    <div style="background-color: #ffdddd; border-left: 6px solid #f44336; padding: 20px; margin-bottom: 20px;">
+                        <strong>⚠️ Lưu ý:</strong> Chuyến bay này sẽ khởi hành trong vòng 2 tiếng. Hệ thống đã đóng chức năng đặt vé.
+                    </div>
+                </c:if>
+
                 <div class="container">
                     <div class="page-wrapper">
                         <div class="main-content">
@@ -374,6 +395,7 @@
                     updateSummary(initialActiveOption);
                 }
             });
+            
         </script>
     </body>
 </html>
