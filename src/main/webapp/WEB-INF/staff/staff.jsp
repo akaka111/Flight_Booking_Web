@@ -339,7 +339,7 @@
                     <div class="dropdown">
                         <button><i class="fa-solid fa-user"></i> Hồ Sơ</button>
                         <div class="dropdown-content">
-                            <a href="StaffProfileServlet">Xem Hồ Sơ Admin</a>
+                            <a href="StaffProfileServlet">Xem Hồ Sơ Staff</a>
                             <a href="<c:url value='/logout'/>" id="logoutBtn">Đăng Xuất</a>
                         </div>
                     </div>
