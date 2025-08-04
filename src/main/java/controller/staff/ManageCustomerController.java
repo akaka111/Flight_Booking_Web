@@ -139,7 +139,6 @@ public class ManageCustomerController extends HttpServlet {
         } catch (IllegalArgumentException e) {
             user.setDob(null);
         }
-
         accountDAO.updateAccountByStaff(user);
         response.sendRedirect("ManageCustomerController");
     }

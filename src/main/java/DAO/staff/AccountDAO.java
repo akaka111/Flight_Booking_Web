@@ -183,25 +183,6 @@ public class AccountDAO {
         return null;
     }
 
-    public boolean addAccountByStaff(Account user) {
-        String sql = "INSERT INTO Account (username, password, email, phone, role, status, fullname, dob) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, user.getUsername());
-            ps.setString(2, hashSHA256(user.getPassword())); // Hash mật khẩu
-            ps.setString(3, user.getEmail());
-            ps.setString(4, user.getPhone());
-            ps.setString(5, user.getRole());
-            ps.setBoolean(6, user.isStatus());
-            ps.setString(7, user.getFullname());
-            ps.setDate(8, user.getDob());
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
     /**
      * Cập nhật thông tin tài khoản (không cập nhật mật khẩu)
      *
