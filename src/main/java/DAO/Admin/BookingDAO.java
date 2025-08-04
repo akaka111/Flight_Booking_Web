@@ -24,7 +24,6 @@ public class BookingDAO {
     private DBContext dbContext;
     private static final Logger LOGGER = Logger.getLogger(BookingDAO.class.getName());
 
-    // Constructor giữ nguyên để hỗ trợ code hiện tại
     public BookingDAO(Connection conn) {
         this.conn = conn;
         this.dbContext = new DBContext();
@@ -34,29 +33,19 @@ public class BookingDAO {
         try {
             this.conn = new DBContext().getConnection();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Lỗi khi khởi tạo kết nối cơ sở dữ liệu", e);
         }
     }
 
-    /**
-     * Phương thức này thêm một bản ghi Booking mới vào cơ sở dữ liệu và trả về
-     * booking_id (khóa chính tự động tăng) của bản ghi vừa được tạo.
-     *
-     * @param booking Đối tượng Booking chứa thông tin cần lưu.
-     * @return ID của booking vừa được tạo, hoặc -1 nếu có lỗi.
-     */
     public int createBooking(Booking booking) {
         int generatedId = -1;
-        // Thêm seat_id vào câu lệnh INSERT
         String sql = "INSERT INTO Booking (user_id, flight_id, seat_id, booking_time, seat_class, total_price, status, booking_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         String bookingCode = generateBookingCode();
 
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
             ps.setInt(1, booking.getUserId());
             ps.setInt(2, booking.getFlightId());
-            // <-- THAY ĐỔI QUAN TRỌNG: LƯU SEAT_ID VÀO DATABASE -->
             ps.setInt(3, booking.getSeatId());
             ps.setTimestamp(4, booking.getBookingDate());
             ps.setString(5, booking.getSeatClass());
@@ -79,14 +68,10 @@ public class BookingDAO {
         return generatedId;
     }
 
-    // Trong file BookingDAO.java
-    // Phương thức để lấy một booking từ DB bằng ID
     public Booking getBookingById(int bookingId) {
         Booking booking = null;
-        // Sửa câu SQL để bao gồm tất cả các cột cần thiết, đặc biệt là seat_id
         String sql = "SELECT * FROM Booking WHERE booking_id = ?";
 
-        // Sử dụng try-with-resources để tự động quản lý kết nối
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bookingId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -95,18 +80,16 @@ public class BookingDAO {
                     booking.setBookingId(rs.getInt("booking_id"));
                     booking.setUserId(rs.getInt("user_id"));
                     booking.setFlightId(rs.getInt("flight_id"));
-                    // <-- THAY ĐỔI QUAN TRỌNG: LẤY SEAT_ID TỪ DATABASE -->
                     if (rs.getObject("seat_id") != null) {
                         booking.setSeatId(rs.getInt("seat_id"));
                     } else {
-                        booking.setSeatId(0); // Hoặc một giá trị mặc định nào đó nếu cần
+                        booking.setSeatId(0);
                     }
                     booking.setBookingDate(rs.getTimestamp("booking_time"));
                     booking.setSeatClass(rs.getString("seat_class"));
                     booking.setTotalPrice(rs.getDouble("total_price"));
                     booking.setStatus(rs.getString("status"));
                     booking.setBookingCode(rs.getString("booking_code"));
-                    // Lấy các cột khác nếu cần...
                 }
             }
         } catch (Exception e) {
@@ -115,7 +98,6 @@ public class BookingDAO {
         return booking;
     }
 
-    // Phương thức để cập nhật trạng thái của một booking
     public boolean updateBookingSeat(int bookingId, int newSeatId) {
         String sql = "UPDATE Booking SET seat_id = ? WHERE booking_id = ?";
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -132,7 +114,7 @@ public class BookingDAO {
     private String generateBookingCode() {
         String prefix = "BK";
         String datePart = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
-        String randomDigits = String.valueOf((int) (Math.random() * 9000 + 1000)); // 4 chữ số ngẫu nhiên
+        String randomDigits = String.valueOf((int) (Math.random() * 9000 + 1000));
         return prefix + "-" + datePart + "-" + randomDigits;
     }
 
@@ -140,15 +122,14 @@ public class BookingDAO {
         int generatedId = -1;
         String sql = "INSERT INTO Booking (user_id, flight_id, booking_time, seat_class, total_price, status, booking_code) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-        // Sử dụng try-with-resources để đảm bảo kết nối luôn được đóng
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            System.out.println("==> [BookingDAO] Đang chuẩn bị thực thi câu lệnh INSERT...");
+            LOGGER.info("Đang chuẩn bị thực thi câu lệnh INSERT...");
             ps.setInt(1, booking.getUserId());
             ps.setInt(2, booking.getFlightId());
             ps.setTimestamp(3, new java.sql.Timestamp(booking.getBookingDate().getTime()));
             ps.setString(4, booking.getSeatClass());
             ps.setDouble(5, booking.getTotalPrice());
-            ps.setString(6, "CONFIRMED"); // Ví dụ, nếu 'CONFIRMED' được cho phép
+            ps.setString(6, "CONFIRMED");
             ps.setString(7, generateBookingCode());
 
             int affectedRows = ps.executeUpdate();
@@ -161,7 +142,7 @@ public class BookingDAO {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Lỗi khi thêm booking", e);
         }
         return generatedId;
     }
@@ -185,7 +166,7 @@ public class BookingDAO {
             ps.setInt(2, bookingId);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật trạng thái check-in", e);
         }
     }
 
@@ -205,11 +186,10 @@ public class BookingDAO {
                 booking.setTotalPrice(rs.getDouble("total_price"));
                 booking.setCheckinStatus(rs.getString("checkin_status"));
                 booking.setBookingCode(rs.getString("booking_code"));
-                // ... thêm các thuộc tính khác nếu cần
                 return booking;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy booking theo mã", e);
         }
         return null;
     }
@@ -217,11 +197,11 @@ public class BookingDAO {
     public void updateBookingAmount(Booking booking) {
         String sql = "UPDATE Booking SET total_amount = ? WHERE booking_id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setDouble(1, booking.getTotalPrice()); // đúng kiểu double
-            ps.setInt(2, booking.getBookingId());     // đúng getter
+            ps.setDouble(1, booking.getTotalPrice());
+            ps.setInt(2, booking.getBookingId());
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật số tiền booking", e);
         }
     }
 
@@ -443,13 +423,13 @@ public class BookingDAO {
     }
 
     public boolean addBookingHistory(BookingHistory history) {
-        String query = "INSERT INTO BookingHistory (booking_id, staff_id, action, description, action_time ) VALUES (?, ?, ?, ?, ?)";
+        String query = "INSERT INTO BookingHistory (booking_id, staff_id, action, description, action_time) VALUES (?, ?, ?, ?, ?)";
         Object[] params = new Object[]{
             history.getBookingId(),
+            history.getStaffId(),
             history.getAction(),
             history.getDescription(),
-            history.getActionTime(),
-            history.getStaffId()
+            history.getActionTime()
         };
         try {
             int affectedRows = dbContext.execQuery(query, params);
@@ -462,7 +442,7 @@ public class BookingDAO {
 
     public List<BookingHistory> getBookingHistory(int bookingId) {
         List<BookingHistory> history = new ArrayList<>();
-        String query = "SELECT bh.history_id, bh.booking_id, bh.action, bh.description, bh.action_time, "
+        String query = "SELECT bh.history_id, bh.booking_id, bh.staff_id, bh.action, bh.description, bh.action_time, "
                 + "a.role AS role, a.fullname AS staff_name "
                 + "FROM BookingHistory bh "
                 + "LEFT JOIN Account a ON bh.staff_id = a.user_id "
@@ -474,11 +454,12 @@ public class BookingDAO {
                 BookingHistory bh = new BookingHistory();
                 bh.setHistoryId(rs.getInt("history_id"));
                 bh.setBookingId(rs.getInt("booking_id"));
+                bh.setStaffId(rs.getInt("staff_id"));
                 bh.setAction(rs.getString("action"));
                 bh.setDescription(rs.getString("description"));
-                bh.setActionTime(rs.getTimestamp("action_time")); // Chuyển đổi sang LocalDateTime nếu cần
-                bh.setRole(rs.getString("role")); // Lấy vai trò
-                bh.setStaffName(rs.getString("staff_name")); // Lấy tên nhân viên
+                bh.setActionTime(rs.getTimestamp("action_time"));
+                bh.setRole(rs.getString("role"));
+                bh.setStaffName(rs.getString("staff_name"));
                 history.add(bh);
             }
         } catch (SQLException e) {
@@ -490,16 +471,13 @@ public class BookingDAO {
     public String getBookingCodeById(int bookingId) {
         String sql = "SELECT booking_code FROM Booking WHERE booking_id = ?";
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setInt(1, bookingId);
             ResultSet rs = ps.executeQuery();
-
             if (rs.next()) {
                 return rs.getString("booking_code");
             }
-
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy mã booking", e);
         }
         return null;
     }
@@ -509,10 +487,8 @@ public class BookingDAO {
         String sql = "SELECT * FROM Booking WHERE user_id = ?";
 
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setInt(1, userId);
             ResultSet rs = ps.executeQuery();
-
             while (rs.next()) {
                 Booking b = new Booking();
                 b.setBookingId(rs.getInt("booking_id"));
@@ -522,14 +498,12 @@ public class BookingDAO {
                 b.setTotalPrice(rs.getBigDecimal("total_price").doubleValue());
                 b.setBookingDate(rs.getTimestamp("booking_time"));
                 b.setSeatClass(rs.getString("seat_class"));
-                b.setFlightId(rs.getInt("flight_id")); // <-- bổ sung dòng này
+                b.setFlightId(rs.getInt("flight_id"));
                 list.add(b);
             }
-
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy danh sách booking theo userId", e);
         }
-
         return list;
     }
 
@@ -539,10 +513,9 @@ public class BookingDAO {
             ps.setInt(1, bookingId);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Lỗi khi hủy booking", e);
         }
     }
-
     public Timestamp getDepartureTimeByFlightId(int flightId) {
         String sql = "SELECT departure_time FROM Flight WHERE flight_id = ?";
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -557,5 +530,4 @@ public class BookingDAO {
         }
         return null;
     }
-
 }

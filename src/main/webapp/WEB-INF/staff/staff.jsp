@@ -335,11 +335,10 @@
             <div class="header">
                 <div class="greeting">Xin Chào, Staff</div>
                 <div class="actions">
-                    <a href="exportDashboard.jsp" class="btn-export" id="exportButton">Xuất PDF</a>
                     <div class="dropdown">
                         <button><i class="fa-solid fa-user"></i> Hồ Sơ</button>
                         <div class="dropdown-content">
-                            <a href="StaffProfileServlet">Xem Hồ Sơ Staff</a>
+                            <a href="StaffProfileServlet">Xem Hồ Sơ Admin</a>
                             <a href="<c:url value='/logout'/>" id="logoutBtn">Đăng Xuất</a>
                         </div>
                     </div>
@@ -357,7 +356,7 @@
                 </div>
             </div>
 
-            
+
 
             <iframe class="iframe-container" id="contentFrame"></iframe>
 
@@ -397,28 +396,20 @@
                     const iframe = document.getElementById('contentFrame');
                     const exportButton = document.getElementById('exportButton');
                     if (page === 'staff.jsp') {
-                        // Show dashboard content and export button
                         document.querySelector('.hero-section').style.display = 'block';
                         document.querySelector('.stats-grid').style.display = 'grid';
                         iframe.style.display = 'none';
                         exportButton.style.display = 'block';
                     } else {
-                        // Load other pages in iframe and hide export button
                         iframe.style.display = 'block';
                         iframe.src = page;
-
-                        // Hide dashboard content
                         document.querySelector('.hero-section').style.display = 'none';
                         document.querySelector('.stats-grid').style.display = 'none';
                         exportButton.style.display = 'none';
                     }
-
-                    // Remove active class from all sidebar items
                     document.querySelectorAll('.sidebar ul li').forEach(item => item.classList.remove('active'));
-
-                    // Add active class to the clicked item
                     const activeItem = Array.from(document.querySelectorAll('.sidebar ul li a'))
-                            .find(a => a.getAttribute('onclick').includes(page));
+                            .find(a => a.getAttribute('href') === page);
                     if (activeItem)
                         activeItem.parentElement.classList.add('active');
                 };

@@ -56,10 +56,9 @@ public class TicketClassDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return null; 
     }
-
-    public int getClassIdByFlightIdAndName(int flightId, String className) {
+     public int getClassIdByFlightIdAndName(int flightId, String className) {
         String sql = "SELECT class_id FROM TicketClass WHERE flight_id = ? AND class_name = ?";
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -79,5 +78,4 @@ public class TicketClassDAO {
         }
         return 0;
     }
-
 }

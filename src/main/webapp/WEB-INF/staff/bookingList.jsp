@@ -1,9 +1,3 @@
-<%-- 
-    Document   : bookingList
-    Created on : Jul 19, 2025, 2:02:41 PM
-    Author     : Khoa
---%>
-
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <html>
@@ -14,20 +8,20 @@
         .table { margin-top: 20px; }
         .form-group { margin-bottom: 15px; }
         .alert { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; }
-        /* Đảm bảo nút giữ màu xanh */
-        .btn-info {
-            background-color: #0d6efd !important;
-            color: #fff !important;
-            border-color: #0d6efd !important;
-        }
-        .btn-info:hover {
-            background-color: #0b5ed7 !important;
-            border-color: #0a58ca !important;
-        }
+        .btn-info { background-color: #0d6efd !important; color: #fff !important; border-color: #0d6efd !important; }
+        .btn-info:hover { background-color: #0b5ed7 !important; border-color: #0a58ca !important; }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
+            // Kiểm tra xem trang có đang trong iframe không
+            if (window.self !== window.top) {
+                console.log("Trang bookingList.jsp đang trong iframe, không gọi loadBookings.");
+            } else {
+                console.log("Trang bookingList.jsp không trong iframe, gọi loadBookings.");
+                loadBookings();
+            }
+
             // Xử lý thông báo ban đầu từ server
             <c:if test="${not empty error}">
                 showAlert("${error}", "danger");
@@ -36,51 +30,75 @@
                 showAlert("${success}", "success");
             </c:if>
 
-            // Hàm hiển thị và tự động ẩn thông báo
             function showAlert(message, type) {
                 var alertDiv = $('<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' +
                     message +
                     '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
                     '</div>');
-                $(".container").prepend(alertDiv);
+                $("body").prepend(alertDiv);
                 setTimeout(function() {
                     alertDiv.alert('close');
-                }, 3000); // Ẩn sau 3 giây
+                }, 3000);
             }
 
-            // Xử lý submit form lọc với AJAX
+            function loadBookings(statusFilter = '') {
+                console.log("Gọi AJAX tới /staff/booking/list với statusFilter: " + statusFilter);
+                $.ajax({
+                    url: '${pageContext.request.contextPath}/staff/booking/list',
+                    type: 'GET',
+                    data: { statusFilter: statusFilter },
+                    dataType: 'html',
+                    success: function(response) {
+                        console.log("Phản hồi AJAX thành công, cập nhật tbody.");
+                        $("#bookingListTable tbody").html($(response).find("#bookingListTable tbody").html());
+                        showAlert("Tải danh sách booking thành công!", "success");
+                    },
+                    error: function(xhr) {
+                        console.log("Lỗi AJAX: " + xhr.status + " - " + xhr.responseText);
+                        showAlert("Tải danh sách booking thất bại: " + xhr.responseText, "danger");
+                    }
+                });
+            }
+
+            // Xử lý form lọc
             $("form[action='${pageContext.request.contextPath}/staff/booking/list']").submit(function(e) {
                 e.preventDefault();
+                console.log("Form lọc được gửi, gọi AJAX.");
                 var formData = $(this).serialize();
                 $.ajax({
                     url: '${pageContext.request.contextPath}/staff/booking/list',
                     type: 'GET',
                     data: formData,
+                    dataType: 'html',
                     success: function(response) {
-                        // Cập nhật toàn bộ bảng thay vì chỉ tbody
-                        $("#bookingListTable").html($(response).find("#bookingListTable").html());
+                        console.log("Lọc thành công, cập nhật tbody.");
+                        $("#bookingListTable tbody").html($(response).find("#bookingListTable tbody").html());
                         showAlert("Lọc thành công!", "success");
                     },
                     error: function(xhr) {
+                        console.log("Lỗi lọc AJAX: " + xhr.status + " - " + xhr.responseText);
                         showAlert("Lọc thất bại: " + xhr.responseText, "danger");
                     }
                 });
             });
 
-            // Xử lý submit form tìm kiếm với AJAX
+            // Xử lý form tìm kiếm
             $("form[action='${pageContext.request.contextPath}/staff/booking/search']").submit(function(e) {
                 e.preventDefault();
+                console.log("Form tìm kiếm được gửi, gọi AJAX.");
                 var formData = $(this).serialize();
                 $.ajax({
                     url: '${pageContext.request.contextPath}/staff/booking/search',
                     type: 'GET',
                     data: formData,
+                    dataType: 'html',
                     success: function(response) {
-                        // Cập nhật toàn bộ bảng thay vì chỉ tbody
-                        $("#bookingListTable").html($(response).find("#bookingListTable").html());
+                        console.log("Tìm kiếm thành công, cập nhật tbody.");
+                        $("#bookingListTable tbody").html($(response).find("#bookingListTable tbody").html());
                         showAlert("Tìm kiếm thành công!", "success");
                     },
                     error: function(xhr) {
+                        console.log("Lỗi tìm kiếm AJAX: " + xhr.status + " - " + xhr.responseText);
                         showAlert("Tìm kiếm thất bại: " + xhr.responseText, "danger");
                     }
                 });
@@ -91,8 +109,6 @@
 <body>
     <div class="container">
         <h2 class="mt-4">Quản Lý Đặt Vé</h2>
-
-        <!-- Form Lọc -->
         <form action="${pageContext.request.contextPath}/staff/booking/list" method="get" class="form-inline mb-3">
             <div class="form-group me-2">
                 <label for="statusFilter" class="me-2">Lọc theo trạng thái:</label>
@@ -106,8 +122,6 @@
             </div>
             <button type="submit" class="btn btn-primary">Lọc</button>
         </form>
-
-        <!-- Form Tìm Kiếm -->
         <form action="${pageContext.request.contextPath}/staff/booking/search" method="get" class="form-inline mb-3">
             <div class="form-group me-2">
                 <label for="searchTerm" class="me-2">Tìm kiếm theo Mã Booking, Tên, hoặc Hộ chiếu:</label>
@@ -115,8 +129,6 @@
             </div>
             <button type="submit" class="btn btn-primary">Tìm kiếm</button>
         </form>
-
-        <!-- Danh sách Booking -->
         <table class="table table-bordered" id="bookingListTable">
             <thead>
                 <tr>

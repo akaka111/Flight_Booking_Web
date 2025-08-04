@@ -78,10 +78,7 @@
                 <input type="datetime-local" class="form-control" id="arrivalTime" name="arrivalTime"
                        value="<fmt:formatDate value='${flight.arrivalTime}' pattern='yyyy-MM-dd\'T\'HH:mm'/>" required>
             </div>
-            <div class="form-group">
-                <label for="price">Giá vé (ECO)</label>
-                <input type="number" class="form-control" id="price" name="price" step="0.01" value="${flight.price}" required>
-            </div>
+           
             <div class="form-group">
                 <label for="aircraft">Loại máy bay</label>
                 <input type="text" class="form-control" id="aircraft" name="aircraft" value="${flight.aircraft}" required>

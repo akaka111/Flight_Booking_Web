@@ -86,7 +86,7 @@ public class FlightAdmin1 extends HttpServlet {
                 String rawArrival = request.getParameter("arrivalTime").replace("T", " ") + ":00";
                 f.setArrivalTime(Timestamp.valueOf(rawArrival));
 
-                f.setPrice(Double.parseDouble(request.getParameter("price")));
+                
                 f.setAircraft(request.getParameter("aircraft"));
                 f.setStatus(request.getParameter("status"));
 
@@ -111,7 +111,7 @@ public class FlightAdmin1 extends HttpServlet {
                 String rawArrival = request.getParameter("arrivalTime").replace("T", " ") + ":00";
                 f.setArrivalTime(Timestamp.valueOf(rawArrival));
 
-                f.setPrice(Double.parseDouble(request.getParameter("price")));
+                
                 f.setAircraft(request.getParameter("aircraft"));
                 f.setStatus(request.getParameter("status"));
 

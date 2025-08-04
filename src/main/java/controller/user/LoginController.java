@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Cookie;
 import model.Account;
 import utils.GoogleUtils;
 import org.apache.logging.log4j.LogManager;
@@ -79,23 +80,33 @@ public class LoginController extends HttpServlet {
 
             if (user != null) {
                 HttpSession session = request.getSession(true);
-                logger.info("Session created with ID: {}", session.getId());
                 session.setAttribute("user", user);
                 String redirectURL = (String) session.getAttribute("redirectURL");
                 session.removeAttribute("redirectURL");
 
-                int userId = user.getUserId();
+                // Thêm cookie staffId, staffRole, và staffName nếu là staff
                 String role = user.getRole() != null ? user.getRole().toLowerCase() : "customer";
-                String fullname = user.getFullname() != null ? user.getFullname().trim().replaceAll("\\s+", "_") : "Unknown_Staff";
-                logger.info("User details - userId: {}, role: {}, fullname: {}", userId, role, fullname);
+                if ("staff".equals(role)) {
+                    Cookie staffIdCookie = new Cookie("staffId", String.valueOf(user.getUserId()));
+                    staffIdCookie.setMaxAge(7 * 24 * 60 * 60); // 7 ngày
+                    staffIdCookie.setPath("/"); // Áp dụng cho toàn bộ ứng dụng
+                    staffIdCookie.setHttpOnly(true); // Bảo mật
+                    response.addCookie(staffIdCookie);
 
-                if ("staff".equalsIgnoreCase(role) && userId > 0) {
-                    session.setAttribute("staffId", userId);
-                    session.setAttribute("staffRole", user.getRole());
-                    session.setAttribute("staffName", fullname);
-                    logger.info("Saved session for staff - staffId: {}, staffRole: {}, staffName: {}", userId, user.getRole(), fullname);
-                } else {
-                    logger.info("No staff session saved - role: {}, userId: {}, fullname: {}", role, userId, fullname);
+                    Cookie staffRoleCookie = new Cookie("staffRole", user.getRole()); // Lưu vai trò
+                    staffRoleCookie.setMaxAge(7 * 24 * 60 * 60); // 7 ngày
+                    staffRoleCookie.setPath("/");
+                    staffRoleCookie.setHttpOnly(true);
+                    response.addCookie(staffRoleCookie);
+
+                    Cookie staffNameCookie = new Cookie("staffName", user.getFullname()); // Lưu tên nhân viên
+                    staffNameCookie.setMaxAge(7 * 24 * 60 * 60); // 7 ngày
+                    staffNameCookie.setPath("/");
+                    staffNameCookie.setHttpOnly(true);
+                    response.addCookie(staffNameCookie);
+
+                    logger.info("Đã tạo cookie staffId: {}, staffRole: {}, staffName: {} cho user {}",
+                            user.getUserId(), user.getRole(), user.getFullname(), email);
                 }
 
                 switch (role) {
@@ -141,7 +152,6 @@ public class LoginController extends HttpServlet {
         String password = request.getParameter("password");
 
         HttpSession session = request.getSession(true);
-        logger.info("Session created with ID: {}", session.getId());
         String redirectURL = (String) session.getAttribute("redirectURL");
 
         AccountDAO userDao = new AccountDAO();
@@ -155,18 +165,48 @@ public class LoginController extends HttpServlet {
             session.setAttribute("user", user);
             session.removeAttribute("redirectURL");
 
-            int userId = user.getUserId();
+            // Thêm cookie staffId, staffRole, và staffName nếu là staff
             String role = user.getRole() != null ? user.getRole().toLowerCase() : "customer";
-            String fullname = user.getFullname() != null ? user.getFullname().trim().replaceAll("\\s+", "_") : "Unknown_Staff";
-            logger.info("User details - userId: {}, role: {}, fullname: {}", userId, role, fullname);
+            if ("staff".equals(role)) {
+                Cookie staffIdCookie = new Cookie("staffId", String.valueOf(user.getUserId()));
+                staffIdCookie.setMaxAge(7 * 24 * 60 * 60); // 7 ngày
+                staffIdCookie.setPath("/"); // Áp dụng cho toàn bộ ứng dụng
+                staffIdCookie.setHttpOnly(true); // Bảo mật
+                response.addCookie(staffIdCookie);
 
-            if ("staff".equalsIgnoreCase(role)) {
-                session.setAttribute("staffId", userId);
-                session.setAttribute("staffRole", user.getRole());
-                session.setAttribute("staffName", fullname);
-                logger.info("Saved session for staff - staffId: {}, staffRole: {}, staffName: {}", userId, user.getRole(), fullname);
-            } else {
-                logger.info("No staff session saved - role: {}, userId: {}, fullname: {}", role, userId, fullname);
+                Cookie staffRoleCookie = new Cookie("staffRole", user.getRole()); // Lưu vai trò
+                staffRoleCookie.setMaxAge(7 * 24 * 60 * 60); // 7 ngày
+                staffRoleCookie.setPath("/");
+                staffRoleCookie.setHttpOnly(true);
+                response.addCookie(staffRoleCookie);
+
+                String staffName = user.getFullname() != null ? user.getFullname() : "Unknown Staff";
+                logger.debug("Giá trị staffName trước khi xử lý cho user {}: {}", username, staffName);
+                if (staffName != null && !staffName.isEmpty()) {
+                    try {
+                        // Thay dấu cách bằng ký tự an toàn (ví dụ: gạch dưới) hoặc mã hóa
+                        String encodedStaffName = staffName.replaceAll("\\s", "_"); // Thay dấu cách bằng "_"
+                        // Hoặc sử dụng URLEncoder để mã hóa toàn bộ chuỗi
+                        // String encodedStaffName = java.net.URLEncoder.encode(staffName, "UTF-8");
+                        Cookie staffNameCookie = new Cookie("staffName", encodedStaffName);
+                        staffNameCookie.setMaxAge(7 * 24 * 60 * 60); // 7 ngày
+                        staffNameCookie.setPath("/");
+                        staffNameCookie.setHttpOnly(true);
+                        staffNameCookie.setSecure(request.isSecure()); // Chỉ gửi qua HTTPS nếu yêu cầu là HTTPS
+                        response.addCookie(staffNameCookie);
+                        logger.info("Đã tạo cookie staffName thành công cho user {} với giá trị mã hóa: {}", username, encodedStaffName);
+                    } catch (Exception e) {
+                        logger.error("Lỗi khi tạo cookie staffName cho user {}: {}", username, e.getMessage(), e);
+                        request.setAttribute("error", "Lỗi hệ thống khi tạo cookie staffName: " + e.getMessage());
+                        request.getRequestDispatcher("/WEB-INF/common/Login.jsp").forward(request, response);
+                        return;
+                    }
+                } else {
+                    logger.warn("Giá trị staffName rỗng hoặc null cho user {}", username);
+                }
+
+                logger.info("Đã tạo cookie staffId: {}, staffRole: {}, staffName: {} cho user {}",
+                        user.getUserId(), user.getRole(), user.getFullname(), username);
             }
 
             switch (role) {
