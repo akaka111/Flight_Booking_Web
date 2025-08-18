@@ -23,10 +23,10 @@ import javax.mail.internet.MimeMessage;
 public class MailService {
 
     public static void sendEmail(String to, String subject, String content) {
-        final String from = ConfigLoader.get("smtp.username");
-        final String password = ConfigLoader.get("smtp.password");
-        final String host = ConfigLoader.get("smtp.host");
-        final String port = ConfigLoader.get("smtp.port");
+        final String from = "khoado444@gmail.com";
+        final String password = "svyt jrbr ciww xekj";
+        final String host = "smtp.gmail.com";
+        final String port = "587";
 
         // Kiểm tra null để tránh lỗi khó hiểu
         if (from == null || password == null || host == null || port == null) {
@@ -74,4 +74,24 @@ public class MailService {
             e.printStackTrace();
         }
     }
+
+    public static String generateOTP(int length) {
+        String numbers = "0123456789";
+        StringBuilder otp = new StringBuilder();
+        java.util.Random random = new java.util.Random();
+
+        for (int i = 0; i < length; i++) {
+            otp.append(numbers.charAt(random.nextInt(numbers.length())));
+        }
+        return otp.toString();
+    }
+    // Thêm vào utils.MailService
+
+    public static void sendOtpEmail(String to, String otp) {
+        String subject = "Mã OTP xác thực đặt lại mật khẩu";
+        String content = "<h3>Mã OTP của bạn là: <b>" + otp + "</b></h3>"
+                + "<p>OTP sẽ hết hạn sau 5 phút.</p>";
+        sendEmail(to, subject, content);
+    }
+
 }

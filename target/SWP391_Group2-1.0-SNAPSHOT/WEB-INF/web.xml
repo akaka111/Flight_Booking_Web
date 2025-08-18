@@ -52,6 +52,15 @@
     <servlet-name>AirportAdmin</servlet-name>
     <url-pattern>/AirportAdmin</url-pattern>
 </servlet-mapping>
+<!-- Forgot Password -->
+<servlet>
+    <servlet-name>ForgotPassword</servlet-name>
+    <servlet-class>controller.user.ForgotPasswordServlet</servlet-class>
+</servlet>
+<servlet-mapping>
+    <servlet-name>ForgotPassword</servlet-name>
+    <url-pattern>/ForgotPassword</url-pattern>
+</servlet-mapping>
 
 
     <session-config>

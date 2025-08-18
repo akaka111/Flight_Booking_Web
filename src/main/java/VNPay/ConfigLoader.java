@@ -11,7 +11,8 @@ public class ConfigLoader {
 
     public static void load(ServletContext context) {
         try {
-            InputStream input = context.getResourceAsStream("/WEB-INF/config.properties");
+            InputStream input = ConfigLoader.class.getClassLoader()
+                    .getResourceAsStream("config.properties");
             if (input == null) {
                 throw new RuntimeException("Không tìm thấy file config.properties trong WEB-INF.");
             }

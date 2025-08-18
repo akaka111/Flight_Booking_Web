@@ -56,6 +56,7 @@ D:\SWP\Flight_Booking_Web\src\main\java\controller\staff\messageDetail.java
 D:\SWP\Flight_Booking_Web\src\main\java\controller\admin\AirlineAdmin.java
 D:\SWP\Flight_Booking_Web\src\main\java\model\Payment.java
 D:\SWP\Flight_Booking_Web\src\main\java\controller\user\RegisterController.java
+D:\SWP\Flight_Booking_Web\src\main\java\controller\user\ForgotPasswordServlet.java
 D:\SWP\Flight_Booking_Web\src\main\java\controller\admin\voucherSERV.java
 D:\SWP\Flight_Booking_Web\src\main\java\DAO\Admin\RouteDAO.java
 D:\SWP\Flight_Booking_Web\src\main\java\utils\GoogleUtils.java

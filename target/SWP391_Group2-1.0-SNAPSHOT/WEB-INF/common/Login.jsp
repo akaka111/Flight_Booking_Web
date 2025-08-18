@@ -200,6 +200,10 @@
                     <input type="password" id="password" name="password" placeholder="Mật khẩu" required>
                 </div>
                 <button type="submit" class="btn">Đăng nhập</button>
+                <div class="link" style="margin-top:10px">
+    <a href="<c:url value='/ForgotPassword'/>">Quên mật khẩu?</a>
+</div>
+
                 <div class="link">
                     Chưa có tài khoản? <a href="<c:url value='/register'/>">Đăng ký ngay</a>
                 </div>
