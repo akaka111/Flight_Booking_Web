@@ -4,10 +4,12 @@ DAO\Admin\PaymentDAO.class
 controller\admin\ChangePassword.class
 controller\user\LoginController.class
 controller\user\RegisterController.class
+model\Route.class
 controller\admin\AirlineAdmin.class
 DAO\Admin\TicketClassDAO.class
 model\Message.class
 model\TicketClass.class
+DAO\Admin\RouteDAO.class
 model\Airline.class
 controller\admin\FlightAdmin1.class
 utils\MailService$1.class
@@ -29,8 +31,11 @@ DAO\Admin\CheckInDAO.class
 controller\user\RegisterController$1.class
 controller\admin\AdminProfileServlet.class
 controller\user\ContactSupport.class
+DAO\Admin\RouteDAO$AirportOption.class
 controller\user\FlightDetailController.class
+DAO\Admin\AirportDAO.class
 controller\user\ManageBooking.class
+controller\admin\AirportAdmin.class
 controller\staff\textboxmailMessage.class
 model\Passenger.class
 controller\staff\messageDetail.class
@@ -53,6 +58,7 @@ controller\user\CheckinSearchController.class
 model\Account.class
 controller\admin\ManageAccountController.class
 controller\user\ManageSeatController.class
+controller\admin\RouteAdmin.class
 model\BookingHistory.class
 controller\user\PassengerController.class
 DAO\Admin\AirlineDAO.class
@@ -67,3 +73,4 @@ DAO\staff\AccountDAO.class
 VNPay\Config.class
 controller\staff\StaffBookingController.class
 DAO\Admin\SupportContact.class
+model\Airport.class

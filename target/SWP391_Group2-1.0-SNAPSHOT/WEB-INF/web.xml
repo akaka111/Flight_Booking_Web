@@ -1,31 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd">
+<web-app version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee 
+         http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd">
+
+    <!-- Trang chủ -->
     <servlet>
         <servlet-name>HomepageController</servlet-name>
         <servlet-class>controller.user.HomepageController</servlet-class>
     </servlet>
-    <servlet>
-        <servlet-name>DashboardAdmin</servlet-name>
-        <servlet-class>controller.admin.DashboardAdmin</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>DashboardStaff</servlet-name>
-        <servlet-class>controller.staff.DashboardStaff</servlet-class>
-    </servlet>
-    
     <servlet-mapping>
         <servlet-name>HomepageController</servlet-name>
         <url-pattern>/home</url-pattern>
     </servlet-mapping>
+
+    <!-- Admin dashboard -->
+    <servlet>
+        <servlet-name>DashboardAdmin</servlet-name>
+        <servlet-class>controller.admin.DashboardAdmin</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>DashboardAdmin</servlet-name>
         <url-pattern>/admin</url-pattern>
     </servlet-mapping>
+
+    <!-- Staff dashboard -->
+    <servlet>
+        <servlet-name>DashboardStaff</servlet-name>
+        <servlet-class>controller.staff.DashboardStaff</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>DashboardStaff</servlet-name>
         <url-pattern>/staff</url-pattern>
     </servlet-mapping>
-    
+
+  <!-- Route Admin (quản lý tuyến bay) -->
+<servlet>
+    <servlet-name>RouteAdmin</servlet-name>
+    <servlet-class>controller.admin.RouteAdmin</servlet-class>
+</servlet>
+<servlet-mapping>
+    <servlet-name>RouteAdmin</servlet-name>
+    <url-pattern>/RouteAdmin</url-pattern>
+</servlet-mapping>
+
+<servlet>
+    <servlet-name>AirportAdmin</servlet-name>
+    <servlet-class>controller.admin.AirportAdmin</servlet-class>
+</servlet>
+<servlet-mapping>
+    <servlet-name>AirportAdmin</servlet-name>
+    <url-pattern>/AirportAdmin</url-pattern>
+</servlet-mapping>
+
+
     <session-config>
         <session-timeout>
             60

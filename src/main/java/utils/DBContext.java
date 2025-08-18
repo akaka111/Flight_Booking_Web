@@ -22,7 +22,7 @@ public class DBContext {
             + "encrypt=true;"
             + "trustServerCertificate=true;";
     private static final String USER = "sa";
-    private static final String PASS = "0123456";
+    private static final String PASS = "123456";
     private static final Logger LOGGER = Logger.getLogger(DBContext.class.getName());
 
     public DBContext() {
