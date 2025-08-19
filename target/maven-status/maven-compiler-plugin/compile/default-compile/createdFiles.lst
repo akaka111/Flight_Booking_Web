@@ -56,7 +56,6 @@ VNPay\ConfigLoader.class
 controller\admin\DashboardAdmin.class
 controller\user\CheckinSearchController.class
 model\Account.class
-.netbeans_automatic_build
 controller\user\ForgotPasswordServlet.class
 controller\admin\ManageAccountController.class
 controller\user\ManageSeatController.class

@@ -4,7 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import model.Route; // Model Route của bạn (có các field: routeId, originIata, originName, destIata, destName, distanceKm, durationMinutes, active)
+import model.Route; // Model Route của bạn
 import utils.DBContext;
 
 /**
@@ -244,5 +244,28 @@ public class RouteDAO extends DBContext {
             }
             return false;
         }
+    }
+
+    /* ===== NEW: Đếm Route đang dùng một Airport (theo airport_id) ===== */
+    public int countUsingAirportId(int airportId) throws SQLException {
+        String sql = """
+            SELECT COUNT(*) 
+            FROM dbo.Route 
+            WHERE origin_airport_id = ? OR destination_airport_id = ?
+        """;
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, airportId);
+            ps.setInt(2, airportId);
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt(1);
+            }
+        }
+    }
+
+    /* ===== NEW: tiện ích boolean ===== */
+    public boolean isAirportInUse(int airportId) throws SQLException {
+        return countUsingAirportId(airportId) > 0;
     }
 }

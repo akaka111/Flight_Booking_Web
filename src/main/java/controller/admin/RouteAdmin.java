@@ -10,10 +10,6 @@ import java.sql.SQLException;
 import java.util.List;
 import model.Route;
 
-/**
- * RouteAdmin: Controller quản lý tuyến bay
- * URL: /RouteAdmin
- */
 @WebServlet(name = "RouteAdmin", urlPatterns = {"/RouteAdmin"})
 public class RouteAdmin extends HttpServlet {
 
@@ -27,11 +23,58 @@ public class RouteAdmin extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        // Nếu UI của bạn vẫn còn link GET để xoá, mở comment dưới (nhưng lưu ý rủi ro CSRF)
         String action = request.getParameter("action");
         if (action == null) action = "listRoutes";
 
         try {
             switch (action) {
+                case "showAddForm":
+                    showAddForm(request, response);
+                    break;
+
+                case "editRoute":
+                    editRouteForm(request, response);
+                    break;
+
+                // ⚠️ Tuỳ chọn: cho phép GET xoá (không khuyến nghị nếu không có CSRF token)
+                // case "deleteRoute":
+                //     deleteRoute(request, response);
+                //     break;
+
+                case "listRoutes":
+                default:
+                    listRoutes(request, response);
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Đã xảy ra lỗi: " + e.getMessage());
+            listRoutes(request, response);
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        String action = request.getParameter("action");
+        if (action == null) action = "listRoutes";
+
+        try {
+            switch (action) {
+                case "addRoute":
+                    addRoute(request, response);
+                    break;
+
+                case "updateRoute":
+                    updateRoute(request, response);
+                    break;
+
+                case "deleteRoute":
+                    deleteRoute(request, response);
+                    break;
+
                 case "showAddForm":
                     showAddForm(request, response);
                     break;
@@ -52,31 +95,7 @@ public class RouteAdmin extends HttpServlet {
         }
     }
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
-        String action = request.getParameter("action");
-
-        try {
-            if ("addRoute".equals(action)) {
-                addRoute(request, response);
-            } else if ("updateRoute".equals(action)) {
-                updateRoute(request, response);
-            } else if ("deleteRoute".equals(action)) {
-                deleteRoute(request, response);
-            } else {
-                request.setAttribute("error", "Action không hợp lệ.");
-                listRoutes(request, response);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("error", "Đã xảy ra lỗi: " + e.getMessage());
-            listRoutes(request, response);
-        }
-    }
-
-    /* ===== Actions ===== */
+    /* ================== Actions ================== */
 
     private void listRoutes(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -108,15 +127,19 @@ public class RouteAdmin extends HttpServlet {
     }
 
     private void addRoute(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException, SQLException {
-        String originIata = trimParam(request.getParameter("originIata"));
-        String destIata   = trimParam(request.getParameter("destIata"));
+            throws ServletException, IOException {
+        String originIata  = trimParam(request.getParameter("originIata"));
+        String destIata    = trimParam(request.getParameter("destIata"));
         Integer distanceKm = parseInteger(request.getParameter("distanceKm"));
         Integer duration   = parseInteger(request.getParameter("durationMinutes"));
         boolean active     = request.getParameter("active") != null;
 
         try {
-            if (dao.existsRoute(originIata, destIata)) {
+            if (originIata == null || destIata == null) {
+                request.setAttribute("error", "Vui lòng chọn đầy đủ điểm đi/điểm đến.");
+            } else if (originIata.equalsIgnoreCase(destIata)) {
+                request.setAttribute("error", "Điểm đi và điểm đến phải khác nhau.");
+            } else if (dao.existsRoute(originIata, destIata)) {
                 request.setAttribute("error", "❌ Tuyến bay từ " + originIata + " đến " + destIata + " đã tồn tại!");
             } else {
                 dao.insertRoute(originIata, destIata, distanceKm, duration, active);
@@ -129,7 +152,7 @@ public class RouteAdmin extends HttpServlet {
     }
 
     private void updateRoute(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException, SQLException {
+            throws ServletException, IOException {
         int id            = Integer.parseInt(request.getParameter("id"));
         String originIata = trimParam(request.getParameter("originIata"));
         String destIata   = trimParam(request.getParameter("destIata"));
@@ -138,8 +161,11 @@ public class RouteAdmin extends HttpServlet {
         boolean active     = request.getParameter("active") != null;
 
         try {
-            // Nếu đã tồn tại tuyến cùng Origin/Dest nhưng khác id -> báo lỗi
-            if (dao.existsRouteForUpdate(id, originIata, destIata)) {
+            if (originIata == null || destIata == null) {
+                request.setAttribute("error", "Vui lòng chọn đầy đủ điểm đi/điểm đến.");
+            } else if (originIata.equalsIgnoreCase(destIata)) {
+                request.setAttribute("error", "Điểm đi và điểm đến phải khác nhau.");
+            } else if (dao.existsRouteForUpdate(id, originIata, destIata)) {
                 request.setAttribute("error", "❌ Tuyến bay từ " + originIata + " đến " + destIata + " đã tồn tại!");
             } else {
                 dao.updateRoute(id, originIata, destIata, distanceKm, duration, active);
@@ -154,17 +180,17 @@ public class RouteAdmin extends HttpServlet {
     private void deleteRoute(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
-        try {
-            dao.deleteRoute(id);
+        boolean ok = dao.deleteRoute(id);
+        if (ok) {
             request.setAttribute("msg", "🗑️ Đã xoá tuyến bay.");
-        } catch (SQLException ex) {
-            String msg = ex.getMessage();
-            request.setAttribute("error", "❌ Không thể xoá tuyến (có thể đang được dùng bởi Flight). Chi tiết: " + msg);
+        } else {
+            request.setAttribute("error",
+                "❌ Không thể xoá tuyến bay. Có thể tuyến bay đang được tham chiếu (ví dụ: Flight) hoặc đã bị xoá trước đó.");
         }
         listRoutes(request, response);
     }
 
-    /* ===== Utils ===== */
+    /* ================== Utils ================== */
 
     private Integer parseInteger(String raw) {
         try {

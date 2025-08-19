@@ -94,7 +94,7 @@ public class ForgotPasswordServlet extends HttpServlet {
             MailService.sendOtpEmail(email, otp);
 
             req.setAttribute("message", "Mã OTP đã được gửi đến email của bạn.");
-            req.setAttribute("step", "verifyOtp");   // để JSP hiển thị form nhập OTP + mật khẩu mới
+            req.setAttribute("step", "verifyOtp");   // Hiển thị form nhập OTP + mật khẩu mới
             req.setAttribute("userId", userId);
             req.getRequestDispatcher("/WEB-INF/user/forgotPassword.jsp").forward(req, resp);
 
@@ -121,6 +121,8 @@ public class ForgotPasswordServlet extends HttpServlet {
 
         if (!newPassword.equals(confirm) || newPassword.length() < 6) {
             req.setAttribute("error", "Mật khẩu không hợp lệ hoặc xác nhận không khớp (>= 6 ký tự).");
+            req.setAttribute("step", "verifyOtp");
+            req.setAttribute("userId", userIdStr);
             req.getRequestDispatcher("/WEB-INF/user/forgotPassword.jsp").forward(req, resp);
             return;
         }
@@ -168,8 +170,9 @@ public class ForgotPasswordServlet extends HttpServlet {
                 ps.executeUpdate();
             }
 
-            req.setAttribute("message", "Đổi mật khẩu thành công. Bạn có thể đăng nhập lại.");
-            req.getRequestDispatcher("/WEB-INF/user/forgotPassword.jsp").forward(req, resp);
+            // ✅ Redirect về trang login kèm thông báo
+            resp.sendRedirect(req.getContextPath() + "/login?message=resetSuccess");
+            return;
 
         } catch (Exception ex) {
             ex.printStackTrace();

@@ -1,6 +1,7 @@
 package controller.admin;
 
 import DAO.Admin.AirportDAO;
+import DAO.Admin.RouteDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -8,8 +9,8 @@ import jakarta.servlet.RequestDispatcher;
 import java.io.IOException;
 import java.util.List;
 import model.Airport;
-@WebServlet(name = "AirportAdmin", urlPatterns = {"/AirportAdmin"})
 
+@WebServlet(name = "AirportAdmin", urlPatterns = {"/AirportAdmin"})
 public class AirportAdmin extends HttpServlet {
 
     private void forward(HttpServletRequest req, HttpServletResponse resp, String path)
@@ -91,10 +92,37 @@ public class AirportAdmin extends HttpServlet {
 
             } else if ("deleteAirport".equals(action)) {
                 int id = Integer.parseInt(req.getParameter("id"));
-                dao.delete(id);
-                req.setAttribute("msg", "Đã xoá sân bay.");
+
+                // Lấy airport để hiển thị thông tin đẹp hơn nếu cần
+                Airport target = dao.getById(id);
+                if (target == null) {
+                    req.setAttribute("error", "Không tìm thấy sân bay cần xoá.");
+                    req.setAttribute("airports", dao.getAllAirports());
+                    forward(req, resp, "/WEB-INF/admin/manageAirports.jsp");
+                    return;
+                }
+
+                try {
+                    // Kiểm tra sân bay có đang được sử dụng trong Route?
+                    RouteDAO routeDAO = new RouteDAO();
+                    int using = routeDAO.countUsingAirportId(id);
+
+                    if (using > 0) {
+                        String iata = target.getIataCode() != null ? target.getIataCode() : ("ID=" + id);
+                        req.setAttribute("error",
+                            "❌ Sân bay " + iata + " đang được sử dụng bởi " + using +
+                            " tuyến bay. Vui lòng qua mục Tuyến bay để xoá hoặc đổi sân bay khác trước.");
+                    } else {
+                        dao.delete(id);
+                        req.setAttribute("msg", "🗑️ Đã xoá sân bay.");
+                    }
+                } catch (Exception e) {
+                    req.setAttribute("error", "Không thể xoá sân bay: " + e.getMessage());
+                }
+
                 req.setAttribute("airports", dao.getAllAirports());
                 forward(req, resp, "/WEB-INF/admin/manageAirports.jsp");
+
             } else {
                 resp.getWriter().println("Action không hợp lệ");
             }
