@@ -8,12 +8,11 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-
 import model.Route;
 
 /**
  * RouteAdmin: Controller quản lý tuyến bay
- * URL: /RouteAdmin  (đã thêm mapping trong web.xml, có thể dùng @WebServlet nếu muốn)
+ * URL: /RouteAdmin
  */
 @WebServlet(name = "RouteAdmin", urlPatterns = {"/RouteAdmin"})
 public class RouteAdmin extends HttpServlet {
@@ -117,8 +116,12 @@ public class RouteAdmin extends HttpServlet {
         boolean active     = request.getParameter("active") != null;
 
         try {
-            dao.insertRoute(originIata, destIata, distanceKm, duration, active);
-            request.setAttribute("msg", "✅ Thêm tuyến bay thành công!");
+            if (dao.existsRoute(originIata, destIata)) {
+                request.setAttribute("error", "❌ Tuyến bay từ " + originIata + " đến " + destIata + " đã tồn tại!");
+            } else {
+                dao.insertRoute(originIata, destIata, distanceKm, duration, active);
+                request.setAttribute("msg", "✅ Thêm tuyến bay thành công!");
+            }
         } catch (SQLException ex) {
             request.setAttribute("error", "❌ Không thể thêm tuyến bay: " + ex.getMessage());
         }
@@ -135,8 +138,13 @@ public class RouteAdmin extends HttpServlet {
         boolean active     = request.getParameter("active") != null;
 
         try {
-            dao.updateRoute(id, originIata, destIata, distanceKm, duration, active);
-            request.setAttribute("msg", "✅ Cập nhật tuyến bay thành công!");
+            // Nếu đã tồn tại tuyến cùng Origin/Dest nhưng khác id -> báo lỗi
+            if (dao.existsRouteForUpdate(id, originIata, destIata)) {
+                request.setAttribute("error", "❌ Tuyến bay từ " + originIata + " đến " + destIata + " đã tồn tại!");
+            } else {
+                dao.updateRoute(id, originIata, destIata, distanceKm, duration, active);
+                request.setAttribute("msg", "✅ Cập nhật tuyến bay thành công!");
+            }
         } catch (SQLException ex) {
             request.setAttribute("error", "❌ Không thể cập nhật: " + ex.getMessage());
         }
@@ -151,7 +159,6 @@ public class RouteAdmin extends HttpServlet {
             request.setAttribute("msg", "🗑️ Đã xoá tuyến bay.");
         } catch (SQLException ex) {
             String msg = ex.getMessage();
-            // Khả năng lỗi ràng buộc FK vì Route đang được Flight tham chiếu
             request.setAttribute("error", "❌ Không thể xoá tuyến (có thể đang được dùng bởi Flight). Chi tiết: " + msg);
         }
         listRoutes(request, response);

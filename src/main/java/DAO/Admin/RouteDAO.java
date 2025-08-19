@@ -180,14 +180,69 @@ public class RouteDAO extends DBContext {
         }
     }
 
+    /* ===== Check exists when insert ===== */
+    public boolean existsRoute(String originIata, String destIata) {
+        String sql = "SELECT COUNT(*) " +
+                     "FROM dbo.Route r " +
+                     "JOIN dbo.Airport ao ON ao.airport_id = r.origin_airport_id " +
+                     "JOIN dbo.Airport ad ON ad.airport_id = r.destination_airport_id " +
+                     "WHERE ao.iata_code = ? AND ad.iata_code = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, originIata);
+            ps.setString(2, destIata);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /* ===== Check exists when update (exclude itself) ===== */
+    public boolean existsRouteForUpdate(int routeId, String originIata, String destIata) {
+        String sql = "SELECT COUNT(*) " +
+                     "FROM dbo.Route r " +
+                     "JOIN dbo.Airport ao ON ao.airport_id = r.origin_airport_id " +
+                     "JOIN dbo.Airport ad ON ad.airport_id = r.destination_airport_id " +
+                     "WHERE ao.iata_code = ? AND ad.iata_code = ? AND r.route_id <> ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, originIata);
+            ps.setString(2, destIata);
+            ps.setInt(3, routeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     /* ===== Delete route ===== */
-    public void deleteRoute(int routeId) throws SQLException {
+    public boolean deleteRoute(int routeId) {
         String sql = "DELETE FROM dbo.Route WHERE route_id = ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, routeId);
-            ps.executeUpdate();
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (SQLException e) {
+            // Nếu có lỗi khóa ngoại (Route đang được dùng trong Flight)
+            if (e.getMessage().contains("FK") || e.getMessage().contains("foreign key")) {
+                System.err.println("Không thể xóa: Tuyến bay đang được tham chiếu bởi Flight.");
+            } else {
+                e.printStackTrace();
+            }
+            return false;
         }
-        // Lưu ý: nếu Route đang được tham chiếu bởi Flight, câu lệnh trên sẽ ném lỗi FK — hãy xử lý ở controller để báo message đẹp.
     }
 }

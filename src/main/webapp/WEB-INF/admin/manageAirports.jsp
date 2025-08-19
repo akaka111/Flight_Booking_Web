@@ -23,7 +23,7 @@
   </div>
 
   <table class="table table-bordered table-hover bg-white">
-    <thead class="thead-dark">
+    <thead>
       <tr>
         <th>ID</th>
         <th>IATA</th>
