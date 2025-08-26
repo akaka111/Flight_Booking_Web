@@ -5,7 +5,6 @@
 package controller.user;
 
 import DAO.Admin.FlightDAO;
-import DAO.Admin.TicketClassDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -17,7 +16,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import model.Flight;
-import model.TicketClass;
 
 /**
  *

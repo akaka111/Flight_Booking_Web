@@ -1,187 +1,213 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package DAO.Admin;
 
-import java.sql.*;
-import java.util.*;
 import model.Flight;
 import utils.DBContext;
 
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
+ * FlightDAO đầy đủ cho cả:
+ *  - Quản lý chuyến bay (CRUD)
+ *  - Quản lý giá vé (liệt kê chuyến, lấy chuyến theo id)
  *
- * @author $ LienXuanThinh - CE182117
+ * Bảng dbo.Flight:
+ *  flight_id (PK), airline_id (INT, NULL), flight_num (NVARCHAR),
+ *  departure_time (DATETIME/TIMESTAMP), arrival_time (DATETIME/TIMESTAMP),
+ *  status (NVARCHAR), route_id (INT, NULL), AircraftType (INT, NULL)
  */
-public class FlightDAO extends DBContext {
+public class FlightDAO {
 
+    // --------- Helpers ----------
+    private Flight map(ResultSet rs) throws SQLException {
+        Flight f = new Flight();
+        f.setFlightId(rs.getInt("flight_id"));
+        f.setAirlineId((Integer) rs.getObject("airline_id"));
+        f.setFlightNumber(rs.getString("flight_num"));
+        f.setDepartureTime(rs.getTimestamp("departure_time"));
+        f.setArrivalTime(rs.getTimestamp("arrival_time"));
+        f.setStatus(rs.getString("status"));
+        f.setRouteId((Integer) rs.getObject("route_id"));
+        try {
+            f.setAircraftType((Integer) rs.getObject("AircraftType"));
+        } catch (SQLException ignore) {
+            // cột có thể không tồn tại tuỳ DB -> bỏ qua
+        }
+        return f;
+    }
+
+    private void setNullableInt(PreparedStatement ps, int idx, Integer value) throws SQLException {
+        if (value == null) ps.setNull(idx, Types.INTEGER);
+        else ps.setInt(idx, value);
+    }
+
+    // --------- Basic reads (dùng cho Quản Lý Giá Vé) ----------
+    /** Lấy tất cả chuyến bay (order theo flight_id). */
     public List<Flight> getAllFlights() {
-        List<Flight> flights = new ArrayList<>();
-        String sql = "SELECT * FROM Flight;";
-        DBContext db = new DBContext();
-        try (Connection conn = db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                Flight f = new Flight();
-                f.setFlightId(rs.getInt("flight_id"));
-                f.setFlightNumber(rs.getString("flight_number"));
-                f.setRouteFrom(rs.getString("route_from"));
-                f.setRouteTo(rs.getString("route_to"));
-                f.setDepartureTime(rs.getTimestamp("departure_time"));
-                f.setArrivalTime(rs.getTimestamp("arrival_time"));
-                //f.setPrice(rs.getDouble("price"));
-                f.setAircraft(rs.getString("aircraft"));
-                f.setStatus(rs.getString("status"));
-                flights.add(f);
-            }
-
+        String sql = "SELECT flight_id, airline_id, flight_num, departure_time, " +
+                     "arrival_time, status, route_id, AircraftType " +
+                     "FROM dbo.Flight ORDER BY flight_id";
+        List<Flight> list = new ArrayList<>();
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) list.add(map(rs));
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return flights;
+        return list;
     }
 
+    /** Lấy 1 chuyến theo id. */
     public Flight getFlightById(int flightId) {
-        Flight flight = null;
-        String sql = "SELECT * FROM Flight WHERE flight_id = ?";
-
-        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-
+        String sql = "SELECT flight_id, airline_id, flight_num, departure_time, " +
+                     "arrival_time, status, route_id, AircraftType " +
+                     "FROM dbo.Flight WHERE flight_id = ?";
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, flightId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    flight = new Flight();
-                    flight.setFlightId(rs.getInt("flight_id"));
-                    flight.setAirlineId(rs.getInt("airline_id"));
-                    flight.setFlightNumber(rs.getString("flight_number"));
-                    flight.setRouteFrom(rs.getString("route_from"));
-                    flight.setRouteTo(rs.getString("route_to"));
-                    flight.setDepartureTime(rs.getTimestamp("departure_time"));
-                    flight.setArrivalTime(rs.getTimestamp("arrival_time"));
-                    flight.setAircraft(rs.getString("aircraft"));
-                    flight.setStatus(rs.getString("status"));
+                if (rs.next()) return map(rs);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // --------- CRUD cho quản lý chuyến bay ----------
+    /** Thêm chuyến bay mới. */
+    public int insertFlight(Flight f) {
+        String sql = "INSERT INTO dbo.Flight " +
+                     "(airline_id, flight_num, departure_time, arrival_time, status, route_id, AircraftType) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            setNullableInt(ps, 1, f.getAirlineId());
+            ps.setString(2, f.getFlightNumber());
+            ps.setTimestamp(3, f.getDepartureTime());
+            ps.setTimestamp(4, f.getArrivalTime());
+            ps.setString(5, f.getStatus());
+            setNullableInt(ps, 6, f.getRouteId());
+            setNullableInt(ps, 7, f.getAircraftType());
+
+            int affected = ps.executeUpdate();
+            if (affected > 0) {
+                try (ResultSet keys = ps.getGeneratedKeys()) {
+                    if (keys.next()) return keys.getInt(1);
                 }
             }
+            return affected; // nếu DB không trả khóa tự tăng
         } catch (Exception e) {
             e.printStackTrace();
-        }
-        return flight;
-    }
-
-    public void insertFlight(Flight f) {
-        String sql = "INSERT INTO Flight (flight_number, route_from, route_to, departure_time, arrival_time, aircraft, status) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, f.getFlightNumber());
-            ps.setString(2, f.getRouteFrom());
-            ps.setString(3, f.getRouteTo());
-            ps.setTimestamp(4, f.getDepartureTime());
-            ps.setTimestamp(5, f.getArrivalTime());
-            ps.setString(6, f.getAircraft());
-            ps.setString(7, f.getStatus());
-
-            ps.executeUpdate();
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            return 0;
         }
     }
 
-    public void updateFlight(Flight f) {
-        String sql = "UPDATE Flight SET flight_number=?, route_from=?, route_to=?, departure_time=?, arrival_time=?, "
-                + "aircraft=?, status=? WHERE flight_id=?";
+    /** Cập nhật chuyến bay. */
+    public int updateFlight(Flight f) {
+        String sql = "UPDATE dbo.Flight SET " +
+                     "airline_id = ?, flight_num = ?, departure_time = ?, arrival_time = ?, " +
+                     "status = ?, route_id = ?, AircraftType = ? " +
+                     "WHERE flight_id = ?";
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, f.getFlightNumber());
-            ps.setString(2, f.getRouteFrom());
-            ps.setString(3, f.getRouteTo());
-            ps.setTimestamp(4, f.getDepartureTime());
-            ps.setTimestamp(5, f.getArrivalTime());
-            ps.setString(6, f.getAircraft());
-            ps.setString(7, f.getStatus());
+            setNullableInt(ps, 1, f.getAirlineId());
+            ps.setString(2, f.getFlightNumber());
+            ps.setTimestamp(3, f.getDepartureTime());
+            ps.setTimestamp(4, f.getArrivalTime());
+            ps.setString(5, f.getStatus());
+            setNullableInt(ps, 6, f.getRouteId());
+            setNullableInt(ps, 7, f.getAircraftType());
             ps.setInt(8, f.getFlightId());
 
-            ps.executeUpdate();
-
+            return ps.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
+            return 0;
         }
     }
 
-    public void deleteFlight(int id) {
-        String sql = "DELETE FROM Flight WHERE flight_id = ?";
-
-        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-            ps.executeUpdate();
-
+    /** Xoá chuyến bay theo id. */
+    public int deleteFlight(int flightId) {
+        String sql = "DELETE FROM dbo.Flight WHERE flight_id = ?";
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, flightId);
+            return ps.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
+            return 0;
         }
     }
 
-    public List<Flight> searchFlights(String from, String to, java.sql.Date departureDate) {
+    // --------- Tìm kiếm/tiện ích ----------
+    /**
+     * Tìm kiếm linh hoạt:
+     *  - flightNumLike: tìm theo LIKE trên flight_num (có thể null/empty để bỏ qua)
+     *  - routeId: filter route_id (null để bỏ qua)
+     *  - departDate: filter theo ngày khởi hành (so sánh CAST(departure_time AS DATE))
+     */
+    public List<Flight> searchFlights(String flightNumLike, Integer routeId, Date departDate) {
+        StringBuilder sb = new StringBuilder(
+            "SELECT flight_id, airline_id, flight_num, departure_time, " +
+            "arrival_time, status, route_id, AircraftType " +
+            "FROM dbo.Flight WHERE 1=1"
+        );
+        List<Object> params = new ArrayList<>();
+
+        if (flightNumLike != null && !flightNumLike.isBlank()) {
+            sb.append(" AND flight_num LIKE ?");
+            params.add("%" + flightNumLike.trim() + "%");
+        }
+        if (routeId != null) {
+            sb.append(" AND route_id = ?");
+            params.add(routeId);
+        }
+        if (departDate != null) {
+            sb.append(" AND CAST(departure_time AS DATE) = ?");
+            params.add(departDate);
+        }
+        sb.append(" ORDER BY departure_time, flight_id");
+
         List<Flight> list = new ArrayList<>();
-        String sql = "SELECT * FROM Flight "
-                + "WHERE route_from LIKE ? "
-                + "AND route_to LIKE ? "
-                + "AND CAST(departure_time AS DATE) = ?";
-
-        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, "%" + from + "%");
-            ps.setString(2, "%" + to + "%");
-            ps.setDate(3, departureDate);
-
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                Flight f = new Flight();
-                f.setFlightId(rs.getInt("flight_id"));
-                f.setAirlineId(rs.getInt("airline_id"));
-                f.setFlightNumber(rs.getString("flight_number"));
-                f.setRouteFrom(rs.getString("route_from"));
-                f.setRouteTo(rs.getString("route_to"));
-                f.setDepartureTime(rs.getTimestamp("departure_time"));
-                f.setArrivalTime(rs.getTimestamp("arrival_time"));
-                f.setAircraft(rs.getString("aircraft"));
-                f.setStatus(rs.getString("status"));
-
-                list.add(f);
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sb.toString())) {
+            // bind params
+            int idx = 1;
+            for (Object p : params) {
+                if (p instanceof Integer) ps.setInt(idx++, (Integer) p);
+                else if (p instanceof String) ps.setString(idx++, (String) p);
+                else if (p instanceof Date) ps.setDate(idx++, (Date) p);
+                else ps.setObject(idx++, p);
             }
-        } catch (SQLException e) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(map(rs));
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
     }
 
+    /** Danh sách chuyến bay khởi hành trong ngày hôm nay (theo server SQL). */
     public List<Flight> getFlightsToday() {
+        String sql = "SELECT flight_id, airline_id, flight_num, departure_time, " +
+                     "arrival_time, status, route_id, AircraftType " +
+                     "FROM dbo.Flight " +
+                     "WHERE CAST(departure_time AS DATE) = CAST(GETDATE() AS DATE) " +
+                     "ORDER BY departure_time";
         List<Flight> list = new ArrayList<>();
-        String sql = "SELECT * FROM Flight WHERE CONVERT(DATE, departure_time) = CONVERT(DATE, GETDATE())";
-
-        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                Flight f = new Flight();
-                f.setFlightId(rs.getInt("flight_id"));
-                f.setAirlineId(rs.getInt("airline_id"));
-                f.setFlightNumber(rs.getString("flight_number"));
-                f.setRouteFrom(rs.getString("route_from"));
-                f.setRouteTo(rs.getString("route_to"));
-                f.setDepartureTime(rs.getTimestamp("departure_time"));
-                f.setArrivalTime(rs.getTimestamp("arrival_time"));
-                f.setAircraft(rs.getString("aircraft"));
-                f.setStatus(rs.getString("status"));
-                list.add(f);
-            }
+        try (Connection conn = new DBContext().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) list.add(map(rs));
         } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
     }
-
 }

@@ -5,7 +5,7 @@
 package controller.user;
 
 import DAO.Admin.FlightDAO;
-import DAO.Admin.TicketClassDAO;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import model.Flight;
-import model.TicketClass;
+
 
 /**
  *
@@ -80,7 +80,7 @@ public class FlightDetailController extends HttpServlet {
         TicketClassDAO ticketDAO = new TicketClassDAO();
 
         Flight flight = flightDAO.getFlightById(flightId);
-        List<TicketClass> ticketClasses = ticketDAO.getTicketClassesByFlightId(flightId);
+        List<TicketPriceRow> ticketClasses = ticketDAO.getTicketClassesByFlightId(flightId);
 
         request.setAttribute("flight", flight);
         request.setAttribute("ticketClasses", ticketClasses);

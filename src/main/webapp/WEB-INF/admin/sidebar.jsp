@@ -50,6 +50,12 @@
                 <i class="fa-solid fa-building"></i> Quản Lý Hãng Bay
             </a>
         </li>
+        <!-- Quản lý vé -->
+<li>
+  <a href="${pageContext.request.contextPath}/TicketClassAdmin?action=flights">
+    <i class="fa-solid fa-ticket-simple"></i> Quản Lý Giá Vé
+  </a>
+</li>
 
         <!-- Quản lý voucher -->
         <li>

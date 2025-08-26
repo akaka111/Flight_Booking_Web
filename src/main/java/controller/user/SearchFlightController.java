@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import model.Flight;
-import model.TicketClass;
+import model.TicketPriceRow;
 
 /**
  *
@@ -77,7 +77,7 @@ public class SearchFlightController extends HttpServlet {
             if (flights != null && !flights.isEmpty()) {
                 Flight flight = flights.get(0);
                 int flightId = flight.getFlightId();
-                List<TicketClass> ticketClasses = ticketDAO.getTicketClassesByFlightId(flightId);
+                List<TicketPriceRow> ticketClasses = ticketDAO.getTicketClassesByFlightId(flightId);
 
                 request.setAttribute("flight", flight);
                 request.setAttribute("ticketClasses", ticketClasses);

@@ -27,6 +27,21 @@ public class AirportDAO extends DBContext {
         return list;
     }
 
+    public List<String> getAllCities() {
+        List<String> cities = new ArrayList<>();
+        String sql = "SELECT DISTINCT city FROM Airport WHERE city IS NOT NULL ORDER BY city";
+        try (Connection cn = getConnection();
+             PreparedStatement ps = cn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                cities.add(rs.getString("city"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return cities;
+    }
+
     public Airport getById(int id) {
         String sql = "SELECT airport_id, iata_code, icao_code, name, city, country, timezone, is_active " +
                      "FROM Airport WHERE airport_id=?";
@@ -100,7 +115,6 @@ public class AirportDAO extends DBContext {
             ps.setInt(1, id);
             ps.executeUpdate();
         } catch (Exception e) {
-            // Có thể dính FK từ Route -> Airport, nên sẽ lỗi nếu đang được dùng
             e.printStackTrace();
             throw new RuntimeException("Không thể xóa do đang được sử dụng trong Route/Flight.");
         }

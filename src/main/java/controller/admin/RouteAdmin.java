@@ -4,7 +4,9 @@ import DAO.Admin.RouteDAO;
 import DAO.Admin.RouteDAO.AirportOption;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -23,7 +25,6 @@ public class RouteAdmin extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Nếu UI của bạn vẫn còn link GET để xoá, mở comment dưới (nhưng lưu ý rủi ro CSRF)
         String action = request.getParameter("action");
         if (action == null) action = "listRoutes";
 
@@ -36,11 +37,6 @@ public class RouteAdmin extends HttpServlet {
                 case "editRoute":
                     editRouteForm(request, response);
                     break;
-
-                // ⚠️ Tuỳ chọn: cho phép GET xoá (không khuyến nghị nếu không có CSRF token)
-                // case "deleteRoute":
-                //     deleteRoute(request, response);
-                //     break;
 
                 case "listRoutes":
                 default:
@@ -153,9 +149,9 @@ public class RouteAdmin extends HttpServlet {
 
     private void updateRoute(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        int id            = Integer.parseInt(request.getParameter("id"));
-        String originIata = trimParam(request.getParameter("originIata"));
-        String destIata   = trimParam(request.getParameter("destIata"));
+        int id             = Integer.parseInt(request.getParameter("id"));
+        String originIata  = trimParam(request.getParameter("originIata"));
+        String destIata    = trimParam(request.getParameter("destIata"));
         Integer distanceKm = parseInteger(request.getParameter("distanceKm"));
         Integer duration   = parseInteger(request.getParameter("durationMinutes"));
         boolean active     = request.getParameter("active") != null;
@@ -177,15 +173,39 @@ public class RouteAdmin extends HttpServlet {
         listRoutes(request, response);
     }
 
+    /**
+     * Xoá tuyến bay. Nếu đang được tham chiếu bởi các chuyến bay, hiển thị thông báo
+     * kèm gợi ý: sang trang quản lý chuyến bay hoặc chuyển tuyến sang Inactive.
+     */
     private void deleteRoute(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         boolean ok = dao.deleteRoute(id);
+
         if (ok) {
             request.setAttribute("msg", "🗑️ Đã xoá tuyến bay.");
         } else {
-            request.setAttribute("error",
-                "❌ Không thể xoá tuyến bay. Có thể tuyến bay đang được tham chiếu (ví dụ: Flight) hoặc đã bị xoá trước đó.");
+            // Lấy thông tin để hiện nhãn dễ hiểu
+            Route target = dao.getRouteById(id);
+            String routeLabel = (target != null)
+                    ? (target.getOriginIata() + " → " + target.getDestIata())
+                    : ("ID=" + id);
+
+            String base = request.getContextPath();
+            String linkFlights  = base + "/FlightAdmin1";                      // Quản lý chuyến bay
+            String linkInactive = base + "/RouteAdmin?action=editRoute&id=" + id; // Mở form sửa để đổi Inactive
+
+            String html =
+                "❌ Không thể xoá tuyến bay <b>" + routeLabel + "</b> vì đang được tham chiếu (ví dụ: Flight)."
+              + "<br/>Bạn có thể xoá/điều chỉnh các chuyến bay trước, "
+              + "hoặc <i>chuyển trạng thái tuyến bay thành Inactive</i>."
+              + "<br/><div style='margin-top:8px'>"
+              + "<a href='" + linkFlights  + "' class='btn btn-sm btn-danger' style='margin-right:8px'>Quản lý chuyến bay</a>"
+              + "<a href='" + linkInactive + "' class='btn btn-sm btn-secondary'>Chuyển thành Inactive</a>"
+              + "</div>";
+
+            // Lưu ý: trong JSP dùng <c:out escapeXml="false"/> để render HTML
+            request.setAttribute("error", html);
         }
         listRoutes(request, response);
     }

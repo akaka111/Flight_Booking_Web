@@ -5,25 +5,32 @@
 <head>
   <meta charset="UTF-8">
   <title>Quản lý Sân Bay</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet"
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body class="bg-light">
 <div class="container py-4">
   <h3 class="mb-3">Quản Lý Sân Bay</h3>
 
+  <!-- Alerts -->
   <c:if test="${not empty msg}">
-    <div class="alert alert-success">${msg}</div>
+    <div class="alert alert-success mb-3">${msg}</div>
   </c:if>
   <c:if test="${not empty error}">
-    <div class="alert alert-danger">${error}</div>
+    <div class="alert alert-danger mb-3">${error}</div>
   </c:if>
 
   <div class="mb-3 text-right">
-    <a class="btn btn-success" href="${pageContext.request.contextPath}/AirportAdmin?action=showAddForm">+ Thêm sân bay</a>
+    <a class="btn btn-success"
+       href="${pageContext.request.contextPath}/AirportAdmin?action=showAddForm">
+      + Thêm sân bay
+    </a>
   </div>
 
-  <table class="table table-bordered table-hover bg-white">
-    <thead>
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover bg-white">
+      <thead class="thead-light">
       <tr>
         <th>ID</th>
         <th>IATA</th>
@@ -33,10 +40,10 @@
         <th>Quốc gia</th>
         <th>Timezone</th>
         <th>Trạng thái</th>
-        <th>Thao tác</th>
+        <th style="width: 160px;">Thao tác</th>
       </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
       <c:forEach var="a" items="${airports}">
         <tr>
           <td>${a.airportId}</td>
@@ -58,15 +65,30 @@
           </td>
           <td>
             <a class="btn btn-sm btn-primary"
-               href="${pageContext.request.contextPath}/AirportAdmin?action=editAirport&id=${a.airportId}">Sửa</a>
-            <a class="btn btn-sm btn-danger"
-               href="${pageContext.request.contextPath}/AirportAdmin?action=deleteAirport&id=${a.airportId}"
-               onclick="return confirm('Xoá sân bay này?');">Xoá</a>
+               href="${pageContext.request.contextPath}/AirportAdmin?action=editAirport&id=${a.airportId}">
+              Sửa
+            </a>
+
+            <!-- XÓA bằng POST -->
+            <form method="post"
+                  action="${pageContext.request.contextPath}/AirportAdmin"
+                  onsubmit="return confirm('Xoá sân bay này?');"
+                  style="display:inline">
+              <input type="hidden" name="action" value="deleteAirport"/>
+              <input type="hidden" name="id" value="${a.airportId}"/>
+              <button type="submit" class="btn btn-sm btn-danger">Xoá</button>
+            </form>
           </td>
         </tr>
       </c:forEach>
-    </tbody>
-  </table>
+      </tbody>
+    </table>
+  </div>
 </div>
+
+<!-- Optional JS (Bootstrap’s JS needs jQuery + Popper if you use dropdowns/modals) -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

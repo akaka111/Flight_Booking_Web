@@ -36,11 +36,16 @@
     <div class="form-row">
       <div class="form-group col-md-4">
         <label>Thành phố <span class="text-danger">*</span></label>
-        <input name="city" class="form-control" required placeholder="TP Hồ Chí Minh">
+        <select name="city" class="form-control" required>
+          <option value="">-- Chọn thành phố --</option>
+          <c:forEach var="c" items="${cities}">
+            <option value="${c}">${c}</option>
+          </c:forEach>
+        </select>
       </div>
       <div class="form-group col-md-4">
         <label>Quốc gia <span class="text-danger">*</span></label>
-        <input name="country" class="form-control" required placeholder="Việt Nam">
+        <input name="country" class="form-control" required value="Việt Nam">
       </div>
       <div class="form-group col-md-4">
         <label>Timezone</label>

@@ -22,8 +22,7 @@
     <div class="form-row">
       <div class="form-group col-md-3">
         <label>IATA <span class="text-danger">*</span></label>
-        <input name="iata" maxlength="3" class="form-control" required
-               value="${airport.iataCode}">
+        <input name="iata" maxlength="3" class="form-control" required value="${airport.iataCode}">
       </div>
       <div class="form-group col-md-3">
         <label>ICAO</label>
@@ -38,7 +37,12 @@
     <div class="form-row">
       <div class="form-group col-md-4">
         <label>Thành phố <span class="text-danger">*</span></label>
-        <input name="city" class="form-control" required value="${airport.city}">
+        <select name="city" class="form-control" required>
+          <option value="">-- Chọn thành phố --</option>
+          <c:forEach var="c" items="${cities}">
+            <option value="${c}" <c:if test="${airport.city eq c}">selected</c:if>>${c}</option>
+          </c:forEach>
+        </select>
       </div>
       <div class="form-group col-md-4">
         <label>Quốc gia <span class="text-danger">*</span></label>
@@ -52,7 +56,7 @@
 
     <div class="form-group form-check">
       <input type="checkbox" class="form-check-input" id="active" name="active"
-             ${airport.active ? "checked" : ""}>
+             <c:if test="${airport.active}">checked</c:if>>
       <label for="active" class="form-check-label">Kích hoạt (Active)</label>
     </div>
 

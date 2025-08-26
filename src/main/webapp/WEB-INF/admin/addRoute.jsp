@@ -15,37 +15,50 @@
     <div class="alert alert-danger">${error}</div>
   </c:if>
 
-  <form method="post" action="${pageContext.request.contextPath}/RouteAdmin">
+  <form method="post" action="${pageContext.request.contextPath}/RouteAdmin" id="routeForm" novalidate>
     <input type="hidden" name="action" value="addRoute"/>
 
+    <!-- Điểm đi -->
     <div class="form-group">
       <label>Điểm đi (IATA) <span class="text-danger">*</span></label>
-      <select name="originIata" class="form-control" required>
+      <select name="originIata" id="originIata" class="form-control" required>
         <option value="">-- Chọn sân bay --</option>
         <c:forEach var="a" items="${airports}">
-          <option value="${a.iata}">${a.iata} - ${a.name} (${a.city})</option>
+          <c:set var="sel" value=""/>
+          <c:if test="${originIata ne null and originIata eq a.iata}">
+            <c:set var="sel" value=' selected="selected"'/>
+          </c:if>
+          <option value="${a.iata}"${sel}>${a.iata} - ${a.name} (${a.city})</option>
         </c:forEach>
       </select>
+      <div class="invalid-feedback" id="originErr"></div>
     </div>
 
+    <!-- Điểm đến -->
     <div class="form-group">
       <label>Điểm đến (IATA) <span class="text-danger">*</span></label>
-      <select name="destIata" class="form-control" required>
+      <select name="destIata" id="destIata" class="form-control" required>
         <option value="">-- Chọn sân bay --</option>
         <c:forEach var="a" items="${airports}">
-          <option value="${a.iata}">${a.iata} - ${a.name} (${a.city})</option>
+          <c:set var="sel" value=""/>
+          <c:if test="${destIata ne null and destIata eq a.iata}">
+            <c:set var="sel" value=' selected="selected"'/>
+          </c:if>
+          <option value="${a.iata}"${sel}>${a.iata} - ${a.name} (${a.city})</option>
         </c:forEach>
       </select>
+      <div class="invalid-feedback" id="destErr"></div>
     </div>
 
+    <!-- Khoảng cách & thời lượng -->
     <div class="form-row">
       <div class="form-group col-md-6">
-        <label>Khoảng cách (km) (tuỳ chọn)</label>
-        <input type="number" name="distanceKm" class="form-control" min="0" placeholder="VD: 1140">
+        <label>Khoảng cách (km)</label>
+        <input type="number" name="distanceKm" class="form-control" min="0" value="${distanceKm}">
       </div>
       <div class="form-group col-md-6">
-        <label>Thời lượng (phút) (tuỳ chọn)</label>
-        <input type="number" name="durationMinutes" class="form-control" min="0" placeholder="VD: 90">
+        <label>Thời lượng (phút)</label>
+        <input type="number" name="durationMinutes" class="form-control" min="0" value="${durationMinutes}">
       </div>
     </div>
 
@@ -60,5 +73,30 @@
     </div>
   </form>
 </div>
+
+<script>
+(function () {
+  const o = document.getElementById('originIata');
+  const d = document.getElementById('destIata');
+  const form = document.getElementById('routeForm');
+  function validateDifferent() {
+    const same = o.value && d.value && o.value === d.value;
+    const msg = 'Điểm đi và điểm đến không được trùng nhau.';
+    o.setCustomValidity(same ? msg : '');
+    d.setCustomValidity(same ? msg : '');
+    document.getElementById('originErr').textContent = same ? msg : '';
+    document.getElementById('destErr').textContent   = same ? msg : '';
+    o.classList.toggle('is-invalid', same);
+    d.classList.toggle('is-invalid', same);
+  }
+  o.addEventListener('change', validateDifferent);
+  d.addEventListener('change', validateDifferent);
+  form.addEventListener('submit', function (e) {
+    validateDifferent();
+    if (!form.checkValidity()) { e.preventDefault(); e.stopPropagation(); }
+    form.classList.add('was-validated');
+  });
+})();
+</script>
 </body>
 </html>

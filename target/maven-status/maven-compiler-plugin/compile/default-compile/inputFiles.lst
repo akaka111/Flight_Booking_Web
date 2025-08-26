@@ -46,6 +46,7 @@ D:\SWP\Flight_Booking_Web\src\main\java\model\BookingHistory.java
 D:\SWP\Flight_Booking_Web\src\main\java\controller\staff\StaffBookingController.java
 D:\SWP\Flight_Booking_Web\src\main\java\controller\staff\textboxmailMessage.java
 D:\SWP\Flight_Booking_Web\src\main\java\DAO\Admin\PassengerDAO.java
+D:\SWP\Flight_Booking_Web\src\main\java\model\TicketPriceRow.java
 D:\SWP\Flight_Booking_Web\src\main\java\controller\admin\AirportAdmin.java
 D:\SWP\Flight_Booking_Web\src\main\java\DAO\Admin\AirlineDAO.java
 D:\SWP\Flight_Booking_Web\src\main\java\DAO\user\SupportContact.java
@@ -66,6 +67,7 @@ D:\SWP\Flight_Booking_Web\src\main\java\model\Booking.java
 D:\SWP\Flight_Booking_Web\src\main\java\controller\user\SearchFlightController.java
 D:\SWP\Flight_Booking_Web\src\main\java\DAO\Admin\CheckInDAO.java
 D:\SWP\Flight_Booking_Web\src\main\java\model\Voucher.java
+D:\SWP\Flight_Booking_Web\src\main\java\utils\ProvincesApiClient.java
 D:\SWP\Flight_Booking_Web\src\main\java\controller\user\ManageSeatController.java
 D:\SWP\Flight_Booking_Web\src\main\java\controller\admin\ChangePassword.java
 D:\SWP\Flight_Booking_Web\src\main\java\model\Route.java
