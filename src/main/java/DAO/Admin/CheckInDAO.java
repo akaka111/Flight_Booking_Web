@@ -19,18 +19,18 @@ import utils.DBContext;
 public class CheckInDAO extends DBContext {
 
     public void insertCheckin(CheckIn checkIn) {
-        String sql = "INSERT INTO CheckIn (passenger_id, booking_id, flight_id, checkin_time, status, staff_id) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO CheckIn (passenger_id, booking_id, flight_id, checkin_time, status, user_id) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, checkIn.getPassengerId());
             ps.setInt(2, checkIn.getBookingId());
             ps.setInt(3, checkIn.getFlightId());
-            ps.setTimestamp(4, Timestamp.valueOf(checkIn.getCheckinTime()));
+            ps.setTimestamp(4, (checkIn.getCheckinTime()));
             ps.setString(5, checkIn.getStatus());
-            if (checkIn.getStaffId() != null) {
-                ps.setInt(6, checkIn.getStaffId());
-            } else {
+            
+                ps.setInt(6, checkIn.getUserId());
+            
                 ps.setNull(6, Types.INTEGER);
-            }
+            
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

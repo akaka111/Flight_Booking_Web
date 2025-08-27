@@ -85,7 +85,7 @@ public class AirlineAdmin extends HttpServlet {
 
     private void showNewForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/WEB-INF/admin/manageAirlines.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/admin/addAirline.jsp").forward(request, response);
     }
 
     private void showEditForm(HttpServletRequest request, HttpServletResponse response)
@@ -102,7 +102,7 @@ public class AirlineAdmin extends HttpServlet {
             Airline airline = airlineDAO.getById(airlineId);
             if (airline != null) {
                 request.setAttribute("airline", airline);
-                request.getRequestDispatcher("/WEB-INF/admin/manageAirlines.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/admin/editAirline.jsp").forward(request, response);
             } else {
                 request.setAttribute("error", "Không tìm thấy hãng bay với ID: " + airlineId);
                 listAirlines(request, response);
@@ -129,7 +129,7 @@ public class AirlineAdmin extends HttpServlet {
             if (result) {
                 request.setAttribute("message", "Xóa hãng bay thành công!");
             } else {
-                request.setAttribute("error", "Không thể xóa hãng bay với ID: " + airlineId + ". Có thể hãng bay đang được sử dụng hoặc không tồn tại.");
+                request.setAttribute("error", "❌ Không thể xóa hãng bay. Có thể hãng bay đang được sử dụng hoặc không tồn tại.");
             }
         } catch (NumberFormatException e) {
             LOGGER.log(Level.WARNING, "Invalid airline ID for delete: " + idParam, e);
@@ -150,7 +150,7 @@ public class AirlineAdmin extends HttpServlet {
         // Validate input
         if (name == null || name.trim().isEmpty() || code == null || code.trim().isEmpty()) {
             request.setAttribute("error", "Tên hãng bay và mã hãng bay không được để trống!");
-            listAirlines(request, response);
+            request.getRequestDispatcher("/WEB-INF/admin/addAirline.jsp").forward(request, response);
             return;
         }
 
@@ -158,13 +158,15 @@ public class AirlineAdmin extends HttpServlet {
             boolean result = airlineDAO.insertAirline(name, code, description, services);
             if (result) {
                 request.setAttribute("message", "Thêm hãng bay thành công!");
+                listAirlines(request, response);
             } else {
                 request.setAttribute("error", "Không thể thêm hãng bay! Mã hãng bay có thể đã tồn tại hoặc có lỗi dữ liệu.");
+                request.getRequestDispatcher("/WEB-INF/admin/addAirline.jsp").forward(request, response);
             }
         } catch (SQLException e) {
             request.setAttribute("error", "Lỗi khi thêm hãng bay: " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/admin/addAirline.jsp").forward(request, response);
         }
-        listAirlines(request, response);
     }
 
     private void updateAirline(HttpServletRequest request, HttpServletResponse response)
@@ -193,7 +195,8 @@ public class AirlineAdmin extends HttpServlet {
             // Validate input
             if (name == null || name.trim().isEmpty() || code == null || code.trim().isEmpty()) {
                 request.setAttribute("error", "Tên hãng bay và mã hãng bay không được để trống!");
-                listAirlines(request, response);
+                request.setAttribute("airline", airline);
+                request.getRequestDispatcher("/WEB-INF/admin/editAirline.jsp").forward(request, response);
                 return;
             }
 
@@ -205,14 +208,17 @@ public class AirlineAdmin extends HttpServlet {
             boolean result = airlineDAO.updateAirline(airline);
             if (result) {
                 request.setAttribute("message", "Cập nhật hãng bay thành công!");
+                listAirlines(request, response);
             } else {
                 request.setAttribute("error", "Không thể cập nhật hãng bay! Mã hãng bay có thể đã tồn tại hoặc có lỗi dữ liệu.");
+                request.setAttribute("airline", airline);
+                request.getRequestDispatcher("/WEB-INF/admin/editAirline.jsp").forward(request, response);
             }
         } catch (NumberFormatException e) {
             LOGGER.log(Level.WARNING, "Invalid airline ID for update: " + idParam, e);
             request.setAttribute("error", "ID hãng bay không hợp lệ!");
+            listAirlines(request, response);
         }
-        listAirlines(request, response);
     }
 
     @Override

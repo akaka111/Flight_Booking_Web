@@ -10,7 +10,7 @@
 <div class="sidebar">
     <div class="logo">FBS <i class="fa-solid fa-plane"></i></div>
     <ul>
-        <li><a href="admin.jsp"><i class="fa-solid fa-tachometer-alt"></i> Bảng Điều Khiển</a></li>
+        <li><a href="staff"><i class="fa-solid fa-tachometer-alt"></i> Bảng Điều Khiển</a></li>
         <li><a href="#" onclick="loadPage('${pageContext.request.contextPath}/staff/booking/list'); return false;"><i class="fa-solid fa-ticket"></i> Quản Lý Booking</a></li>
         <li><a href="StaffChangePassword"><i class="fa-solid fa-cog"></i>Đổi Mật Khẩu</a></li>
         <li><a href="textboxmailMessage"><i class="fa-solid fa-headset"></i>hộp thư hỗ trợ</a></li>

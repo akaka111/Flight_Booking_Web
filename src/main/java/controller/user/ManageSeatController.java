@@ -34,73 +34,7 @@ public class ManageSeatController extends HttpServlet {
         System.out.println("bookingIdStr: " + bookingIdStr);
         System.out.println("flightIdStr: " + flightIdStr);
 
-        try {
-            List<Seat> seats;
-            int flightId;
-            String seatClass;
-            int classId;
-
-            // --- LUỒNG SỬA ĐỔI VÉ ---
-            if (bookingIdStr != null) {
-                int bookingId = Integer.parseInt(bookingIdStr);
-                Booking booking = bookingDAO.getBookingById(bookingId);
-                if (booking == null) {
-                    System.out.println("Booking not found with ID: " + bookingId);
-                    return;
-                }
-
-                flightId = booking.getFlightId();
-                seatClass = booking.getSeatClass();
-                classId = seatDAO.getClassId(seatClass);
-
-                System.out.println("Editing Booking: flightId=" + flightId + ", seatClass=" + seatClass + ", classId=" + classId);
-
-                seats = seatDAO.getSeatsByFlightAndClass(flightId, classId);
-
-                int currentSeatId = booking.getSeatId();
-                System.out.println("Current seatId: " + currentSeatId);
-
-                request.setAttribute("currentSeatId", currentSeatId);
-                request.setAttribute("bookingId", bookingId);
-
-            } else if (flightIdStr != null) {
-                // --- LUỒNG ĐẶT VÉ MỚI ---
-                flightId = Integer.parseInt(flightIdStr);
-                Booking tempBooking = (Booking) session.getAttribute("tempBooking");
-                System.out.println("TempBooking from session: " + tempBooking);
-
-                if (tempBooking == null) {
-                    System.out.println("Temp booking not found in session.");
-                    return;
-                }
-
-                seatClass = tempBooking.getSeatClass();
-                classId = seatDAO.getClassId(seatClass);
-
-                System.out.println("New Booking: flightId=" + flightId + ", seatClass=" + seatClass + ", classId=" + classId);
-
-                seats = seatDAO.getSeatsByFlightAndClass(flightId, classId);
-
-            } else {
-                System.out.println("Missing flightId and bookingId.");
-                return;
-            }
-
-            System.out.println("Total seats fetched: " + seats.size());
-            for (Seat seat : seats) {
-                System.out.println("Seat ID: " + seat.getSeatId() + ", Booked: " + seat.isBooked());
-            }
-
-            request.setAttribute("seatList", seats);
-            request.setAttribute("flightId", flightId);
-
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/user/seatSelection.jsp");
-            dispatcher.forward(request, response);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.sendRedirect("errorPage.jsp");
-        }
+        
     }
 
     private int convertSeatClassToId(String seatClass) {

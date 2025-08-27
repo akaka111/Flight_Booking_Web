@@ -25,12 +25,11 @@ public class FlightDAO extends DBContext {
                 Flight f = new Flight();
                 f.setFlightId(rs.getInt("flight_id"));
                 f.setFlightNumber(rs.getString("flight_number"));
-                f.setRouteFrom(rs.getString("route_from"));
-                f.setRouteTo(rs.getString("route_to"));
+                
                 f.setDepartureTime(rs.getTimestamp("departure_time"));
                 f.setArrivalTime(rs.getTimestamp("arrival_time"));
                 //f.setPrice(rs.getDouble("price"));
-                f.setAircraft(rs.getString("aircraft"));
+                
                 f.setStatus(rs.getString("status"));
                 flights.add(f);
             }
@@ -52,13 +51,12 @@ public class FlightDAO extends DBContext {
                 if (rs.next()) {
                     flight = new Flight();
                     flight.setFlightId(rs.getInt("flight_id"));
-                    flight.setAirlineId(rs.getInt("airline_id"));
+                   
                     flight.setFlightNumber(rs.getString("flight_number"));
-                    flight.setRouteFrom(rs.getString("route_from"));
-                    flight.setRouteTo(rs.getString("route_to"));
+                    
                     flight.setDepartureTime(rs.getTimestamp("departure_time"));
                     flight.setArrivalTime(rs.getTimestamp("arrival_time"));
-                    flight.setAircraft(rs.getString("aircraft"));
+                   
                     flight.setStatus(rs.getString("status"));
                 }
             }
@@ -75,11 +73,10 @@ public class FlightDAO extends DBContext {
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, f.getFlightNumber());
-            ps.setString(2, f.getRouteFrom());
-            ps.setString(3, f.getRouteTo());
+           
             ps.setTimestamp(4, f.getDepartureTime());
             ps.setTimestamp(5, f.getArrivalTime());
-            ps.setString(6, f.getAircraft());
+         
             ps.setString(7, f.getStatus());
 
             ps.executeUpdate();
@@ -96,11 +93,10 @@ public class FlightDAO extends DBContext {
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, f.getFlightNumber());
-            ps.setString(2, f.getRouteFrom());
-            ps.setString(3, f.getRouteTo());
+           
             ps.setTimestamp(4, f.getDepartureTime());
             ps.setTimestamp(5, f.getArrivalTime());
-            ps.setString(6, f.getAircraft());
+           
             ps.setString(7, f.getStatus());
             ps.setInt(8, f.getFlightId());
 
@@ -142,13 +138,12 @@ public class FlightDAO extends DBContext {
             while (rs.next()) {
                 Flight f = new Flight();
                 f.setFlightId(rs.getInt("flight_id"));
-                f.setAirlineId(rs.getInt("airline_id"));
+                
                 f.setFlightNumber(rs.getString("flight_number"));
-                f.setRouteFrom(rs.getString("route_from"));
-                f.setRouteTo(rs.getString("route_to"));
+               
                 f.setDepartureTime(rs.getTimestamp("departure_time"));
                 f.setArrivalTime(rs.getTimestamp("arrival_time"));
-                f.setAircraft(rs.getString("aircraft"));
+               
                 f.setStatus(rs.getString("status"));
 
                 list.add(f);
@@ -168,13 +163,12 @@ public class FlightDAO extends DBContext {
             while (rs.next()) {
                 Flight f = new Flight();
                 f.setFlightId(rs.getInt("flight_id"));
-                f.setAirlineId(rs.getInt("airline_id"));
+               
                 f.setFlightNumber(rs.getString("flight_number"));
-                f.setRouteFrom(rs.getString("route_from"));
-                f.setRouteTo(rs.getString("route_to"));
+              
                 f.setDepartureTime(rs.getTimestamp("departure_time"));
                 f.setArrivalTime(rs.getTimestamp("arrival_time"));
-                f.setAircraft(rs.getString("aircraft"));
+               
                 f.setStatus(rs.getString("status"));
                 list.add(f);
             }

@@ -95,7 +95,7 @@ public class SeatDAO extends DBContext {
                             rs.getBoolean("is_booked")
                     );
 
-                    System.out.println("  -> seat_id=" + seat.getSeatId() + ", seat_number=" + seat.getSeatNumber() + ", is_booked=" + seat.isBooked());
+                    System.out.println("  -> seat_id=" + seat.getSeatId() + ", seat_number=" + seat.getSeatNumber() + ", is_booked=" + seat.isIsBooked());
 
                     list.add(seat);
                     System.out.println("== DEBUG SeatDAO ==");
