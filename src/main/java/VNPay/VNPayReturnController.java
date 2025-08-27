@@ -109,6 +109,7 @@ public class VNPayReturnController extends HttpServlet {
 
                         Booking booking = (Booking) session.getAttribute("tempBooking");
                         Passenger passenger = (Passenger) session.getAttribute("tempPassenger");
+                        
 
                         if (booking != null && passenger != null) {
                             BookingDAO bookingDAO = new BookingDAO();
@@ -118,7 +119,7 @@ public class VNPayReturnController extends HttpServlet {
                             booking.setBookingCode(bookingCode);
 
                             SeatDAO seatDAO = new SeatDAO();
-                            seatDAO.updateSeatBooking(booking.getSeatId(), true);
+                            seatDAO.updateSeatBooking(booking.getSeat().getSeatId(), true);
                             System.out.println(">>> Đã cập nhật ghế " + booking.getSeatId() + " là đã được đặt (is_booked = true)");
 
                             if (newBookingId == -1) {

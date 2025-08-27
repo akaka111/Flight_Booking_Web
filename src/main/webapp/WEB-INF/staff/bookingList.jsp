@@ -47,6 +47,9 @@
                 transform: scale(1.1);
                 color: #ff6f61;
             }
+            h2.mt-4 {
+                text-align: center;
+            }
         </style>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script>
@@ -153,7 +156,46 @@
     </head>
     <body>
         <div class="container">
-            <h2 class="mt-4">Quản Lý Đặt Vé</h2>
+            <h2 class ="mt-4">Quản Lý Đặt Vé</h2>
+            <h2 class="mt-4">
+                Tuyến 
+
+                <!-- Origin -->
+                <c:choose>
+                    <c:when test="${not empty flight.route.originIata and not empty flight.route.originName}">
+                        ${flight.route.originIata} (${flight.route.originName})
+                    </c:when>
+                    <c:otherwise>
+                        N/A
+                    </c:otherwise>
+                </c:choose>
+
+                -> 
+
+                <!-- Destination -->
+                <c:choose>
+                    <c:when test="${not empty flight.route.destIata and not empty flight.route.destName}">
+                        ${flight.route.destIata} (${flight.route.destName})
+                    </c:when>
+                    <c:otherwise>
+                        N/A
+                    </c:otherwise>
+                </c:choose>
+
+                | Hãng 
+
+                <!-- Airline -->
+                <c:choose>
+                    <c:when test="${not empty flight.airline.name}">
+                        ${flight.airline.name}
+                    </c:when>
+                    <c:otherwise>
+                        N/A
+                    </c:otherwise>
+                </c:choose>
+            </h2>
+
+
             <c:if test="${not empty error}">
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     ${error}
@@ -175,6 +217,7 @@
                     <select name="statusFilter" id="statusFilter" class="form-select">
                         <option value="">Tất cả</option>
                         <option value="CONFIRMED" ${param.statusFilter == 'CONFIRMED' ? 'selected' : ''}>Đã xác nhận</option>
+                        <option value="PENDING" ${param.statusFilter == 'PENDING' ? 'selected' : ''}>Chờ xử lí</option>
                         <option value="CANCELLED"   ${param.statusFilter == 'CANCELLED' ? 'selected' : ''}>Đã hủy</option>
                         <option value="CHECKED-IN" ${param.statusFilter == 'CHECKED-IN' ? 'selected' : ''}>Đã check-in</option>
                         <option value="BOARDED" ${param.statusFilter == 'BOARDED' ? 'selected' : ''}>Đã lên máy bay</option>
@@ -184,7 +227,7 @@
             </form>
             <form action="${pageContext.request.contextPath}/staff/booking/search" method="get" class="form-inline mb-3">
                 <div class="form-group me-2">
-                    <label for="searchTerm" class="me-2">Tìm kiếm theo Mã Booking, Tên, hoặc Hộ chiếu:</label>
+                    <label for="searchTerm" class="me-2">Tìm kiếm theo Mã Booking, Tên, hoặc CCCD:</label>
                     <input type="text" name="searchTerm" id="searchTerm" class="form-control" value="${param.searchTerm}">
                 </div>
                 <button type="submit" class="btn btn-primary">Tìm kiếm</button>
@@ -193,13 +236,13 @@
                 <thead>
                     <tr>
                         <th>Mã Đặt Chỗ</th>
-                        <th>Tên Người Dùng</th>
-                        <th>Tuyến Đường</th>
+                        <th>Tên Hành Khách</th>
+                        <th>Số CCCD</th>
                         <th>Thời Gian Đặt</th>
-                        <th>Trạng Thái</th>
                         <th>Ghế</th>
                         <th>Tổng Giá</th>
                         <th>Trạng Thái Check-in</th>
+                        <th>Trạng Thái</th>
                         <th>Ghi Chú</th>
                         <th>Thao Tác</th>
                     </tr>
@@ -208,30 +251,49 @@
                     <c:forEach var="booking" items="${bookings}">
                         <tr>
                             <td><c:out value="${booking.bookingCode != null ? booking.bookingCode : 'N/A'}" /></td>
-                            <td><c:out value="${booking.userFullName != null ? booking.userFullName : 'N/A'}" /></td>
-                            <td><c:out value="${booking.flight != null && booking.flight.route != null ? booking.flight.route.originIata : 'N/A'} -> ${booking.flight != null && booking.flight.route != null ? booking.flight.route.destIata : 'N/A'} (${booking.flight != null ? booking.flight.flightNumber : 'N/A'})" /></td>
+                            <td><c:out value="${booking.passenger.fullName != null ? booking.passenger.fullName : 'N/A'}" /></td>
+                            <td><c:out value="${booking.passenger.passportNumber != null ? booking.passenger.passportNumber : 'N/A'}" /></td>
                             <td><fmt:formatDate value="${booking.bookingDate}" pattern="dd-MM-yyyy HH:mm:ss"/></td>
-                            <td>
-                                <c:choose>
-                                    <c:when test="${booking.status == 'CONFIRMED'}">Đã xác nhận</c:when>
-                                    <c:when test="${booking.status == 'CANCELLED'}">Đã hủy</c:when>
-                                    <c:when test="${booking.status == 'COMPLETED'}">Hoàn thành</c:when>
-                                    <c:when test="${booking.status == 'PENDING'}">Chờ xử lý</c:when>
-                                    <c:otherwise><c:out value="${booking.status != null ? booking.status : 'N/A'}" /></c:otherwise>
-                                </c:choose>
-                            </td>
                             <td><c:out value="${booking.seat != null ? booking.seat.seatNumber : 'N/A'} (${booking.seat != null && booking.seat.seatClass != null ? booking.seat.seatClass.name : 'N/A'})" /></td>
                             <td><fmt:formatNumber value="${booking.totalPrice}" type="currency" currencySymbol="VND" maxFractionDigits="0" /></td>
                             <td>
                                 <c:choose>
-                                    <c:when test="${booking.checkInStatus == 'CHECKED-IN'}">Đã check-in</c:when>
-                                    <c:when test="${booking.checkInStatus == 'BOARDED'}">Đã lên máy bay</c:when>
-                                    <c:otherwise>Chưa check-in</c:otherwise>
+                                    <c:when test="${booking.checkInStatus == 'CHECKED-IN'}">
+                                        <span style="color: green; font-weight: bold;">Đã check-in</span>
+                                    </c:when>
+                                    <c:when test="${booking.checkInStatus == 'BOARDED'}">
+                                        <span style="color: blue; font-weight: bold;">Đã lên máy bay</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span style="color: dimgray; font-style: italic;">Chưa check-in</span>
+                                    </c:otherwise>
+                                </c:choose>
+
+                            </td>
+                            <td>
+                                <c:choose>
+                                    <c:when test="${booking.status == 'CONFIRMED'}">
+                                        <span style="color: green; font-weight: bold;">Đã xác nhận</span>
+                                    </c:when>
+                                    <c:when test="${booking.status == 'CANCELLED'}">
+                                        <span style="color: red; font-weight: bold;">Đã hủy</span>
+                                    </c:when>
+                                    <c:when test="${booking.status == 'COMPLETED'}">
+                                        <span style="color: blue; font-weight: bold;">Hoàn thành</span>
+                                    </c:when>
+                                    <c:when test="${booking.status == 'PENDING'}">
+                                        <span style="color: orange; font-weight: bold;">Chờ xử lý</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span style="color: gray; font-style: italic;">
+                                            <c:out value="${booking.status != null ? booking.status : 'N/A'}" />
+                                        </span>
+                                    </c:otherwise>
                                 </c:choose>
                             </td>
                             <td><c:out value="${booking.staffNote != null ? booking.staffNote : 'N/A'}" /></td>
                             <td>
-                                <a href="${pageContext.request.contextPath}/staff/booking/details?bookingId=${booking.bookingId}" class="btn btn-info btn-sm">Xem chi tiết</a>
+                                <a href="${pageContext.request.contextPath}/staff/booking/details?bookingId=${booking.bookingId}" class="btn btn-info btn-primary">Xem chi tiết</a>
                             </td>
                         </tr>
                     </c:forEach>

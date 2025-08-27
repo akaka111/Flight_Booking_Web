@@ -339,6 +339,7 @@
                                         <td><c:out value="${checkIn != null && checkIn.passengerId != null ? checkIn.passengerId : 'N/A'}" /></td>
                                         <td class="read-only"><span id="checkinStatusReadOnly">
                                                 <c:choose>
+                                                    <c:when test="${checkIn != null && checkIn.status == 'NOT CHECKED-IN'}">Chưa check-in</c:when>
                                                     <c:when test="${checkIn != null && checkIn.status == 'CHECKED-IN'}">Đã check-in</c:when>
                                                     <c:when test="${checkIn != null && checkIn.status == 'BOARDED'}">Đã lên máy bay</c:when>
                                                     <c:otherwise>Chưa check-in</c:otherwise>
@@ -346,6 +347,7 @@
                                             </span></td>
                                         <td class="editable"><select id="checkInStatus" name="checkInStatus" class="form-select" required>
                                                 <option value="" disabled ${checkIn == null || checkIn.status == null ? 'selected' : ''}>Chọn trạng thái</option>
+                                                <option value="NOT CHECKED-IN" ${checkIn.status == 'NOT CHECKED-IN' ? 'selected' : ''}>Chưa check-in</option>
                                                 <option value="CHECKED-IN" ${checkIn.status == 'CHECKED-IN' ? 'selected' : ''}>Đã check-in</option>
                                                 <option value="BOARDED" ${checkIn.status == 'BOARDED' ? 'selected' : ''}>Đã lên máy bay</option>
                                             </select></td>

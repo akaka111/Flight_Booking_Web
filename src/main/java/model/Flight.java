@@ -16,6 +16,18 @@ package model;
         public Flight() {
         }
 
+    public Flight(int flightId, String flightNumber, Timestamp departureTime, Timestamp arrivalTime, String status, Airline airline, Route route, AircraftType aircraftType) {
+        this.flightId = flightId;
+        this.flightNumber = flightNumber;
+        this.departureTime = departureTime;
+        this.arrivalTime = arrivalTime;
+        this.status = status;
+        this.airline = airline;
+        this.route = route;
+        this.aircraftType = aircraftType;
+    }
+
+        
         // Getters and Setters
         public int getFlightId() {
             return flightId;

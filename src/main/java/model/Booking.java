@@ -18,6 +18,7 @@ public class Booking {
     private int flightId;
     private Timestamp bookingDate; // Sử dụng Timestamp để khớp với datetime
     private String status;
+    private String seatClass; // Thêm thuộc tính này
     private Seat seat;
     private double totalPrice;  // Thêm thuộc tính này
     private String staffNote;
@@ -29,16 +30,18 @@ public class Booking {
     private int seatId;
     private String userFullName; // Thêm thuộc tính cho tên người dùng
     private Flight flight; // Thêm thuộc tính này
+    private Passenger passenger;
 
     public Booking() {
     }
 
-    public Booking(int bookingId, int userId, int flightId, Timestamp bookingDate, String status, Seat seat, double totalPrice, String staffNote, Integer lastUpdatedBy, Timestamp lastUpdatedAt, String checkInStatus, String bookingCode, String voucherCode, int seatId, String userFullName, Flight flight) {
+    public Booking(int bookingId, int userId, int flightId, Timestamp bookingDate, String status, String seatClass, Seat seat, double totalPrice, String staffNote, Integer lastUpdatedBy, Timestamp lastUpdatedAt, String checkInStatus, String bookingCode, String voucherCode, int seatId, String userFullName, Flight flight, Passenger passenger) {
         this.bookingId = bookingId;
         this.userId = userId;
         this.flightId = flightId;
         this.bookingDate = bookingDate;
         this.status = status;
+        this.seatClass = seatClass;
         this.seat = seat;
         this.totalPrice = totalPrice;
         this.staffNote = staffNote;
@@ -50,7 +53,12 @@ public class Booking {
         this.seatId = seatId;
         this.userFullName = userFullName;
         this.flight = flight;
+        this.passenger = passenger;
     }
+
+    
+
+    
 
     
 
@@ -182,5 +190,23 @@ public class Booking {
     public void setFlight(Flight flight) {
         this.flight = flight;
     }
+
+    public Passenger getPassenger() {
+        return passenger;
+    }
+
+    public void setPassenger(Passenger passenger) {
+        this.passenger = passenger;
+    }
+
+    public String getSeatClass() {
+        return seatClass;
+    }
+
+    public void setSeatClass(String seatClass) {
+        this.seatClass = seatClass;
+    }
+    
+    
 
 }

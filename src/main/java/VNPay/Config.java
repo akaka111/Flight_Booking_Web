@@ -23,7 +23,7 @@ public class Config {
     public static String vnp_TmnCode = "EWQ0TZFM";
     public static String vnp_HashSecret = "1HA8XR4J3IBVO7JJFAF8ZX0TXC5Y5DW6";
     public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    public static String vnp_ReturnUrl = "http://localhost:8080/SWP391_Group2/vnpay_return";
+    public static String vnp_ReturnUrl = "http://localhost:8085/SWP391_Group2/vnpay_return";
     public static String vnp_ApiUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
 
     public static String hashAllFields(Map<String, String> fields) {

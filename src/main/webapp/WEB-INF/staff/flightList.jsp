@@ -41,7 +41,7 @@
                             <td><fmt:formatDate value="${flight.arrivalTime}" pattern="dd-MM-yyyy HH:mm:ss"/></td>
                             <td><c:out value="${flight.status != null ? flight.status : 'N/A'}" /></td>
                             <td>
-                                <a href="${pageContext.request.contextPath}/staff/booking/flight/bookings?flightId=${flight.flightId}" class="btn btn-info btn-sm">Xem Đặt Vé</a>
+                                <a href="${pageContext.request.contextPath}/staff/booking/flight/bookings?flightId=${flight.flightId}" class="btn btn-info btn-primary" style="background-color: #007bff; color: white; border: none;">Xem Đặt Vé</a>
                             </td>
                         </tr>
                     </c:forEach>

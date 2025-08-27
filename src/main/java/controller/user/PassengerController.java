@@ -69,7 +69,8 @@ public class PassengerController extends HttpServlet {
             tempBooking.setUserId(account.getUserId());
             tempBooking.setFlightId(flightId);
             tempBooking.setBookingDate(new Timestamp(System.currentTimeMillis()));
-            
+            tempBooking.setSeatClass(selectedClass);
+            tempBooking.setTotalPrice(finalPrice);
             tempBooking.setStatus("PENDING");
             tempBooking.setBookingCode("TEMP_" + System.currentTimeMillis());
 

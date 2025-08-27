@@ -10,6 +10,24 @@ public class Route {
     private Integer durationMinutes;
     private boolean active;
 
+    public Route() {
+    }
+
+    
+    public Route(int routeId, String originIata, String originName, String destIata, String destName, Integer distanceKm, Integer durationMinutes, boolean active) {
+        this.routeId = routeId;
+        this.originIata = originIata;
+        this.originName = originName;
+        this.destIata = destIata;
+        this.destName = destName;
+        this.distanceKm = distanceKm;
+        this.durationMinutes = durationMinutes;
+        this.active = active;
+    }
+
+    
+
+    
     public int getRouteId() { return routeId; }
     public void setRouteId(int routeId) { this.routeId = routeId; }
 

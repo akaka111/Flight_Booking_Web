@@ -131,10 +131,18 @@ public class StaffBookingController extends HttpServlet {
             return;
         }
         int flightId = Integer.parseInt(flightIdStr);
+
+        
+        // Lấy thông tin chuyến bay để hiển thị tiêu đề
+        Flight flight =  bookingDAO.getFlightDetails2(flightId);
+        
         List<Booking> bookings = bookingDAO.getBookingsByFlightId(flightId, statusFilter);
+
         request.removeAttribute("error");
         request.setAttribute("bookings", bookings);
+        request.setAttribute("flight", flight != null ? flight : new Flight());
         request.setAttribute("flightId", flightId); // Để dùng trong JSP (ví dụ filter form)
+        
         request.getRequestDispatcher("/WEB-INF/staff/bookingList.jsp").forward(request, response);
     }
 
@@ -399,7 +407,7 @@ public class StaffBookingController extends HttpServlet {
             }
 
             // Kiểm tra trạng thái check-in hợp lệ
-            List<String> validCheckinStatuses = Arrays.asList("CHECKED-IN", "BOARDED");
+            List<String> validCheckinStatuses = Arrays.asList("NOT CHECKED-IN","CHECKED-IN", "BOARDED");
             if (!validCheckinStatuses.contains(status)) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 response.getWriter().write("Trạng thái check-in không hợp lệ: " + status);
