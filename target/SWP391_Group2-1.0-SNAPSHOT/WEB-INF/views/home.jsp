@@ -284,38 +284,7 @@
                 </div>
             </section>
 
-            <section class="featured-deals-section">
-                <div class="cloud-border"></div>
-                <div class="container">
-                    <h2 class="section-title">Vé máy bay giá tốt, khám phá thế giới</h2>
-                    <div class="deals-container">                  
-                        <c:choose>
-                            <c:when test="${not empty flights}">
-                                <c:forEach var="flight" items="${flights}" begin="0" end="4">                               
-                                    <a href="<c:url value='/flight-detail?id=${flight.flightId}'/>" class="deal-card">
-                                        <div class="deal-card-inner">
-                                            <div class="from-location">Từ <span>${flight.routeFrom}</span></div>
-                                            <div class="price-tag">Chỉ từ</div>
-                                            <div class="price-amount">
-                                                <fmt:formatNumber 
-                                                    value="${ecoPrices[flight.flightId]}" 
-                                                    type="number" 
-                                                    maxFractionDigits="0" 
-                                                    groupingUsed="true"/>
-                                            </div>
-                                            <div class="price-currency">VND</div>
-                                        </div>
-                                        <div class="to-location">Đến <span>${flight.routeTo}</span></div>
-                                    </a>
-                                </c:forEach>
-                            </c:when>
-                            <c:otherwise>
-                                <p class="no-flights">Hiện không có chuyến bay nổi bật nào.</p>
-                            </c:otherwise>
-                        </c:choose>
-                    </div>              
-                </div>
-            </section>
+           
         </div>
         <footer>
             <jsp:include page="/WEB-INF/user/components/footer.jsp" /> 

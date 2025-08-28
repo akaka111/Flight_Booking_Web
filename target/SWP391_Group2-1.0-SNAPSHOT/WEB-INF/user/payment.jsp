@@ -174,6 +174,10 @@
                         <p>${sessionScope.tempPassenger.fullName}</p>
                     </div>
                     <div class="price-row">
+                        <p><strong>Ghế:</strong></p>
+                        <p>${sessionScope.tempBooking.seat.seatNumber}</p>
+                    </div>
+                    <div class="price-row">
                         <p><strong>Hạng vé:</strong></p>
                         <p>${sessionScope.tempBooking.seatClass}</p>
                     </div>

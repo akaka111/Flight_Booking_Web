@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  */
 public class DBContext {
     private static final String URL = "jdbc:sqlserver://localhost:1433;"
-            + "databaseName=Flight_Booking_Web1;"
+            + "databaseName=Flight_Booking_Web;"
             + "encrypt=true;"
             + "trustServerCertificate=true;";
     private static final String USER = "sa";
