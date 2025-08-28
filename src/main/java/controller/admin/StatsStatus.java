@@ -64,7 +64,27 @@ public class StatsStatus extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String status = request.getParameter("status");
+        String monthStr = request.getParameter("month");
+        String yearStr = request.getParameter("year");
+        String airlineFilter = request.getParameter("airlineFilter");
+
+        Integer month = (monthStr != null && !monthStr.isEmpty()) ? Integer.parseInt(monthStr) : null;
+        Integer year = (yearStr != null && !yearStr.isEmpty()) ? Integer.parseInt(yearStr) : null;
+        if (airlineFilter == null || airlineFilter.isEmpty()) {
+            airlineFilter = "max"; // mặc định nhiều nhất
+        }
         String sqlStatus = null;
+
+        // Lấy chuyến bay nhiều nhất theo 3 trạng thái
+        Flight mostCompleted = dao.getMostCompletedFlight(month, year);
+        Flight mostDelayed = dao.getMostDelayedFlight(month, year);
+        Flight mostCancelled = dao.getMostCancelledFlight(month, year);
+
+        // Gửi sang JSP hiển thị
+        request.setAttribute("mostCompleted", mostCompleted);
+        request.setAttribute("mostDelayed", mostDelayed);
+        request.setAttribute("mostCancelled", mostCancelled);
+
         switch (status) {
             case "onTime":
                 sqlStatus = "ON TIME";
@@ -78,19 +98,15 @@ public class StatsStatus extends HttpServlet {
         }
 
         if (sqlStatus != null) {
-            try {
-                List<Flight> flightList = dao.getFlightsByStatus(sqlStatus);
-                System.out.println("Flight list size: " + flightList.size());
-                request.setAttribute("flightList", flightList);
-                request.setAttribute("flightStatus", sqlStatus);
-                request.getRequestDispatcher("/WEB-INF/admin/statisticsFlightstatus.jsp").forward(request, response);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            List<Flight> flightList = dao.getFlightsByStatusAndDate(sqlStatus, month, year, airlineFilter);
+            request.setAttribute("flightList", flightList);
+            request.setAttribute("flightStatus", sqlStatus);
+            request.setAttribute("airlineFilter", airlineFilter);
+            request.getRequestDispatcher("/WEB-INF/admin/statisticsFlightstatus.jsp")
+                    .forward(request, response);
         } else {
-            response.sendRedirect("Stats");
+            response.sendRedirect("Stats"); // về trang thống kê chính
         }
-
     }
 
     /**

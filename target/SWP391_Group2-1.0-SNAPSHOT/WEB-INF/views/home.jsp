@@ -326,7 +326,6 @@
                 const slides = document.querySelectorAll('.slider .slide');
                 if (slides.length > 0) {
                     let currentSlide = 0;
-
                     function showSlide(index) {
                         slides.forEach((slide, i) => {
                             slide.style.opacity = (i === index) ? '1' : '0';
@@ -342,6 +341,268 @@
                     setInterval(nextSlide, 5000);
                 }
             });
+        </script>
+
+        <!------------------------ ----------------------- Nút Chat nổi ----------------------- ----------------------- -->
+        <style>
+            #livechat-btn {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: #007bff;
+                color: #fff;
+                border: none;
+                padding: 12px;
+                border-radius: 50%;
+                cursor: pointer;
+                z-index: 10000;
+            }
+            #livechat-box {
+                display: none;
+                flex-direction: column;
+                position: fixed;
+                bottom: 70px;
+                right: 20px;
+                width: 320px;
+                height: 400px;
+                background: #fff;
+                border: 1px solid #ccc;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 9999;
+            }
+            #chat-messages {
+                flex: 1;
+                overflow-y: auto;
+                padding: 8px;
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+            #chat-input {
+                display: flex;
+                border-top: 1px solid #ccc;
+            }
+            #chat-input input {
+                flex: 1;
+                padding: 8px;
+                border: none;
+            }
+            #chat-input button {
+                padding: 8px 12px;
+                background: #007bff;
+                border: none;
+                color: #fff;
+                cursor: pointer;
+            }
+            .msg {
+                margin: 4px 0;
+                padding: 6px 10px;
+                border-radius: 8px;
+                max-width: 75%;
+                display: flex;
+                flex-direction: column;
+            }
+            .msg.staff {
+                background: #007bff;
+                color: white;
+                align-self: flex-end;
+            }
+            .msg.user {
+                background: #d5f7fd;
+                color: black;
+                align-self: flex-start;
+            }
+            .msg.guest {
+                background: #d1e7dd;
+                color: black;
+                align-self: flex-start;
+            }
+            .msg b {
+                font-weight: bold;
+                margin-bottom: 2px;
+            }
+        </style>
+
+        <!-- Nút nổi -->
+        <button id="livechat-btn" aria-label="Mở chat">💬</button>
+
+        <!-- Form guest -->
+        <div id="guest-form" style="position:fixed; bottom:70px; right:20px; width:320px; background:#fff; border:1px solid #ccc; padding:12px; display:none; z-index:9999;">
+            <p>Vui lòng nhập tên để bắt đầu:</p>
+            <input type="text" id="guest-name" placeholder="Tên của bạn" style="width:100%; padding:8px; margin:8px 0;"/>
+            <button onclick="saveGuestName()">Bắt đầu chat</button>
+        </div>
+
+        <!-- Hộp chat -->
+        <div id="livechat-box" style="display:none;">
+            <div id="chat-messages"></div>
+            <div id="chat-input">
+                <input type="text" id="chat-text" placeholder="Nhập tin nhắn..."/>
+                <button id="send-btn">Gửi</button>
+            </div>
+        </div>
+
+        <script>
+            const userId = "<c:out value='${sessionScope.userId != null ? sessionScope.userId : ""}'/>";
+            const btn = document.getElementById("livechat-btn");
+            const box = document.getElementById("livechat-box");
+            const chatMessages = document.getElementById("chat-messages");
+            const chatText = document.getElementById("chat-text");
+            const sendBtn = document.getElementById("send-btn");
+            const guestForm = document.getElementById("guest-form");
+            const livechatUrl = '<c:url value="/LivechatController"/>';
+
+            let guestLabel = sessionStorage.getItem("guestLabel");
+            if (!guestLabel || guestLabel === "null" || guestLabel.trim() === "") {
+                guestLabel = null;
+            }
+
+            // Khi bấm nút mở chat
+            btn.onclick = () => {
+                if (userId && userId.trim() !== "" && userId !== "null") {
+                    guestForm.style.display = "none";
+                    box.style.display = "flex";
+                    loadMessages();
+                    return;
+                }
+                // Guest chưa nhập tên → hiện form
+                if (!guestLabel) {
+                    guestForm.style.display = "block";
+                    box.style.display = "none";
+                } else {
+                    // Guest đã nhập tên → mở chat luôn
+                    guestForm.style.display = "none";
+                    box.style.display = "flex";
+                    loadMessages();
+                }
+            };
+
+            // Gửi tin nhắn
+            sendBtn.onclick = () => {
+                const content = chatText.value.trim();
+                if (!content)
+                    return;
+
+                const form = new FormData(); // tạo FormData trước
+                form.append("content", content);
+
+                if (userId && userId.trim() !== "" && userId !== "null") {
+                    form.append("type", "user");
+                } else {
+                    if (!guestLabel) {
+                        alert("Vui lòng nhập tên trước khi gửi tin nhắn!");
+                        guestForm.style.display = "block";
+                        box.style.display = "none";
+                        return;
+                    }
+                    form.append("type", "guest");
+                    form.append("guestLabel", guestLabel);
+                }
+
+                console.log("=== Debug: FormData chuẩn bị gửi ===");
+                for (let pair of form.entries()) {
+                    console.log(pair[0] + ": " + pair[1]);
+                }
+
+                fetch(livechatUrl, {method: "POST", body: form})
+                        .then(r => r.json())
+                        .then(res => {
+                            if (res.success) {
+                                chatText.value = "";
+                                loadMessages();
+                            } else {
+                                alert("Gửi tin nhắn thất bại!");
+                            }
+                        });
+            };
+
+            // Lưu tên guest
+            function saveGuestName() {
+                const name = document.getElementById("guest-name").value.trim();
+                if (!name)
+                    return alert("Vui lòng nhập tên!");
+                guestLabel = name;
+                sessionStorage.setItem("guestLabel", name);
+                guestForm.style.display = "none";
+                box.style.display = "flex";
+                chatMessages.innerHTML = ""; // 🔑 xoá sạch thông báo cũ
+                loadMessages();
+            }
+
+            // Load tin nhắn
+            function loadMessages() {
+                const params = new URLSearchParams();
+
+                if (userId && userId.trim() !== "" && userId !== "null") {
+                    params.append("type", "user");
+                } else if (guestLabel) {
+                    params.append("type", "guest");
+                    params.append("guestLabel", guestLabel);
+                } else {
+                    chatMessages.innerHTML = "<div class='msg guest'>Vui lòng nhập tên để bắt đầu chat!</div>";
+                    return;
+                }
+
+                fetch(livechatUrl + "?" + params.toString())
+                        .then(r => r.json())
+                        .then(list => {
+                            chatMessages.innerHTML = "";
+                            list.forEach(m => {
+                                const div = document.createElement("div");
+                                div.className = "msg " + m.senderType;
+                                div.textContent = m.content;
+                                chatMessages.appendChild(div);
+                            });
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                            // Lưu tạm lịch sử vào sessionStorage
+                            sessionStorage.setItem("chatHistory", JSON.stringify(list));
+                        });
+
+                // Load lại lịch sử cũ khi reload (nếu có)
+                const history = sessionStorage.getItem("chatHistory");
+                if (history) {
+                    chatMessages.innerHTML = "";
+                    JSON.parse(history).forEach(m => {
+                        const div = document.createElement("div");
+                        div.className = "msg " + m.senderType;
+                        let senderName = m.senderType;
+                        if (m.senderType === "staff")
+                            senderName = "Staff";
+                        if (m.senderType === "user")
+                            senderName = m.senderName || "User";
+                        if (m.senderType === "guest")
+                            senderName = m.senderName || "Guest";
+                        div.innerHTML = `<b>${senderName}:</b> ${m.content}`;
+                        chatMessages.appendChild(div);
+                    });
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            }
+
+            // Xoá dữ liệu guest khi đóng tab/trình duyệt
+            window.addEventListener("beforeunload", (e) => {
+                if (!userId && guestLabel) { // chỉ guest mới cảnh báo
+                    e.preventDefault();
+                    e.returnValue = "Tin nhắn của bạn sẽ bị xóa khi thoát. Bạn có chắc muốn rời trang?";
+                }
+                sessionStorage.removeItem("guestLabel");
+                sessionStorage.removeItem("chatHistory");
+            });
+
+            window.addEventListener("unload", () => {
+                if (!userId && guestLabel) {
+                    const form = new FormData();
+                    form.append("type", "guest");
+                    form.append("guestLabel", guestLabel);
+                    form.append("action", "delete"); // thêm action delete
+                    navigator.sendBeacon(livechatUrl, form);
+                }
+            });
+
+            // Tự load lại tin nhắn
+            setInterval(loadMessages, 2000);
         </script>
     </body>
 </html>

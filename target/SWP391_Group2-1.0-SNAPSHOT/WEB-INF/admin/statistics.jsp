@@ -71,10 +71,6 @@
         </style>
     </head>
     <body>
-
-
-
-
         <div class="content">
             <div class="header">
                 <div class="greeting">Xin Chào, Admin</div>
@@ -104,6 +100,13 @@
                             <option value="${y}" ${param.year == y ? "selected" : ""}>${y}</option>
                         </c:forEach>
                     </select>
+                    <label for="airline">Chọn hãng bay:</label>
+                    <select name="airlineId" id="airline">
+                        <option value="">-- Tất cả hãng --</option>
+                        <c:forEach var="airline" items="${airlineList}">
+                            <option value="${airline.airlineId}" ${param.airlineId == airline.airlineId  ? "selected" : ""}>${airline.name}</option>
+                        </c:forEach>
+                    </select>
                     <button type="submit">Xem thống kê</button>
                 </form>
                 <div class="stat-card">
@@ -112,10 +115,13 @@
                     <p> <strong>${accountCount}</strong> người dùng đã đăng ký</p>
                 </div>
                 <div class="stat-card">
-                    <h3>Chuyến Bay</h3>
+                    <h3>Chuyến Bay(trong năm)</h3>
                     <p>hoàn thành: ${completedFlights}</p>
-                    <p>bị hủy: ${CancelFlights}</p>
+                    <a href="StatsStatus?status=onTime<% if (request.getAttribute("airlineId") != null) { %>&airlineId=${airlineId}<% }%>">xem chi tiết</a>
+                    <p>bị hủy: ${cancelFlights}</p>
+                    <a href="StatsStatus?status=cancelled<% if (request.getAttribute("airlineId") != null) { %>&airlineId=${airlineId}<% } %>">xem chi tiết</a>
                     <p>trì hoãn: ${delayFlights}</p>
+                    <a href="StatsStatus?status=delayed<% if (request.getAttribute("airlineId") != null) { %>&airlineId=${airlineId}<% }%>">xem chi tiết</a>
                 </div>
                 <div class="stat-card">
                     <h3>Số Vé Đã Bán</h3>
@@ -130,6 +136,64 @@
                     </ul>
                 </div>
             </div>
+
+            <div class="stat-card" style="grid-column: 1 / -1;">
+                <h3>Biểu đồ doanh thu theo năm ${param.year}</h3>
+                <canvas id="revenueChart"></canvas>
+            </div>
+
+            <div class="stat-card" style="grid-column: 1 / -1;">
+                <h3>Biểu đồ tài khoản mới theo năm ${param.year}</h3>
+                <canvas id="accountChart"></canvas>
+            </div>
         </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            const accountCtx = document.getElementById('accountChart').getContext('2d');
+            const labels = [
+                "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+                "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
+            ];
+            const revenueData = [
+            <c:forEach begin="1" end="12" var="m" varStatus="loop">
+                ${revenueByMonth[m]}${!loop.last ? ',' : ''}
+            </c:forEach>
+            ];
+            const accountData = [
+            <c:forEach begin="1" end="12" var="m" varStatus="loop">
+                ${accountByMonth[m]}${!loop.last ? ',' : ''}
+            </c:forEach>
+            ];
+
+            // Biểu đồ doanh thu
+            new Chart(document.getElementById('revenueChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                            label: 'Doanh thu (VND)',
+                            data: revenueData,
+                            borderColor: '#007bff',
+                            fill: false,
+                            tension: 0.1
+                        }]
+                }
+            });
+
+            // Biểu đồ tài khoản
+            new Chart(document.getElementById('accountChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                            label: 'Tài khoản mới',
+                            data: accountData,
+                            backgroundColor: '#28a745'
+                        }]
+                }
+            });
+        </script>
     </body>
 </html>

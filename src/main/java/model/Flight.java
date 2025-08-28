@@ -14,6 +14,8 @@ public class Flight {
 
     private int flightId;
     private int airlineId;
+    private int routeId;
+    private int aircraftTypeId;
     private String flightNumber;
     private String routeFrom;
     private String routeTo;
@@ -23,6 +25,42 @@ public class Flight {
     private String aircraft;
     private String status;
     private Double ecoPrice;
+    private Airline airline;
+    private int completedCount;
+
+    public int getCompletedCount() {
+        return completedCount;
+    }
+
+    public void setCompletedCount(int completedCount) {
+        this.completedCount = completedCount;
+    }
+
+    public int getRouteId() {
+        return routeId;
+    }
+
+    public void setRouteId(int routeId) {
+        this.routeId = routeId;
+    }
+
+    public int getAircraftTypeId() {
+        return aircraftTypeId;
+    }
+
+    public void setAircraftTypeId(int aircraftTypeId) {
+        this.aircraftTypeId = aircraftTypeId;
+    }
+
+    public Airline getAirline() {
+        return airline;
+    }
+
+    public void setAirline(Airline airline) {
+        this.airline = airline;
+    }
+
+    
 
     public Double getEcoPrice() {
         return ecoPrice;
@@ -31,7 +69,6 @@ public class Flight {
     public void setEcoPrice(Double ecoPrice) {
         this.ecoPrice = ecoPrice;
     }
-
 
     public Flight() {
     }
@@ -48,10 +85,6 @@ public class Flight {
         this.aircraft = aircraft;
         this.status = status;
     }
-
-    
-
-
 
     public int getFlightId() {
         return flightId;
@@ -133,5 +166,4 @@ public class Flight {
         this.status = status;
     }
 
-    
 }

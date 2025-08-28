@@ -9,7 +9,7 @@ import DAO.Admin.BookingVoucherDAO; // <-- IMPORT MỚI
 import DAO.Admin.PassengerDAO;
 import DAO.Admin.PaymentDAO;
 import DAO.Admin.SeatDAO;
-import DAO.Admin.voucherDAO; // <-- IMPORT MỚI
+import DAO.Admin.VoucherDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -182,7 +182,7 @@ public class VNPayReturnController extends HttpServlet {
                             String appliedVoucherCode = booking.getVoucherCode();
                             if (appliedVoucherCode != null && !appliedVoucherCode.isEmpty()) {
 
-                                voucherDAO vDAO = new voucherDAO();
+                                VoucherDAO vDAO = new VoucherDAO();
                                 Voucher voucher = vDAO.getVoucherByCode(appliedVoucherCode);
 
                                 if (voucher != null) {

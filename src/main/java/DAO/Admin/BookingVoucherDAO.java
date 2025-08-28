@@ -17,44 +17,25 @@ import utils.DBContext;
  */
 public class BookingVoucherDAO {
 
-    public BookingVoucherDAO() {
-        try {
-            this.conn = new DBContext().getConnection();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private Connection conn;
-
-    // Constructor để nhận kết nối từ servlet
-    public BookingVoucherDAO(Connection conn) {
-        this.conn = conn;
-    }
-
-    public void insertBookingVoucher(BookingVoucher bv) {
-        String sql = "INSERT INTO BookingVoucher (booking_id, voucher_id) VALUES (?, ?)";
+    public void insertBookingVoucher(BookingVoucher bv) throws SQLException {
+        String sql = "INSERT INTO BookingVoucher (booking_id, voucher_id, account_id) VALUES (?, ?, ?)";
         try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bv.getBookingId());
             ps.setInt(2, bv.getVoucherId());
+            ps.setInt(3, bv.getAccountId());
             ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
     public boolean isVoucherApplied(int bookingId, int voucherId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM BookingVoucher WHERE booking_id = ? AND voucher_id = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = new DBContext().getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bookingId);
             ps.setInt(2, voucherId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
+                return rs.next() && rs.getInt(1) > 0;
             }
         }
-        return false;
     }
 
 }

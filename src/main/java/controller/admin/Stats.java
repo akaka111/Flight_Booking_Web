@@ -15,6 +15,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 import utils.DBContext;
 
 /**
@@ -23,8 +25,8 @@ import utils.DBContext;
  */
 @WebServlet(name = "Stats", urlPatterns = {"/Stats"})
 public class Stats extends HttpServlet {
-    DBContext dbconnect = new DBContext();
 
+    StatisticPerMonth dao = new StatisticPerMonth();
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -64,37 +66,88 @@ public class Stats extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try (Connection conn = dbconnect.getConnection()) {
-            if (conn != null) {
-                System.out.println(" Kết nối thành công!");
-            } else {
-                System.out.println(" Kết nối thất bại!");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            response.getWriter().println(" Lỗi: " + e.getMessage());
+
+        // --- Lấy month/year từ request hoặc mặc định tháng hiện tại ---
+        int m = Integer.parseInt(
+                request.getParameter("month") != null ? request.getParameter("month")
+                : String.valueOf(LocalDate.now().getMonthValue())
+        );
+        int y = Integer.parseInt(
+                request.getParameter("year") != null ? request.getParameter("year")
+                : String.valueOf(LocalDate.now().getYear())
+        );
+        String airlineIdParam = request.getParameter("airlineId");
+        Integer airlineId = (airlineIdParam != null && !airlineIdParam.isEmpty()) ? Integer.parseInt(airlineIdParam) : null;
+
+        // --- Set dữ liệu chart (theo tháng của cả năm) ---
+        Map<Integer, Double> revenueByMonth = new HashMap<>();
+        Map<Integer, Integer> accountByMonth = new HashMap<>();
+
+        for (int month = 1; month <= 12; month++) {
+            revenueByMonth.put(month, dao.getRevenueMonthYear(month, y));
+            accountByMonth.put(month, dao.countUsersInMonthYear(month, y));
         }
+        // Dữ liệu tổng quan theo hãng (nếu chọn)
+        double revenue = (airlineId != null) ? dao.getRevenueByAirlineMonthYear(airlineId, m, y) : dao.getRevenueMonthYear(m, y);
+        int completedFlights = (airlineId != null) ? dao.countFlightsByAirlineAndStatus(airlineId, "ON TIME", m, y) : dao.getCompletedFlightsByYear(y);
+        int cancelledFlights = (airlineId != null) ? dao.countFlightsByAirlineAndStatus(airlineId, "CANCELLED", m, y) : dao.getCancelledFlightsByYear(y);
+        int delayedFlights = (airlineId != null) ? dao.countFlightsByAirlineAndStatus(airlineId, "DELAYED", m, y) : dao.getDelayedFlightsByYear(y);
+        int ticketsSold = (airlineId != null) ? dao.countTicketsSoldByAirline(airlineId, m, y) : dao.countTicketsSold(m, y);
 
-        StatisticPerMonth dao = new StatisticPerMonth();
-        int m = Integer.parseInt(request.getParameter("month") != null ? request.getParameter("month") : String.valueOf(LocalDate.now().getMonthValue()));
-        int y = Integer.parseInt(request.getParameter("year") != null ? request.getParameter("year") : String.valueOf(LocalDate.now().getYear()));
-
-        int count = dao.countUsersInMonthYear(m, y);
-        double totalRevenue = dao.getRevenueMonthYear(m, y);
-        int ticketsSold = dao.countTicketsSold(m, y);
-        int completedFlights = dao.getCompletedFlights();
-        int getCancelFlights = dao.getCancelFlights();
-        int getDelayFlights = dao.getDelayFlights();
-
-        request.setAttribute("completedFlights", completedFlights);
-        request.setAttribute("CancelFlights", getCancelFlights);
-        request.setAttribute("delayFlights", getDelayFlights);
         request.setAttribute("selectedMonth", m);
         request.setAttribute("selectedYear", y);
-        request.setAttribute("accountCount", count);
+        request.setAttribute("revenue", revenue);
+        request.setAttribute("completedFlights", completedFlights);
+        request.setAttribute("cancelFlights", cancelledFlights);
+        request.setAttribute("delayFlights", delayedFlights);
+        request.setAttribute("ticketsSold", ticketsSold);
+        request.setAttribute("revenueByMonth", revenueByMonth);
+        request.setAttribute("accountByMonth", accountByMonth);
+        request.setAttribute("airlineId", airlineId);
+
+        // --- Lấy tham số trạng thái (nếu có) ---
+        String status = request.getParameter("status");
+        String sqlStatus = null;
+        if (status != null) {
+            switch (status) {
+                case "onTime":
+                    sqlStatus = "ON TIME";
+                    break;
+                case "delayed":
+                    sqlStatus = "DELAYED";
+                    break;
+                case "cancelled":
+                    sqlStatus = "CANCELLED";
+                    break;
+            }
+        }
+        // --- Lấy số liệu chung ---
+        int accountCount = dao.countUsersInMonthYear(m, y);
+        double totalRevenue = dao.getRevenueMonthYear(m, y);
+
+        int cancelFlights = dao.getCancelledFlightsByYear(y);
+        int delayFlights = dao.getDelayedFlightsByYear(y);
+
+        // --- Lấy số liệu theo trạng thái cụ thể (nếu có) ---
+        if (sqlStatus != null) {
+            int flightCount = dao.countFlightsByStatus(sqlStatus);
+            request.setAttribute("flightStatus", sqlStatus);
+            request.setAttribute("flightCount", flightCount);
+        }
+
+        // --- Set attribute để render JSP ---
+        request.setAttribute("selectedMonth", m);
+        request.setAttribute("selectedYear", y);
+        request.setAttribute("accountCount", accountCount);
         request.setAttribute("revenue", totalRevenue);
         request.setAttribute("ticketsSold", ticketsSold);
 
+        request.setAttribute("completedFlights", completedFlights);
+        request.setAttribute("cancelFlights", cancelFlights);
+        request.setAttribute("delayFlights", delayFlights);
+        request.setAttribute("airlineList", dao.getAllAirlines());
+
+        // --- Forward về trang JSP duy nhất ---
         request.getRequestDispatcher("/WEB-INF/admin/statistics.jsp").forward(request, response);
     }
 
