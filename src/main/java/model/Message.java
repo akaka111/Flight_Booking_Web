@@ -12,6 +12,14 @@ import java.sql.Timestamp;
  */
 public class Message {
 
+    private int id;
+    private String senderEmail;
+    private String subject;
+    private String content;
+    private Timestamp sentTime;
+    private boolean isRead;
+    private String recipientEmail;
+
     public Message() {
     }
 
@@ -80,13 +88,5 @@ public class Message {
     public void setRecipientEmail(String recipientEmail) {
         this.recipientEmail = recipientEmail;
     }
-
-    private int id;
-    private String senderEmail;
-    private String subject;
-    private String content;
-    private Timestamp sentTime;
-    private boolean isRead;
-    private String recipientEmail;
 
 }

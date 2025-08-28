@@ -135,8 +135,7 @@ public class StatisticPerMonth {
             while (rs.next()) {
                 Flight f = new Flight();
                 f.setFlightNumber(rs.getString("Flight_Number"));
-                f.setRouteFrom(rs.getString("route_From"));
-                f.setRouteTo(rs.getString("route_To"));
+               
                 f.setStatus(rs.getString("status"));
                 list.add(f);
             }

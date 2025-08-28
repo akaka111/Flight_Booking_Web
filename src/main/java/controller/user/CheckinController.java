@@ -11,6 +11,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import model.Booking;
 import model.CheckIn;
@@ -77,7 +79,7 @@ public class CheckinController extends HttpServlet {
             Booking booking = bookingDAO.getBookingById(bookingId);
             System.out.println("DEBUG - POST bookingId: " + bookingId);
 
-            if (booking == null || "Checked-in".equalsIgnoreCase(booking.getCheckinStatus())) {
+            if (booking == null || "Checked-in".equalsIgnoreCase(booking.getCheckInStatus())) {
                 System.out.println("DEBUG - Booking null hoặc đã check-in.");
                 response.sendRedirect("checkinController?step=confirm&bookingId=" + bookingId);
                 return;
@@ -104,7 +106,7 @@ public class CheckinController extends HttpServlet {
                 checkIn.setPassengerId(passenger.getPassengerId());
                 checkIn.setBookingId(bookingId);
                 checkIn.setFlightId(flight.getFlightId());
-                checkIn.setCheckinTime(now);
+                checkIn.setCheckinTime(Timestamp.from(Instant.now()));
                 checkIn.setStatus("Checked-in");
                 checkInDAO.insertCheckin(checkIn);
             }

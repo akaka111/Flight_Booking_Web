@@ -77,8 +77,7 @@ public class FlightAdmin1 extends HttpServlet {
             if ("addFlight".equals(action)) {
                 Flight f = new Flight();
                 f.setFlightNumber(request.getParameter("flightNumber"));
-                f.setRouteFrom(request.getParameter("routeFrom"));
-                f.setRouteTo(request.getParameter("routeTo"));
+                
 
                 String rawDeparture = request.getParameter("departureTime").replace("T", " ") + ":00";
                 f.setDepartureTime(Timestamp.valueOf(rawDeparture));
@@ -87,7 +86,7 @@ public class FlightAdmin1 extends HttpServlet {
                 f.setArrivalTime(Timestamp.valueOf(rawArrival));
 
                 
-                f.setAircraft(request.getParameter("aircraft"));
+                
                 f.setStatus(request.getParameter("status"));
 
                 new FlightDAO().insertFlight(f);
@@ -102,8 +101,7 @@ public class FlightAdmin1 extends HttpServlet {
                 Flight f = new Flight();
                 f.setFlightId(id);
                 f.setFlightNumber(request.getParameter("flightNumber"));
-                f.setRouteFrom(request.getParameter("routeFrom"));
-                f.setRouteTo(request.getParameter("routeTo"));
+               
 
                 String rawDeparture = request.getParameter("departureTime").replace("T", " ") + ":00";
                 f.setDepartureTime(Timestamp.valueOf(rawDeparture));
@@ -112,7 +110,7 @@ public class FlightAdmin1 extends HttpServlet {
                 f.setArrivalTime(Timestamp.valueOf(rawArrival));
 
                 
-                f.setAircraft(request.getParameter("aircraft"));
+              
                 f.setStatus(request.getParameter("status"));
 
                 new FlightDAO().updateFlight(f);
