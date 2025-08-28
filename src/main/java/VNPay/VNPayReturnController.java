@@ -109,7 +109,6 @@ public class VNPayReturnController extends HttpServlet {
 
                         Booking booking = (Booking) session.getAttribute("tempBooking");
                         Passenger passenger = (Passenger) session.getAttribute("tempPassenger");
-                        
 
                         if (booking != null && passenger != null) {
                             BookingDAO bookingDAO = new BookingDAO();
@@ -148,29 +147,54 @@ public class VNPayReturnController extends HttpServlet {
                                 String to = passenger.getEmail();
                                 String subject = "Xác nhận đặt vé thành công - Mã đơn: " + newBookingId;
                                 StringBuilder contentBuilder = new StringBuilder();
-                                contentBuilder.append("Xin chào ").append(passenger.getFullName()).append(",\n\n")
-                                        .append("Cảm ơn bạn đã đặt vé với chúng tôi.\n\n")
-                                        .append("Dưới đây là chi tiết đơn hàng của bạn:\n\n")
-                                        .append("=== Thông tin đặt vé ===\n")
-                                        .append("Mã đặt chỗ      : ").append(booking.getBookingCode()).append("\n")
-                                        .append("Tên hành khách  : ").append(passenger.getFullName()).append("\n")
-                                        .append("Email           : ").append(passenger.getEmail()).append("\n")
-                                        .append("Số điện thoại   : ").append(passenger.getPhoneNumber()).append("\n")
-                                        .append("Số ghế          : ").append(booking.getSeatId()).append("\n")
-                                        .append("Chuyến bay      : ").append(booking.getFlightId()).append("\n")
-                                        .append("Ngày đặt        : ").append(LocalDateTime.now()).append("\n");
+                                contentBuilder.append("<!DOCTYPE html>")
+                                        .append("<html lang='vi'>")
+                                        .append("<head>")
+                                        .append("<meta charset='UTF-8'>")
+                                        .append("<style>")
+                                        .append("body { font-family: Arial, sans-serif; line-height: 1.6; }")
+                                        .append(".container { padding: 20px; border: 1px solid #ddd; border-radius: 8px; }")
+                                        .append("h2 { color: #2E86C1; }")
+                                        .append("table { border-collapse: collapse; width: 100%; margin-top: 10px; }")
+                                        .append("td, th { border: 1px solid #ddd; padding: 8px; }")
+                                        .append("th { background-color: #f2f2f2; text-align: left; }")
+                                        .append("</style>")
+                                        .append("</head>")
+                                        .append("<body>")
+                                        .append("<div class='container'>")
+                                        .append("<h2>Xác nhận đặt vé thành công</h2>")
+                                        .append("<p>Xin chào <b>").append(passenger.getFullName()).append("</b>,</p>")
+                                        .append("<p>Cảm ơn bạn đã đặt vé với chúng tôi. Dưới đây là chi tiết đơn hàng của bạn:</p>")
+                                        // === Thông tin đặt vé ===
+                                        .append("<h3>Thông tin đặt vé</h3>")
+                                        .append("<table>")
+                                        .append("<tr><th>Mã đặt chỗ</th><td>").append(booking.getBookingCode()).append("</td></tr>")
+                                        .append("<tr><th>Tên hành khách</th><td>").append(passenger.getFullName()).append("</td></tr>")
+                                        .append("<tr><th>Email</th><td>").append(passenger.getEmail()).append("</td></tr>")
+                                        .append("<tr><th>Số điện thoại</th><td>").append(passenger.getPhoneNumber()).append("</td></tr>")
+                                        .append("<tr><th>Số ghế</th><td>").append(booking.getSeat().getSeatNumber()).append("</td></tr>")
+                                        .append("<tr><th>Chuyến bay</th><td>").append(booking.getFlightId()).append("</td></tr>")
+                                        .append("<tr><th>Ngày đặt</th><td>").append(LocalDateTime.now()).append("</td></tr>");
 
                                 if (booking.getVoucherCode() != null && !booking.getVoucherCode().isEmpty()) {
-                                    contentBuilder.append("Voucher áp dụng : ").append(booking.getVoucherCode()).append("\n");
+                                    contentBuilder.append("<tr><th>Voucher áp dụng</th><td>")
+                                            .append(booking.getVoucherCode())
+                                            .append("</td></tr>");
                                 }
 
-                                contentBuilder.append("=== Thông tin thanh toán ===\n")
-                                        .append("Số tiền         : ").append(amount).append(" VND\n")
-                                        .append("Phương thức     : VNPay\n")
-                                        .append("Mã giao dịch    : ").append(transactionId).append("\n")
-                                        .append("Tình trạng      : Thành công\n\n")
-                                        .append("Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.\n")
-                                        .append("Trân trọng,\nHệ thống đặt vé.");
+                                contentBuilder.append("</table>")
+                                        // === Thông tin thanh toán ===
+                                        .append("<h3>Thông tin thanh toán</h3>")
+                                        .append("<table>")
+                                        .append("<tr><th>Số tiền</th><td>").append(amount).append(" VND</td></tr>")
+                                        .append("<tr><th>Phương thức</th><td>VNPay</td></tr>")
+                                        .append("<tr><th>Mã giao dịch</th><td>").append(transactionId).append("</td></tr>")
+                                        .append("<tr><th>Tình trạng</th><td><b style='color:green'>Thành công</b></td></tr>")
+                                        .append("</table>")
+                                        .append("<p style='margin-top:20px'>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.<br>")
+                                        .append("Trân trọng,<br>Hệ thống đặt vé.</p>")
+                                        .append("</div>")
+                                        .append("</body></html>");
 
                                 System.out.println(">>> DEBUG: Email hành khách: " + to);
                                 MailService.sendEmail(to, subject, contentBuilder.toString());
