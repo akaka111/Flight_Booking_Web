@@ -8,7 +8,6 @@ controller\admin\AirlineAdmin.class
 DAO\Admin\TicketClassDAO.class
 model\Message.class
 model\TicketClass.class
-controller\user\LivechatController.class
 model\Airline.class
 controller\staff\voucherSERV.class
 controller\admin\FlightAdmin1.class
@@ -25,7 +24,6 @@ DAO\Admin\FlightDAO.class
 controller\admin\StatsStatus.class
 model\Booking.class
 model\Payment.class
-controller\staff\livechat1.class
 DAO\Admin\PassengerDAO.class
 DAO\Admin\VoucherDAO.class
 controller\staff\ManageCustomerController.class
@@ -34,6 +32,7 @@ DAO\Admin\CheckInDAO.class
 controller\user\RegisterController$1.class
 controller\admin\AdminProfileServlet.class
 controller\user\FlightDetailController.class
+controller\user\LivechatController1.class
 controller\user\ManageBooking.class
 model\Passenger.class
 DAO\Admin\SeatDAO.class

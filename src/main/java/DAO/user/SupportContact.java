@@ -74,38 +74,83 @@ public class SupportContact {
         return emails;
     }
 
+    public Integer findAssignedStaff(Integer userId, String guestLabel) {
+        Integer staffId = null;
+        String sql = "SELECT TOP 1 recipient_id "
+                + "FROM Message "
+                + "WHERE (sender_id = ? OR guest_label = ?) "
+                + "AND recipient_id IS NOT NULL "
+                + "AND message_type = 'CHAT' "
+                + "ORDER BY sent_time DESC";
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (userId != null) {
+                ps.setInt(1, userId);
+            } else {
+                ps.setNull(1, java.sql.Types.INTEGER);
+            }
+            ps.setString(2, guestLabel);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    staffId = rs.getInt("recipient_id");
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return staffId;
+    }
+
     // ==================== LIVE CHAT ====================
     // Lấy tất cả tin nhắn chat
-    public List<Message> getMessages(String guestLabel, Integer userId) throws SQLException {
+    public List<Message> getMessages(String guestLabel, Integer userId, long afterId) throws SQLException {
         List<Message> messages = new ArrayList<>();
         String sql;
         if (guestLabel != null) {
-            sql = "SELECT * FROM Message WHERE message_type='CHAT' AND guest_label=? ORDER BY sent_time ASC";
+            sql = "SELECT * FROM Message WHERE message_type='CHAT' AND guest_label=? AND id > ? ORDER BY id ASC";
         } else if (userId != null) {
-            sql = "SELECT * FROM Message WHERE message_type='CHAT' AND sender_id=? ORDER BY sent_time ASC";
+            sql = "SELECT * FROM Message WHERE message_type='CHAT' AND (sender_id=? OR recipient_id=?) AND id > ? ORDER BY id ASC";
         } else {
             return messages;
         }
-
         try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             if (guestLabel != null) {
                 ps.setString(1, guestLabel);
+                ps.setLong(2, afterId);
             } else {
                 ps.setInt(1, userId);
+                ps.setInt(2, userId);
+                ps.setLong(3, afterId);
             }
+
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Message msg = new Message();
                 msg.setId(rs.getInt("id"));
                 msg.setSenderId((Integer) rs.getObject("sender_id"));
+                msg.setRecipientId((Integer) rs.getObject("recipient_id"));
                 msg.setGuest_label(rs.getString("guest_label"));
                 msg.setContent(rs.getString("content"));
                 msg.setSentTime(rs.getTimestamp("sent_time"));
                 msg.setIsRead(rs.getBoolean("is_read"));
+
                 if (msg.getSenderId() != null) {
-                    msg.setSenderType("user");
-                } else if (guestLabel != null) {
+                    String role = getRoleById(msg.getSenderId());
+                    if ("user".equals(role)) {
+                        msg.setSenderType("user");
+                        msg.setSenderName(getUsernameById(msg.getSenderId()));
+                    } else if ("staff".equals(role)) {
+                        msg.setSenderType("staff");
+                        msg.setSenderName("Staff");
+                    } else {
+                        // fallback user nếu role không rõ
+                        msg.setSenderType("user");
+                        msg.setSenderName(getUsernameById(msg.getSenderId()));
+                    }
+                } else if (msg.getGuest_label() != null) {
                     msg.setSenderType("guest");
+                    msg.setSenderName("Guest-" + msg.getGuest_label());
                 }
                 messages.add(msg);
             }
@@ -113,11 +158,11 @@ public class SupportContact {
         return messages;
     }
 
-    // Insert message từ user hoặc guest
-    public boolean insertMessage(Message msg) {
+    // Insert message và trả về id mới
+    public int insertMessage(Message msg) throws SQLException {
         String sql = "INSERT INTO Message(sender_id, guest_label, content, message_type, sent_time, is_read) "
                 + "VALUES (?, ?, ?, 'CHAT', GETDATE(), 0)";
-        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql, new String[]{"id"})) {
             if (msg.getSenderId() != null) {
                 ps.setInt(1, msg.getSenderId());
             } else {
@@ -125,15 +170,52 @@ public class SupportContact {
             }
             ps.setString(2, msg.getGuest_label());
             ps.setString(3, msg.getContent());
-            System.out.println("=== DAO insertMessage ===");
-            System.out.println("senderId=" + msg.getSenderId());
-            System.out.println("guestLabel=" + msg.getGuest_label());
-            System.out.println("content=" + msg.getContent());
-            return ps.executeUpdate() > 0;
+
+            ps.executeUpdate();
+
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getInt(1); // id vừa insert
+                }
+            }
+        }
+        return -1;
+    }
+
+    public String getUsernameById(int userId) throws SQLException {
+        String username = null;
+        String sql = "SELECT username FROM Account WHERE user_id = ?";
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    username = rs.getString("username");
+                }
+            }
+        }
+        return username != null ? username : "User"; // default nếu không tìm thấy
+    }
+
+    public String getRoleById(Integer userId) {
+        if (userId == null) {
+            return "guest";
+        }
+        String role = null;
+        String sql = "SELECT role FROM Account WHERE user_id = ?";
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    role = rs.getString("role");
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
         }
+        if (role == null) {
+            return "user"; // fallback
+        }
+        return role.trim().toLowerCase(); // "user" hoặc "staff"
     }
 
     // Lấy danh sách tất cả guest đang chat

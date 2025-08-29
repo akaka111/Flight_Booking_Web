@@ -21,41 +21,69 @@ public class messageDAO1 {
     DBContext dbconnect = new DBContext();
 
     // ==================== SUPPORT MAIL ====================
-    public List<Message> getSupportMails(int recipientId) throws SQLException {
-        List<Message> list = new ArrayList<>();
-        String sql = "SELECT * FROM Message "
-                + "WHERE message_type = 'SUPPORT' AND recipient_id = ? "
-                + "ORDER BY sent_time ASC";
-        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, recipientId);
-            ResultSet rs = ps.executeQuery();
+    public List<Message> getAllSupportMessages() throws SQLException {
+        List<Message> messages = new ArrayList<>();
+        String sql = "SELECT m.id, m.subject, m.content, m.sent_time, m.is_read, "
+                + "a.username AS senderName, m.guest_label "
+                + "FROM Message m "
+                + "LEFT JOIN Account a ON m.sender_id = a.user_id "
+                + "WHERE m.message_type = 'SUPPORT' "
+                + "ORDER BY m.sent_time DESC";
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                Message mail = new Message();
-                mail.setId(rs.getInt("id"));
-                mail.setSenderId(rs.getInt("sender_id"));
-                mail.setRecipientId(rs.getInt("recipient_id"));
-                mail.setSubject(rs.getString("subject"));
-                mail.setContent(rs.getString("content"));
-                mail.setSentTime(rs.getTimestamp("sent_time"));
-                mail.setIsRead(rs.getBoolean("is_read"));
-                list.add(mail);
+                Message msg = new Message();
+                msg.setId(rs.getInt("id"));
+                msg.setSenderId(rs.getInt("sender_id"));
+                msg.setRecipientId(rs.getInt("recipient_id"));
+                msg.setSenderName(rs.getString("senderName"));
+                msg.setGuest_label(rs.getString("guest_label"));
+                msg.setSubject(rs.getString("subject"));
+                msg.setContent(rs.getString("content"));
+                msg.setSentTime(rs.getTimestamp("sent_time"));
+                msg.setIsRead(rs.getBoolean("is_read"));
+                msg.setMessageType(rs.getString("message_type"));
+                messages.add(msg);
             }
         }
-        return list;
+        return messages;
     }
 
-    public boolean insertSupportMail(Message mail, int senderId, int recipientId) {
-        String sql = "INSERT INTO Message (sender_id, recipient_id, subject, content, message_type) "
-                + "VALUES (?, ?, ?, ?, 'SUPPORT')";
-        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, senderId);
-            ps.setInt(2, recipientId);
-            ps.setString(3, mail.getSubject());
-            ps.setString(4, mail.getContent());
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
+    // Lấy chi tiết 1 tin nhắn theo id
+    public Message getSupportMessageById(int id) throws SQLException {
+        String sql = "SELECT m.*, a.username AS senderName "
+                + "FROM Message m "
+                + "LEFT JOIN Account a ON m.sender_id = a.user_id "
+                + "WHERE m.id = ? AND m.message_type = 'SUPPORT'";
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            ps.setInt(1, id);
+            while (rs.next()) {
+                Message msg = new Message();
+                msg.setId(rs.getInt("id"));
+                msg.setSenderId(rs.getInt("sender_id"));
+                msg.setRecipientId(rs.getInt("recipient_id"));
+                msg.setSenderName(rs.getString("senderName"));
+                msg.setGuest_label(rs.getString("guest_label"));
+                msg.setSubject(rs.getString("subject"));
+                msg.setContent(rs.getString("content"));
+                msg.setSentTime(rs.getTimestamp("sent_time"));
+                msg.setIsRead(rs.getBoolean("is_read"));
+                msg.setMessageType(rs.getString("message_type"));
+                return msg;
+            }
+        }
+        return null;
+    }
+
+    public void insertMessage(Message msg) {
+        String sql = "INSERT INTO Message (sender_email, recipient_email, subject, content) VALUES (?, ?, ?, ?)";
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            ps.setString(1, msg.getSenderEmail());
+            ps.setString(2, msg.getRecipientEmail());
+            ps.setString(3, msg.getSubject());
+            ps.setString(4, msg.getContent());
+            ps.executeUpdate();
+        } catch (Exception e) {
             e.printStackTrace();
-            return false;
         }
     }
 
@@ -90,77 +118,75 @@ public class messageDAO1 {
         return usernames;
     }
 
-    public List<Message> LiveChatGuest(String guestLabel, int staffId) throws SQLException {
-        List<Message> messages = new ArrayList<>();
-        String sql = "SELECT * FROM Message "
-                + "WHERE message_type = 'CHAT' AND guest_label = ? "
-                + "ORDER BY sent_time ASC";
-        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, guestLabel);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Message msg = new Message();
-                msg.setId(rs.getInt("id"));
-                msg.setSenderId(rs.getInt("sender_id"));
-                msg.setRecipientId(rs.getInt("recipient_id"));
-                msg.setSentTime(rs.getTimestamp("sent_time"));
-                msg.setIsRead(rs.getBoolean("is_read"));
-                msg.setGuest_label(rs.getString("guest_label"));
-                msg.setContent(rs.getString("content"));
-                // phân loại dựa vào id
-                if (msg.getSenderId() == staffId) {
-                    msg.setSenderType("staff");
-                } else {
-                    msg.setSenderType("guest");
-                }
-                messages.add(msg);
-            }
-        }
-        return messages;
-    }
-
-    public List<Message> LiveChatUser(int userId, int staffId) throws SQLException {
-        List<Message> messages = new ArrayList<>();
-        String sql = "SELECT m.id, m.content, m.sent_time, m.is_read, "
-                + "m.sender_id, s.username AS sender_name, "
-                + "m.recipient_id, r.username AS recipient_name, "
-                + "m.guest_label "
-                + "FROM Message m "
-                + "LEFT JOIN Account s ON m.sender_id = s.user_id "
-                + "LEFT JOIN Account r ON m.recipient_id = r.user_id "
-                + "WHERE m.message_type = 'CHAT' "
-                + "AND ( (m.sender_id = ? AND m.recipient_id = ?) "
-                + "   OR (m.sender_id = ? AND m.recipient_id = ?) ) "
-                + "ORDER BY m.sent_time ASC";
+    public String getUsernameById(int userId) throws SQLException {
+        String sql = "SELECT username FROM Account WHERE user_id = ? AND role = 'CUSTOMER'";
         try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
-            ps.setInt(2, staffId);
-            ps.setInt(3, staffId);
-            ps.setInt(4, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("username");
+                }
+            }
+        }
+        return null;
+    }
+
+    // Lấy tin nhắn chat mới hơn afterId
+    public List<Message> getMessagesAfter(String guestLabel, Integer userId, long afterId, int staffId) throws SQLException {
+        List<Message> messages = new ArrayList<>();
+        String sql;
+        if (guestLabel != null) {
+            sql = "SELECT * FROM Message WHERE message_type='CHAT' AND guest_label=? AND id > ? ORDER BY id ASC";
+        } else if (userId != null) {
+            sql = "SELECT * FROM Message WHERE message_type='CHAT' AND ( (sender_id = ? AND (recipient_id = ? OR recipient_id IS NULL)) "
+                    + " OR (sender_id=? AND recipient_id=?)) AND id > ? ORDER BY id ASC";
+        } else {
+            return messages;
+        }
+
+        try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (guestLabel != null) {
+                ps.setString(1, guestLabel);
+                ps.setLong(2, afterId);
+            } else {
+                ps.setInt(1, userId);
+                ps.setInt(2, staffId);
+                ps.setInt(3, staffId);
+                ps.setInt(4, userId);
+                ps.setLong(5, afterId);
+            }
+
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Message msg = new Message();
                 msg.setId(rs.getInt("id"));
-                msg.setSenderId(rs.getInt("sender_id"));
-                msg.setSenderName(rs.getString("sender_name"));
-                msg.setRecipientId(rs.getInt("recipient_id"));
-                msg.setRecipientName(rs.getString("recipient_name"));
+                msg.setSenderId((Integer) rs.getObject("sender_id"));
+                msg.setRecipientId((Integer) rs.getObject("recipient_id"));
+                msg.setGuest_label(rs.getString("guest_label"));
                 msg.setContent(rs.getString("content"));
                 msg.setSentTime(rs.getTimestamp("sent_time"));
                 msg.setIsRead(rs.getBoolean("is_read"));
-                msg.setGuest_label(rs.getString("guest_label"));
-                if (msg.getSenderId() == staffId) {
+
+                if (msg.getSenderId() != null && msg.getSenderId() == staffId) {
                     msg.setSenderType("staff");
+                    msg.setSenderName("Staff");
+                } else if (guestLabel != null) {
+                    msg.setSenderType("guest");
                 } else {
                     msg.setSenderType("user");
+                    if (msg.getSenderId() != null) {
+                        msg.setSenderName(getUsernameById(msg.getSenderId()));
+                    }
                 }
+                System.out.println("Fetching messages after ID: " + afterId + " for guest: " + guestLabel + " or userId: " + userId);
+
                 messages.add(msg);
             }
         }
         return messages;
     }
 
-    public boolean insertLiveChat(Message msg) {
+    public Integer insertLiveChat(Message msg) {
         String sqlUser = "INSERT INTO Message (sender_id, recipient_id, content, message_type, sent_time, is_read) "
                 + "VALUES (?, ?, ?, 'CHAT', GETDATE(), 0)";
 
@@ -169,24 +195,31 @@ public class messageDAO1 {
         try (Connection conn = dbconnect.getConnection()) {
             PreparedStatement ps;
             if (msg.getGuest_label() != null && !msg.getGuest_label().isEmpty()) {
-                // insert cho guest
-                ps = conn.prepareStatement(sqlGuest);
+                ps = conn.prepareStatement(sqlGuest, new String[]{"id"});
                 ps.setInt(1, msg.getSenderId());
                 ps.setString(2, msg.getGuest_label());
                 ps.setString(3, msg.getContent());
             } else {
-                // insert cho user
-                ps = conn.prepareStatement(sqlUser);
+                ps = conn.prepareStatement(sqlUser, new String[]{"id"});
                 ps.setInt(1, msg.getSenderId());
                 ps.setInt(2, msg.getRecipientId());
                 ps.setString(3, msg.getContent());
             }
 
-            return ps.executeUpdate() > 0;
+            int affected = ps.executeUpdate();
+            if (affected > 0) {
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        int newId = rs.getInt(1);
+                        msg.setId(newId);
+                        return newId;
+                    }
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
         }
+        return null;
     }
 
     public boolean assignConversationToStaff(int staffId, Integer userId, String guestLabel) throws SQLException {
@@ -226,11 +259,10 @@ public class messageDAO1 {
         return null;
     }
 
-    
 // ==================== COMMON ====================
     public int countUnreadUserMessages(int recipientId) {
         int count = 0;
-        String sql = "SELECT COUNT(*) FROM Message WHERE recipient_id = ? AND is_read = 0";
+        String sql = "SELECT COUNT(*) FROM Message WHERE recipient_id IS NULL AND is_read = 0 AND message_type='CHAT'  AND sender_id = ? ";
         try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, recipientId);
             ResultSet rs = ps.executeQuery();
@@ -260,7 +292,8 @@ public class messageDAO1 {
     }
 
     public boolean markUserMessagesRead(int recipientId) {
-        String sql = "UPDATE Message SET is_read = 1 WHERE recipient_id = ?";
+        String sql = "UPDATE Message SET is_read = 1 WHERE recipient_id = ? WHERE message_type='CHAT' AND"
+                + " ((sender_id = ? AND recipient_id IS NULL) OR recipient_id = ?)";
         try (Connection conn = dbconnect.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, recipientId);
             return ps.executeUpdate() > 0;

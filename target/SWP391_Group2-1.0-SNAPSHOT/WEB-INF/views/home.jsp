@@ -444,47 +444,48 @@
         </div>
 
         <script>
-            const userId = "<c:out value='${sessionScope.userId != null ? sessionScope.userId : ""}'/>";
             const btn = document.getElementById("livechat-btn");
             const box = document.getElementById("livechat-box");
             const chatMessages = document.getElementById("chat-messages");
             const chatText = document.getElementById("chat-text");
             const sendBtn = document.getElementById("send-btn");
             const guestForm = document.getElementById("guest-form");
-            const livechatUrl = '<c:url value="/LivechatController"/>';
+            const livechatUrl = '<c:url value="/LivechatController1"/>';
+            const userId = "<c:out value='${sessionScope.userId != null ? sessionScope.userId : ""}'/>";
+            let lastMessageId = 0;
+            let guestLabel = sessionStorage.getItem("guestLabel") || null;
+            let chatOpen = false;
+            console.log("userId =", userId);
 
-            let guestLabel = sessionStorage.getItem("guestLabel");
-            if (!guestLabel || guestLabel === "null" || guestLabel.trim() === "") {
-                guestLabel = null;
-            }
-
-            // Khi bấm nút mở chat
             btn.onclick = () => {
-                if (userId && userId.trim() !== "" && userId !== "null") {
-                    guestForm.style.display = "none";
-                    box.style.display = "flex";
-                    loadMessages();
-                    return;
-                }
-                // Guest chưa nhập tên → hiện form
-                if (!guestLabel) {
-                    guestForm.style.display = "block";
-                    box.style.display = "none";
+                chatOpen = !chatOpen; // toggle trạng thái
+                if (chatOpen) {
+                    // mở chat
+                    if (userId && userId.trim() !== "" && userId !== "null") {
+                        guestForm.style.display = "none";
+                        box.style.display = "flex";
+                        loadMessages();
+                    } else if (guestLabel) {
+                        guestForm.style.display = "none";
+                        box.style.display = "flex";
+                        loadMessages();
+                    } else {
+                        guestForm.style.display = "block";
+                        box.style.display = "none";
+                    }
                 } else {
-                    // Guest đã nhập tên → mở chat luôn
+                    // đóng chat
+                    box.style.display = "none";
                     guestForm.style.display = "none";
-                    box.style.display = "flex";
-                    loadMessages();
                 }
             };
 
-            // Gửi tin nhắn
             sendBtn.onclick = () => {
                 const content = chatText.value.trim();
                 if (!content)
                     return;
 
-                const form = new FormData(); // tạo FormData trước
+                const form = new FormData();
                 form.append("content", content);
 
                 if (userId && userId.trim() !== "" && userId !== "null") {
@@ -500,11 +501,6 @@
                     form.append("guestLabel", guestLabel);
                 }
 
-                console.log("=== Debug: FormData chuẩn bị gửi ===");
-                for (let pair of form.entries()) {
-                    console.log(pair[0] + ": " + pair[1]);
-                }
-
                 fetch(livechatUrl, {method: "POST", body: form})
                         .then(r => r.json())
                         .then(res => {
@@ -517,7 +513,6 @@
                         });
             };
 
-            // Lưu tên guest
             function saveGuestName() {
                 const name = document.getElementById("guest-name").value.trim();
                 if (!name)
@@ -526,14 +521,13 @@
                 sessionStorage.setItem("guestLabel", name);
                 guestForm.style.display = "none";
                 box.style.display = "flex";
-                chatMessages.innerHTML = ""; // 🔑 xoá sạch thông báo cũ
+                chatMessages.innerHTML = "";
                 loadMessages();
             }
 
-            // Load tin nhắn
+
             function loadMessages() {
                 const params = new URLSearchParams();
-
                 if (userId && userId.trim() !== "" && userId !== "null") {
                     params.append("type", "user");
                 } else if (guestLabel) {
@@ -543,52 +537,66 @@
                     chatMessages.innerHTML = "<div class='msg guest'>Vui lòng nhập tên để bắt đầu chat!</div>";
                     return;
                 }
+                if (lastMessageId > 0) {
+                    params.append("afterId", lastMessageId);
+                }
+
+                const isAtBottom = chatMessages.scrollHeight - chatMessages.scrollTop <= chatMessages.clientHeight + 5;
 
                 fetch(livechatUrl + "?" + params.toString())
                         .then(r => r.json())
                         .then(list => {
-                            chatMessages.innerHTML = "";
+                            console.log("DEBUG list from server:", list);
+                            if (!Array.isArray(list))
+                                return;
+//                            chatMessages.innerHTML = "";
                             list.forEach(m => {
+                                if (m.id <= lastMessageId)
+                                    return;
+                                const type = m.senderType || (m.guest_label ? "guest" : "user");
+                                const name = m.senderName || (m.guest_label ? "Guest-" + m.guest_label : "User");
+                                const content = m.content || "[Không có nội dung]";
+
                                 const div = document.createElement("div");
-                                div.className = "msg " + m.senderType;
-                                div.textContent = m.content;
+                                div.className = "msg " + type;
+                                const b = document.createElement("b");
+                                b.textContent = name + ": ";
+                                const textNode = document.createTextNode(content);
+                                div.appendChild(b);
+                                div.appendChild(textNode);
                                 chatMessages.appendChild(div);
+
+                                if (m.id && m.id > lastMessageId)
+                                    lastMessageId = m.id;
                             });
-                            chatMessages.scrollTop = chatMessages.scrollHeight;
 
-                            // Lưu tạm lịch sử vào sessionStorage
                             sessionStorage.setItem("chatHistory", JSON.stringify(list));
-                        });
+                            if (isAtBottom)
+                                chatMessages.scrollTop = chatMessages.scrollHeight;
+                        })
+                        .catch(err => console.error("Fetch error:", err));
+            }
 
-                // Load lại lịch sử cũ khi reload (nếu có)
+            window.addEventListener("DOMContentLoaded", () => {
                 const history = sessionStorage.getItem("chatHistory");
                 if (history) {
-                    chatMessages.innerHTML = "";
                     JSON.parse(history).forEach(m => {
+                        const type = m.senderType || (m.guest_label ? "guest" : "user");
+                        const name = m.senderName || m.guest_label || (type === "staff" ? "Staff" : "User");
                         const div = document.createElement("div");
-                        div.className = "msg " + m.senderType;
-                        let senderName = m.senderType;
-                        if (m.senderType === "staff")
-                            senderName = "Staff";
-                        if (m.senderType === "user")
-                            senderName = m.senderName || "User";
-                        if (m.senderType === "guest")
-                            senderName = m.senderName || "Guest";
-                        div.innerHTML = `<b>${senderName}:</b> ${m.content}`;
+                        div.className = "msg " + type;
+                        div.innerHTML = `<b>${name}:</b> ${m.content}`;
                         chatMessages.appendChild(div);
                     });
                     chatMessages.scrollTop = chatMessages.scrollHeight;
                 }
-            }
+            });
 
-            // Xoá dữ liệu guest khi đóng tab/trình duyệt
             window.addEventListener("beforeunload", (e) => {
-                if (!userId && guestLabel) { // chỉ guest mới cảnh báo
+                if (!userId && guestLabel) {
                     e.preventDefault();
-                    e.returnValue = "Tin nhắn của bạn sẽ bị xóa khi thoát. Bạn có chắc muốn rời trang?";
+                    e.returnValue = "Tin nhắn của bạn sẽ bị xóa khi thoát. Bạn có chắc chắn muốn rời trang?";
                 }
-                sessionStorage.removeItem("guestLabel");
-                sessionStorage.removeItem("chatHistory");
             });
 
             window.addEventListener("unload", () => {
@@ -596,12 +604,13 @@
                     const form = new FormData();
                     form.append("type", "guest");
                     form.append("guestLabel", guestLabel);
-                    form.append("action", "delete"); // thêm action delete
+                    form.append("action", "delete");
                     navigator.sendBeacon(livechatUrl, form);
                 }
+                sessionStorage.removeItem("guestLabel");
+                sessionStorage.removeItem("chatHistory");
             });
 
-            // Tự load lại tin nhắn
             setInterval(loadMessages, 2000);
         </script>
     </body>

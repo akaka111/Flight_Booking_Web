@@ -143,7 +143,7 @@
         <div class="header">
             <h2>Live Chat - Staff</h2>
             <a href="staff">Quay về Staff</a>
-            <span id="chatNotify"></span>
+            <span id="chatNotifyChat"></span>
         </div>
 
         <div class="main">
@@ -173,8 +173,9 @@
                 </select>
             </div>
 
+            <!--boxchat-->
             <div class="chat-window">
-                <div class="chat-header">Đang chat với: ${selectedGuest != null ? selectedGuest : selectedUser}</div>
+                <div class="chat-header">Đang chat với: <span id="chatWithHeader">Chưa chọn</span></div>
                 <div id="chatBox">
                     <c:forEach var="m" items="${messages}">
                         <div class="message ${m.senderType}">
@@ -203,11 +204,26 @@
 
         <script>
             let chatMessagesMap = {};
-            let lastSentTimeMap = {};
+            let lastMessageIdMap = {};
+            console.log("lastMessageIdMap:", lastMessageIdMap);
+
+            function updateChatHeader(type, value) {
+                const header = document.getElementById('chatWithHeader');
+                if (!value) {
+                    header.textContent = "Chưa chọn";
+                    return;
+                }
+                if (type === 'GUEST')
+                    header.textContent = value;
+                else if (type === 'USER') {
+                    const option = Array.from(document.querySelectorAll('#userSelect option')).find(o => o.value == value);
+                    header.textContent = option ? option.text : value;
+                }
+            }
+
             async function selectChat(type, value) {
                 if (!value)
                     return;
-
                 // Chỉ chọn 1 chat
                 if (type === 'GUEST') {
                     document.getElementById('userSelect').value = ""; // reset user select
@@ -215,12 +231,13 @@
                     document.getElementById('guestSelect').value = ""; // reset guest select
                 }
 
+                updateChatHeader(type, value);
                 const chatId = type + ':' + value;
                 document.getElementById('selectedChat').value = chatId;
                 const chatBox = document.getElementById("chatBox");
                 chatBox.innerHTML = "";
                 chatMessagesMap[chatId] = new Set();
-                lastSentTimeMap[chatId] = 0;
+                lastMessageIdMap[chatId] = 0;
 
                 // Gọi servlet để assign conversation cho staff
                 try {
@@ -279,10 +296,9 @@
                 div.appendChild(i);
                 chatBox.appendChild(div);
                 chatBox.scrollTop = chatBox.scrollHeight;
-                const msgTime = new Date(message.sentTime).getTime();
-                lastSentTimeMap[chatId] = Math.max(lastSentTimeMap[chatId] || 0, msgTime);
-                chatMessagesMap[chatId].add(message.id || msgTime);
-                chatMessagesMap[chatId].add(message.id || msgTime);
+                const msgId = message.id;
+                lastMessageIdMap[chatId] = Math.max(lastMessageIdMap[chatId] || 0, msgId);
+                chatMessagesMap[chatId].add(msgId);
             }
 
             async function fetchMessages() {
@@ -290,8 +306,9 @@
                 if (!chatId)
                     return;
                 try {
-                    const lastTime = lastSentTimeMap[chatId] || 0;
-                    const res = await fetch("livechatFunc11?action=getMessages&selectedChat=" + encodeURIComponent(chatId) + "&after=" + lastTime);
+                    const lastId = lastMessageIdMap[chatId] || 0;
+                    const res = await fetch("livechatFunc11?action=getMessages&selectedChat=" + encodeURIComponent(chatId) + "&afterId=" + lastId);
+
                     if (!res.ok)
                         return;
                     const msgs = await res.json();
@@ -300,6 +317,7 @@
                         chatMessagesMap[chatId] = new Set();
 
                     msgs.forEach(m => {
+                        console.log(m.id + " " + m.content);
                         const msgKey = m.id || new Date(m.sentTime).getTime();
                         if (!chatMessagesMap[chatId].has(msgKey))
                             appendMessage(m, chatId);
@@ -325,7 +343,7 @@
                     Object.values(data).forEach(function (value) {
                         total += value;
                     });
-                    const badge = document.getElementById("chatNotify");
+                    const badge = document.getElementById("chatNotifySidebar");
                     if (total > 0) {
                         badge.style.display = "inline-block";
                         badge.textContent = total;
@@ -353,7 +371,6 @@
                 }
             }
             ;
-
             setInterval(fetchMessages, 2000);
             setInterval(checkUnread, 2000);
         </script>

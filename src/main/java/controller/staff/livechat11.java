@@ -87,19 +87,30 @@ public class livechat11 extends HttpServlet {
                 List<String> guests = dao.getActiveGuests();
                 List<Account> users = dao.getAllUsernames();
 
-                String selectedGuest = request.getParameter("selectedGuest");
-                String selectedUserId = request.getParameter("selectedUser");
+                String selectedGuest = request.getParameter("guestSelect");
+                String selectedUserId = request.getParameter("userSelect");
                 String selectedUserName = null;
                 String selectedChat = null;
 
                 if (selectedGuest != null && !selectedGuest.isEmpty()) {
                     selectedChat = "GUEST:" + selectedGuest;
+                    request.setAttribute("selectedGuest", selectedGuest);
+
+                    // Gán staffId đang phụ trách guest này
+                    session.setAttribute("chatWithUserId", null);
+                    session.setAttribute("chatWithGuestLabel", selectedGuest);
+                    session.setAttribute("recipientStaffId", staffId);
                 } else if (selectedUserId != null && !selectedUserId.isEmpty()) {
                     selectedChat = "USER:" + selectedUserId;
-                    selectedUserName = users.stream()
+                    Account selectedUserObj = users.stream()
                             .filter(u -> Integer.toString(u.getUserId()).equals(selectedUserId))
-                            .map(Account::getUsername)
-                            .findFirst().orElse(null);
+                            .findFirst()
+                            .orElse(null);
+                    request.setAttribute("selectedUser", selectedUserObj);
+                    // Gán staffId đang phụ trách user này
+//                    session.setAttribute("chatWithUserId", Integer.parseInt(selectedUserId));
+                    session.setAttribute("chatWithGuestLabel", null);
+                    session.setAttribute("recipientStaffId", staffId);
                 }
 
                 List<Message> messages = (selectedChat != null) ? fetchMessagesByChat(selectedChat, staffId) : List.of();
@@ -150,16 +161,20 @@ public class livechat11 extends HttpServlet {
             Message msg = new Message();
             msg.setSenderId(staffId);
             msg.setContent(content);
-            msg.setSenderType("staff");      // thêm
+            msg.setSenderType("staff");
             msg.setSenderName("Staff");
             if (selectedChat.startsWith("GUEST:")) {
                 msg.setGuest_label(selectedChat.substring(6));
+                msg.setRecipientId(null);
             } else if (selectedChat.startsWith("USER:")) {
                 msg.setRecipientId(Integer.parseInt(selectedChat.substring(5)));
             }
 
-            boolean success = dao.insertLiveChat(msg);
-            response.getWriter().write(gson.toJson(Map.of("success", success, "message", msg)));
+            Integer newId = dao.insertLiveChat(msg);
+            if (newId != null) {
+                msg.setId(newId); // important!
+            }
+            response.getWriter().write(gson.toJson(Map.of("success", newId != null, "message", msg)));
         }
     }
 
@@ -177,27 +192,28 @@ public class livechat11 extends HttpServlet {
             }
             case "getMessages" -> {
                 String selectedChat = request.getParameter("selectedChat");
-                String afterParam = request.getParameter("after");
-                long after = 0;
+                String afterParam = request.getParameter("afterId");
+                long afterId = 0;
                 if (afterParam != null && !afterParam.isEmpty()) {
                     try {
-                        after = Long.parseLong(afterParam);
+                        afterId = Long.parseLong(afterParam);
                     } catch (NumberFormatException e) {
-                        after = 0;
+                        afterId = 0;
                     }
                 }
-
-                List<Message> messages = fetchMessagesByChat(selectedChat, staffId);
-
-                // Lọc theo sentTime
-                List<Message> newMessages = new ArrayList<>();
-                for (Message m : messages) {
-                    if (m.getSentTime() != null && m.getSentTime().getTime() > after) {
-                        newMessages.add(m);
-                    }
+                List<Message> messages;
+                if (selectedChat.startsWith("GUEST:")) {
+                    String guest = selectedChat.substring(6);
+                    messages = dao.getMessagesAfter(guest, null, afterId, staffId);
+                } else if (selectedChat.startsWith("USER:")) {
+                    int userId = Integer.parseInt(selectedChat.substring(5));
+                    messages = dao.getMessagesAfter(null, userId, afterId, staffId);
+                } else {
+                    messages = List.of();
                 }
-
-                response.getWriter().write(gson.toJson(newMessages));
+                System.out.println("JSON fetchMessages called for: " + selectedChat + ", afterId=" + afterId);
+                System.out.println("Messages fetched: " + messages.size());
+                response.getWriter().write(gson.toJson(messages));
             }
 
             case "checkUnread" -> {
@@ -244,7 +260,7 @@ public class livechat11 extends HttpServlet {
         List<Message> messages;
         if (selectedChat.startsWith("GUEST:")) {
             String guest = selectedChat.substring(6);
-            messages = dao.LiveChatGuest(guest, staffId);
+            messages = dao.getMessagesAfter(guest, null, 0, staffId);
             for (Message m : messages) {
                 if (m.getSenderId() != null && m.getSenderId().equals(staffId)) {
                     m.setSenderType("staff");
@@ -258,7 +274,7 @@ public class livechat11 extends HttpServlet {
             }
         } else if (selectedChat.startsWith("USER:")) {
             int userId = Integer.parseInt(selectedChat.substring(5));
-            messages = dao.LiveChatUser(userId, staffId);
+            messages = dao.getMessagesAfter(null, userId, 0, staffId);
             for (Message m : messages) {
                 if (m.getSenderId() != null && m.getSenderId().equals(staffId)) {
                     m.setSenderType("staff");
@@ -266,12 +282,7 @@ public class livechat11 extends HttpServlet {
                 } else {
                     m.setSenderType("user");
                     if (m.getSenderName() == null) {
-                        for (Account u : dao.getAllUsernames()) {
-                            if (u.getUserId() == m.getSenderId()) {
-                                m.setSenderName(u.getUsername());
-                                break;
-                            }
-                        }
+                        m.setSenderName(dao.getUsernameById(m.getSenderId()));
                     }
                 }
             }

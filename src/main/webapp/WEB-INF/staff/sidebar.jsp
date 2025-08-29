@@ -18,7 +18,7 @@
         <li id="liveChatTab" style="position:relative;">
             <a href="livechatFunc11"> 
                 <i class="fa-solid fa-comments"></i> Live Chat
-                <span id="chatNotify" 
+                <span id="chatNotifySidebar" 
                       style="display:none; position:absolute; top:-5px; right:-5px; background:red; color:white; font-size:10px; padding:3px 6px; border-radius:50%; font-weight:bold;">
                 </span>
             </a>
@@ -32,7 +32,7 @@
             const data = await res.json();
             let total = 0;
             Object.values(data).forEach(v => total += v);
-            const badge = document.getElementById("chatNotify");
+            const badge = document.getElementById("chatNotifySidebar");
             if (total > 0) {
                 badge.style.display = "inline-block";
                 badge.textContent = total;
