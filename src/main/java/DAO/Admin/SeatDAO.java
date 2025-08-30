@@ -114,9 +114,14 @@ public class SeatDAO extends DBContext {
     }
 
     public int getClassId(String seatClassName) {
-        String sql = "SELECT class_id FROM TicketClass WHERE class_name = ?";
+        String sql = "SELECT tc.class_id "
+                + "FROM TicketClass tc "
+                + "JOIN SeatClass sc ON tc.SeatClassID = sc.SeatClassID "
+                + "WHERE sc.Name = ?";
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setString(1, seatClassName);
+
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("class_id");
@@ -125,6 +130,6 @@ public class SeatDAO extends DBContext {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return 0;
+        return 0; // Trả về 0 nếu không tìm thấy
     }
 }
