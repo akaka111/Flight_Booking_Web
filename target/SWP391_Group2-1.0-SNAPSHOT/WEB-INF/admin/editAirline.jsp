@@ -62,36 +62,36 @@
                 </c:if>
 
                 <form action="${pageContext.request.contextPath}/AirlineAdmin" method="post">
-                    <inputinione<input type="hidden" name="action" value="update">
-                        <input type="hidden" name="id" value="${airline.airlineId}">
-                        <div class="form-group">
-                            <label for="name">Tên Hãng Bay</label>
-                            <input type="text" class="form-control" id="name" name="name" value="${airline.name}" required>
-                            <div class="invalid-feedback"></div>
-                        </div>
-                        <div class="form-group">
-                            <label for="code">Mã Hãng Bay</label>
-                            <input type="text" class="form-control" id="code" name="code" value="${airline.code}" required>
-                            <div class="invalid-feedback"></div>
-                        </div>
-                        <div class="form-group">
-                            <label for="description">Mô Tả</label>
-                            <textarea class="form-control" id="description" name="description" rows="3">${airline.description}</textarea>
-                            <div class="invalid-feedback"></div>
-                        </div>
-                        <div class="form-group">
-                            <label for="services">Ghi chú dịch Vụ</label>
-                            <textarea class="form-control" id="services" name="services" rows="3">${airline.services}</textarea>
-                            <div class="invalid-feedback"></div>
-                        </div>
-                        <div class="form-actions mt-4">
-                            <a href="${pageContext.request.contextPath}/AirlineAdmin" class="btn btn-secondary">
-                                <i class="fa fa-arrow-left"></i> Hủy
-                            </a>
-                            <button type="submit" class="btn btn-success">
-                                <i class="fa fa-save"></i> Lưu
-                            </button>
-                        </div>
+                    <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="id" value="${airline.airlineId}">
+                    <div class="form-group">
+                        <label for="name">Tên Hãng Bay</label>
+                        <input type="text" class="form-control" id="name" name="name" value="${airline.name}" required>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="code">Mã Hãng Bay</label>
+                        <input type="text" class="form-control" id="code" name="code" value="${airline.code}" required>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Mô Tả</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">${airline.description}</textarea>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="services">Ghi Chú Dịch Vụ</label>
+                        <textarea class="form-control" id="services" name="services" rows="3">${airline.services}</textarea>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="form-actions mt-4">
+                        <a href="${pageContext.request.contextPath}/AirlineAdmin" class="btn btn-secondary">
+                            <i class="fa fa-arrow-left"></i> Hủy
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa fa-save"></i> Lưu
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

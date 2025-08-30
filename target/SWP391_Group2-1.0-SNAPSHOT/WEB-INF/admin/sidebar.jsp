@@ -51,13 +51,6 @@
             </a>
         </li>
 
-        <!-- Quản lý voucher -->
-        <li>
-            <a href="${pageContext.request.contextPath}/manageVouchers">
-                <i class="fa-solid fa-ticket"></i> Quản Lý Voucher
-            </a>
-        </li>
-
         <!-- Thống kê -->
         <li>
             <a href="${pageContext.request.contextPath}/Stats">
