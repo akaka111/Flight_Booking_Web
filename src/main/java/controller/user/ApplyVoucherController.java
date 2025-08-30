@@ -4,7 +4,7 @@
  */
 package controller.user;
 
-import DAO.Admin.VoucherDAO;
+import DAO.Admin.voucherDAO;
 import com.google.gson.Gson; // <-- IMPORT MỚI: Dùng để tạo JSON
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -44,13 +44,13 @@ public class ApplyVoucherController extends HttpServlet {
             return;
         }
 
-        VoucherDAO dao = new VoucherDAO();
+        voucherDAO dao = new voucherDAO();
         Voucher voucher = dao.getVoucherByCode(voucherCode.trim());
 
         if (voucher == null) {
             jsonResponse.put("success", false);
             jsonResponse.put("message", "Mã giảm giá không tồn tại.");
-        } else if (voucher.isIsActive() == false) {
+        } else if (voucher.getIs_active() == 0) {
             jsonResponse.put("success", false);
             jsonResponse.put("message", "Mã giảm giá không còn hiệu lực.");
         } else if (voucher.getUsage_limit() <= 0) {
@@ -89,8 +89,8 @@ public class ApplyVoucherController extends HttpServlet {
         // Giả sử cột valid_from và valid_to trong DB có định dạng "YYYY-MM-DD"
         try {
             LocalDate today = LocalDate.now();
-            LocalDate validFrom = voucher.getValid_from().toLocalDate();
-            LocalDate validTo = voucher.getValid_to().toLocalDate();
+            LocalDate validFrom = LocalDate.parse(voucher.getValid_from());
+            LocalDate validTo = LocalDate.parse(voucher.getValid_to());
 
             // Trả về true nếu (hôm nay < ngày bắt đầu) HOẶC (hôm nay > ngày kết thúc)
             return today.isBefore(validFrom) || today.isAfter(validTo);

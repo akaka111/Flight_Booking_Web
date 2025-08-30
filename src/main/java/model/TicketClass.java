@@ -1,29 +1,14 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model;
 
-/**
- *
- * @author $ LienXuanThinh - CE182117
- */
+import java.math.BigDecimal;
+
 public class TicketClass {
 
     private int classId;
     private int flightId;
+    private BigDecimal price;
+    private int seatClassId;
     private String className;
-    private double price;
-
-    public TicketClass() {
-    }
-
-    public TicketClass(int classId, int flightId, String className, double price) {
-        this.classId = classId;
-        this.flightId = flightId;
-        this.className = className;
-        this.price = price;
-    }
 
     public int getClassId() {
         return classId;
@@ -41,19 +26,27 @@ public class TicketClass {
         this.flightId = flightId;
     }
 
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public int getSeatClassId() {
+        return seatClassId;
+    }
+
+    public void setSeatClassId(int seatClassId) {
+        this.seatClassId = seatClassId;
+    }
+
     public String getClassName() {
         return className;
     }
 
     public void setClassName(String className) {
         this.className = className;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
     }
 }

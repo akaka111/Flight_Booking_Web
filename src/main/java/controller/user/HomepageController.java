@@ -1,74 +1,47 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package controller.user;
 
 import DAO.Admin.FlightDAO;
+import DAO.Admin.RouteDAO;
 import DAO.Admin.TicketClassDAO;
-import java.io.IOException;
-import java.io.PrintWriter;
+import model.Flight;
+import model.Route;
+import model.TicketClass;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import model.Flight;
-import model.TicketClass;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-/**
- *
- * @author Admin
- */
 @WebServlet(name = "HomepageController", urlPatterns = {"/home"})
 public class HomepageController extends HttpServlet {
+    private static final Logger LOGGER = Logger.getLogger(HomepageController.class.getName());
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet HomepageController</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet HomepageController at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
-
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            FlightDAO dao = new FlightDAO();
+            FlightDAO flightDAO = new FlightDAO();
+            RouteDAO routeDAO = new RouteDAO();
             TicketClassDAO ticketDAO = new TicketClassDAO();
-            List<Flight> flights = dao.getFlightsToday();
 
+            // Lấy danh sách tuyến bay cho dropdown
+            List<Route> routes = routeDAO.getAllRoutes();
+            request.setAttribute("routes", routes);
+
+            // Lấy ngày hiện tại cho input date min
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            String today = sdf.format(new java.util.Date());
+            request.setAttribute("today", today);
+
+            // Lấy danh sách chuyến bay hôm nay cho Featured Deals
+            List<Flight> flights = flightDAO.getFlightsToday();
             // Map chứa flightId -> giá Eco
             Map<Integer, Double> ecoPrices = new HashMap<>();
             for (Flight flight : flights) {
@@ -76,39 +49,25 @@ public class HomepageController extends HttpServlet {
                 Double price = ticketDAO.getEcoPriceByFlightId(flightId);
                 ecoPrices.put(flightId, price != null ? price : 0.0);
             }
-
             request.setAttribute("flights", flights);
             request.setAttribute("ecoPrices", ecoPrices);
 
+            // Forward sang home.jsp
+            request.getRequestDispatcher("/WEB-INF/views/home.jsp").forward(request, response);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error retrieving homepage data", e);
+            response.sendRedirect("home?error=Failed to load homepage data: " + e.getMessage());
         }
-
-        request.getRequestDispatcher("/WEB-INF/views/home.jsp").forward(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        doGet(request, response); // Gọi doGet để xử lý cả POST
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
-
+        return "HomepageController for displaying homepage with flight search form and featured deals";
+    }
 }

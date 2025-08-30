@@ -4,7 +4,6 @@
  */
 package model;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 /**
@@ -12,14 +11,15 @@ import java.time.LocalDateTime;
  * @author Khoa
  */
 public class CheckIn {
-
     private int checkinId;
     private int passengerId;
     private int bookingId;
     private int flightId;
-    private Timestamp checkinTime;
+    private LocalDateTime checkinTime;
     private String status;
-    private int userId;
+    private Integer staffId;
+
+   
 
     public int getCheckinId() {
         return checkinId;
@@ -53,11 +53,11 @@ public class CheckIn {
         this.flightId = flightId;
     }
 
-    public Timestamp getCheckinTime() {
+    public LocalDateTime getCheckinTime() {
         return checkinTime;
     }
 
-    public void setCheckinTime(Timestamp checkinTime) {
+    public void setCheckinTime(LocalDateTime checkinTime) {
         this.checkinTime = checkinTime;
     }
 
@@ -69,13 +69,13 @@ public class CheckIn {
         this.status = status;
     }
 
-    public int getUserId() {
-        return userId;
+    public Integer getStaffId() {
+        return staffId;
     }
 
-    public void setUserId(int userId) {
-        this.userId = userId;
+    public void setStaffId(Integer staffId) {
+        this.staffId = staffId;
     }
-
+    
     
 }
