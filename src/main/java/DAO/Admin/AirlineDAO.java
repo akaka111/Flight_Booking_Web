@@ -40,34 +40,12 @@ public class AirlineDAO {
                 rs.getString("services")
         );
     }
-     public List<Airline> getAllAirlinesflight() {
-        List<Airline> airlines = new ArrayList<>();
-        String sql = "SELECT airline_id, name, code, description, services FROM Airline";
-        try (Connection conn = dbContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                Airline airline = new Airline();
-                airline.setAirlineId(rs.getInt("airline_id"));
-                airline.setName(rs.getString("name"));
-                airline.setCode(rs.getString("code"));
-                airline.setDescription(rs.getString("description"));
-                airline.setServices(rs.getString("services"));
-                airlines.add(airline);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return airlines;
-    }
 
     // Read all airlines
     public List<Airline> getAllAirlines() throws SQLException {
         List<Airline> airlines = new ArrayList<>();
         String sql = "SELECT * FROM Airline ORDER BY airline_id";
-        try (Connection conn = dbContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 airlines.add(mapResultSetToAirline(rs));
             }
@@ -81,8 +59,7 @@ public class AirlineDAO {
     // Read airline by ID
     public Airline getById(int id) throws SQLException {
         String sql = "SELECT * FROM Airline WHERE airline_id = ?";
-        try (Connection conn = dbContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -98,20 +75,22 @@ public class AirlineDAO {
 
     // Insert a new airline
     public boolean insertAirline(String name, String code, String description, String services) throws SQLException {
-        if (code == null || code.trim().isEmpty()) return false;
+        if (code == null || code.trim().isEmpty()) {
+            return false;
+        }
 
         String checkSql = "SELECT COUNT(*) FROM Airline WHERE code = ?";
-        try (Connection conn = dbContext.getConnection();
-             PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+        try (Connection conn = dbContext.getConnection(); PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
             checkStmt.setString(1, code);
             try (ResultSet rs = checkStmt.executeQuery()) {
-                if (rs.next() && rs.getInt(1) > 0) return false;
+                if (rs.next() && rs.getInt(1) > 0) {
+                    return false;
+                }
             }
         }
 
         String sql = "INSERT INTO Airline (name, code, description, services) VALUES (?, ?, ?, ?)";
-        try (Connection conn = dbContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, name);
             ps.setString(2, code);
             ps.setString(3, description);
@@ -125,21 +104,23 @@ public class AirlineDAO {
 
     // Update an existing airline
     public boolean updateAirline(Airline airline) throws SQLException {
-        if (airline.getCode() == null || airline.getCode().trim().isEmpty()) return false;
+        if (airline.getCode() == null || airline.getCode().trim().isEmpty()) {
+            return false;
+        }
 
         String checkSql = "SELECT COUNT(*) FROM Airline WHERE code = ? AND airline_id != ?";
-        try (Connection conn = dbContext.getConnection();
-             PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+        try (Connection conn = dbContext.getConnection(); PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
             checkStmt.setString(1, airline.getCode());
             checkStmt.setInt(2, airline.getAirlineId());
             try (ResultSet rs = checkStmt.executeQuery()) {
-                if (rs.next() && rs.getInt(1) > 0) return false;
+                if (rs.next() && rs.getInt(1) > 0) {
+                    return false;
+                }
             }
         }
 
         String sql = "UPDATE Airline SET name = ?, code = ?, description = ?, services = ? WHERE airline_id = ?";
-        try (Connection conn = dbContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = dbContext.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, airline.getName());
             ps.setString(2, airline.getCode());
             ps.setString(3, airline.getDescription());
@@ -153,28 +134,27 @@ public class AirlineDAO {
     }
 
     // Delete an airline and all its related flights
-    public boolean deleteAirline(int airlineId) throws SQLException {
-        String deleteFlightsSql = "DELETE FROM Flight WHERE airline_id = ?";
+    public boolean deleteAirline(int airlineId) {
+
         String deleteAirlineSql = "DELETE FROM Airline WHERE airline_id = ?";
 
-        try (Connection conn = dbContext.getConnection()) {
+        try (Connection conn = dbContext.getConnection(); PreparedStatement psAirline = conn.prepareStatement(deleteAirlineSql)) {
+
             conn.setAutoCommit(false);
 
-            try (PreparedStatement psFlights = conn.prepareStatement(deleteFlightsSql)) {
-                psFlights.setInt(1, airlineId);
-                psFlights.executeUpdate();
-            }
-
-            try (PreparedStatement psAirline = conn.prepareStatement(deleteAirlineSql)) {
-                psAirline.setInt(1, airlineId);
-                int rows = psAirline.executeUpdate();
-                conn.commit();
-                return rows > 0;
-            }
+            psAirline.setInt(1, airlineId);
+            int rows = psAirline.executeUpdate();
+            conn.commit();
+            return rows > 0;
 
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error deleting airline and related flights", e);
-            throw new SQLException("Failed to delete airline and its flights: " + e.getMessage(), e);
+            // Nếu có lỗi khóa ngoại (Route đang được dùng trong Flight)
+            if (e.getMessage().contains("FK") || e.getMessage().contains("foreign key")) {
+                System.err.println("Không thể xóa: Tuyến bay đang được tham chiếu bởi Flight.");
+            } else {
+                e.printStackTrace();
+            }
+            return false;
         }
     }
-} 
+}

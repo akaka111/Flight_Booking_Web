@@ -10,33 +10,59 @@
 <div class="sidebar">
     <div class="logo">Admin <i class="fa-solid fa-plane"></i></div>
     <ul>
-        <li><a href="admin.jsp"><i class="fa-solid fa-tachometer-alt"></i> Bảng Điều Khiển</a></li>
+        <!-- Dashboard (đi qua servlet DashboardAdmin) -->
+        <li>
+            <a href="admin.jsp">
+                <i class="fa-solid fa-tachometer-alt"></i> Bảng Điều Khiển
+            </a>
+        </li>
+
+        <!-- Quản lý người dùng -->
         <li>
             <a href="${pageContext.request.contextPath}/manageAccountController">
-                <i class="fa fa-users"></i> Quản Lý nhân viên
+                <i class="fa fa-users"></i> Quản Lý Người Dùng
             </a>
         </li>
 
+        <!-- Quản lý chuyến bay -->
         <li>
-            <a href="${pageContext.request.contextPath}/SeatClassAdmin">
-                <i class="fa-solid fa-chair"></i> Quản lí loại ghế
+            <a href="${pageContext.request.contextPath}/FlightAdmin1">
+                <i class="fa-solid fa-plane-departure"></i> Quản Lý Chuyến Bay
             </a>
         </li>
 
+        <!-- ✅ Quản lý tuyến bay (MỚI) -->
         <li>
-            <a href="${pageContext.request.contextPath}/AircraftTypeAdmin">
-                <i class="fa-solid fa-jet-fighter"></i> Quản lí loại máy bay
+            <a href="${pageContext.request.contextPath}/RouteAdmin">
+                <i class="fa-solid fa-route"></i> Quản Lý Tuyến Bay
+            </a>
+        </li>
+     <!-- ✅ Quản lý tuyến bay (MỚI) -->
+        <li>
+            <a href="${pageContext.request.contextPath}/AirportAdmin">
+                <i class="fa-solid fa-route"></i> Quản Lý Sân Bay
             </a>
         </li>
 
+        <!-- Quản lý hãng bay -->
+        <li>
+            <a href="${pageContext.request.contextPath}/AirlineAdmin">
+                <i class="fa-solid fa-building"></i> Quản Lý Hãng Bay
+            </a>
+        </li>
 
+        <!-- Thống kê -->
+        <li>
+            <a href="${pageContext.request.contextPath}/Stats">
+                <i class="fa-solid fa-chart-line"></i> Thống Kê
+            </a>
+        </li>
 
-        <li><a href="${pageContext.request.contextPath}/FlightAdmin1"><i class="fa-solid fa-plane-departure"></i> Quản Lý Chuyến Bay</a></li>
-        <li><a href="${pageContext.request.contextPath}/AirlineAdmin"><i class="fa-solid fa-building"></i> Quản Lý Hãng Bay</a></li>
-        <li><a href="${pageContext.request.contextPath}/manageVouchers"><i class="fa-solid fa-ticket"></i> Quản Lý Voucher</a></li>
-        <li><a href="Stats"><i class="fa-solid fa-chart-line"></i> Thống Kê</a></li>
-        <li><a href="AdminChangePassword"><i class="fa-solid fa-cog"></i>Đổi Mật Khẩu</a></li>
-        <li><a href="support.jsp"><i class="fa-solid fa-headset"></i> Hỗ Trợ</a></li>
+        <!-- Đổi mật khẩu -->
+        <li>
+            <a href="${pageContext.request.contextPath}/AdminChangePassword">
+                <i class="fa-solid fa-cog"></i> Đổi Mật Khẩu
+            </a>
+        </li>        
     </ul>
 </div>
-

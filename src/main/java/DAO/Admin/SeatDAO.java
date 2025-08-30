@@ -95,7 +95,7 @@ public class SeatDAO extends DBContext {
                             rs.getBoolean("is_booked")
                     );
 
-                    System.out.println("  -> seat_id=" + seat.getSeatId() + ", seat_number=" + seat.getSeatNumber() + ", is_booked=" + seat.isBooked());
+                    System.out.println("  -> seat_id=" + seat.getSeatId() + ", seat_number=" + seat.getSeatNumber() + ", is_booked=" + seat.isIsBooked());
 
                     list.add(seat);
                     System.out.println("== DEBUG SeatDAO ==");
@@ -132,4 +132,24 @@ public class SeatDAO extends DBContext {
         }
         return 0; // Trả về 0 nếu không tìm thấy
     }
+
+    public Seat getSeatById(int seatId) throws SQLException {
+        Seat seat = null;
+        String sql = "SELECT seat_id, seat_number, is_booked, class_id, flight_id FROM Seat WHERE seat_id = ?";
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, seatId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    seat = new Seat();
+                    seat.setSeatId(rs.getInt("seat_id"));
+                    seat.setSeatNumber(rs.getString("seat_number"));
+                    seat.setIsBooked(rs.getBoolean("is_booked"));
+                    seat.setClassId(rs.getInt("class_id"));
+                    seat.setFlightId(rs.getInt("flight_id"));
+                }
+            }
+        }
+        return seat;
+    }
+
 }

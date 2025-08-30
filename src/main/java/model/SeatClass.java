@@ -1,30 +1,34 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package model;
 
+/**
+ *
+ * @author Khoa
+ */
 public class SeatClass {
-
-    private int seatClassID;
+    private int seatClassId;
     private String name;
     private String description;
     private String status;
 
-    public SeatClass(int seatClassID, String name, String description, String status) {
-        this.seatClassID = seatClassID;
+    public SeatClass() {
+    }
+    public SeatClass(int seatClassId, String name, String description, String status) {
+        this.seatClassId = seatClassId;
         this.name = name;
         this.description = description;
         this.status = status;
     }
 
-    
-    public SeatClass() {
+    public int getSeatClassId() {
+        return seatClassId;
     }
 
-    // Getters and Setters
-    public int getSeatClassID() {
-        return seatClassID;
-    }
-
-    public void setSeatClassID(int seatClassID) {
-        this.seatClassID = seatClassID;
+    public void setSeatClassId(int seatClassId) {
+        this.seatClassId = seatClassId;
     }
 
     public String getName() {
@@ -50,5 +54,6 @@ public class SeatClass {
     public void setStatus(String status) {
         this.status = status;
     }
-
+    
+    
 }

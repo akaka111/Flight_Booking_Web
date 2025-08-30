@@ -18,20 +18,23 @@ public class BookingHistory {
     private String description;
     private Timestamp actionTime;
     private String role; // Thêm vai trò
-    private String staffName; // Thêm tên nhân viên
-    private int staffId;
+    private String UserName; // Thêm tên nhân viên
+    private int userId;
 
-    public int getStaffId() {
-        return staffId;
-    }
-
-    public void setStaffId(int staffId) {
-        this.staffId = staffId;
-    }
+    
 
     // Constructor
     public BookingHistory() {}
 
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    
     // Getter và Setter
     public int getHistoryId() {
         return historyId;
@@ -81,11 +84,13 @@ public class BookingHistory {
         this.role = role;
     }
 
-    public String getStaffName() { // Thêm getter cho tên nhân viên
-        return staffName;
+    public String getUserName() {
+        return UserName;
     }
 
-    public void setStaffName(String staffName) { // Thêm setter cho tên nhân viên
-        this.staffName = staffName;
+    public void setUserName(String UserName) {
+        this.UserName = UserName;
     }
+
+    
 }
