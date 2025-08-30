@@ -13,22 +13,9 @@
         <li><a href="admin.jsp"><i class="fa-solid fa-tachometer-alt"></i> Bảng Điều Khiển</a></li>
         <li>
             <a href="${pageContext.request.contextPath}/manageAccountController">
-                <i class="fa fa-users"></i> Quản Lý nhân viên
+                <i class="fa fa-users"></i> Quản Lý Người Dùng
             </a>
         </li>
-
-        <li>
-            <a href="${pageContext.request.contextPath}/SeatClassAdmin">
-                <i class="fa-solid fa-chair"></i> Quản lí loại ghế
-            </a>
-        </li>
-
-        <li>
-            <a href="${pageContext.request.contextPath}/AircraftTypeAdmin">
-                <i class="fa-solid fa-jet-fighter"></i> Quản lí loại máy bay
-            </a>
-        </li>
-
 
 
         <li><a href="${pageContext.request.contextPath}/FlightAdmin1"><i class="fa-solid fa-plane-departure"></i> Quản Lý Chuyến Bay</a></li>

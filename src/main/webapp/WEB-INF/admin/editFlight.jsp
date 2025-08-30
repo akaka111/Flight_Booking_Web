@@ -44,62 +44,50 @@
 <div class="container">
     <div class="form-container">
         <h2><i class="fa fa-plane"></i> Chỉnh Sửa Chuyến Bay</h2>
+
         <!-- Thông báo -->
-        <c:if test="${not empty msg}">
-            <div class="alert alert-success">${msg}</div>
+        <c:if test="${not empty message}">
+            <div class="alert alert-success">${message}</div>
         </c:if>
         <c:if test="${not empty error}">
             <div class="alert alert-danger">${error}</div>
         </c:if>
-        <form method="post" action="FlightAdmin1" onsubmit="return validateForm()">
+
+        <form method="post" action="FlightAdmin1">
             <input type="hidden" name="action" value="updateFlight">
-            <input type="hidden" name="flightId" value="${flight.flightId}">
-            <div class="form-group">
-                <label for="airlineId">Hãng bay</label>
-                <select class="form-control" id="airlineId" name="airlineId" required>
-                    <option value="">Chọn hãng bay</option>
-                    <c:forEach var="airline" items="${airlines}">
-                        <option value="${airline.airlineId}" ${airline.airlineId == flight.airline.airlineId ? 'selected' : ''}>${airline.name} (${airline.code})</option>
-                    </c:forEach>
-                </select>
-            </div>
+            <input type="hidden" name="id" value="${flight.flightId}">
             <div class="form-group">
                 <label for="flightNumber">Số hiệu chuyến bay</label>
-                <input type="text" class="form-control" id="flightNumber" name="flightNumber" value="${flight.flightNumber}" required pattern="[A-Z0-9]{4,10}">
+                <input type="text" class="form-control" id="flightNumber" name="flightNumber" value="${flight.flightNumber}" required>
             </div>
             <div class="form-group">
-                <label for="routeId">Tuyến đường</label>
-                <select class="form-control" id="routeId" name="routeId" required>
-                    <option value="">Chọn tuyến đường</option>
-                    <c:forEach var="route" items="${routes}">
-                        <option value="${route.routeId}" ${route.routeId == flight.route.routeId ? 'selected' : ''}>${route.originCity} (${route.originIata}) -> ${route.destCity} (${route.destIata})</option>
-                    </c:forEach>
-                </select>
+                <label for="routeFrom">Điểm đi</label>
+                <input type="text" class="form-control" id="routeFrom" name="routeFrom" value="${flight.routeFrom}" required>
+            </div>
+            <div class="form-group">
+                <label for="routeTo">Điểm đến</label>
+                <input type="text" class="form-control" id="routeTo" name="routeTo" value="${flight.routeTo}" required>
             </div>
             <div class="form-group">
                 <label for="departureTime">Thời gian khởi hành</label>
-                <input type="datetime-local" class="form-control" id="departureTime" name="departureTime" value="${flight.departureTime.toString().replace(' ', 'T').substring(0,16)}" required min="${today}">
+                <input type="datetime-local" class="form-control" id="departureTime" name="departureTime"
+                       value="<fmt:formatDate value='${flight.departureTime}' pattern='yyyy-MM-dd\'T\'HH:mm'/>" required>
             </div>
             <div class="form-group">
                 <label for="arrivalTime">Thời gian đến</label>
-                <input type="datetime-local" class="form-control" id="arrivalTime" name="arrivalTime" value="${flight.arrivalTime.toString().replace(' ', 'T').substring(0,16)}" required min="${today}">
+                <input type="datetime-local" class="form-control" id="arrivalTime" name="arrivalTime"
+                       value="<fmt:formatDate value='${flight.arrivalTime}' pattern='yyyy-MM-dd\'T\'HH:mm'/>" required>
             </div>
+           
             <div class="form-group">
-                <label for="aircraftTypeId">Loại máy bay</label>
-                <select class="form-control" id="aircraftTypeId" name="aircraftTypeId" required>
-                    <option value="">Chọn loại máy bay</option>
-                    <c:forEach var="aircraftType" items="${aircraftTypes}">
-                        <option value="${aircraftType.aircraftTypeId}" ${aircraftType.aircraftTypeId == flight.aircraftType.aircraftTypeId ? 'selected' : ''}>${aircraftType.aircraftTypeName} (${aircraftType.aircraftTypeCode})</option>
-                    </c:forEach>
-                </select>
+                <label for="aircraft">Loại máy bay</label>
+                <input type="text" class="form-control" id="aircraft" name="aircraft" value="${flight.aircraft}" required>
             </div>
             <div class="form-group">
                 <label for="status">Trạng thái</label>
-                <select class="form-control" id="status" name="status" required>
-                    <option value="Scheduled" ${flight.status == 'Scheduled' ? 'selected' : ''}>Đang hoạt động</option>
-                    <option value="ON TIME" ${flight.status == 'ON TIME' ? 'selected' : ''}>Đúng giờ</option>
-                    <option value="Delayed" ${flight.status == 'Delayed' ? 'selected' : ''}>Hoãn</option>
-                    <option value="Cancelled" ${flight.status == 'Cancelled' ? 'selected' : ''}>Hủy</option>
+                <select class="form-control" id="status" name="status">
+                    <option value="Scheduled" ${flight.status == 'Scheduled' ? 'selected' : ''}>Lên lịch</option>
+                    <option value="Completed" ${flight.status == 'Completed' ? 'selected' : ''}>Hoàn tất</option>
                 </select>
             </div>
             <div class="form-actions mt-4">
@@ -113,42 +101,8 @@
         </form>
     </div>
 </div>
+
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script>
-    function validateForm() {
-        const flightNumber = document.getElementById('flightNumber').value;
-        const departureTime = document.getElementById('departureTime').value;
-        const arrivalTime = document.getElementById('arrivalTime').value;
-        const airlineId = document.getElementById('airlineId').value;
-        const routeId = document.getElementById('routeId').value;
-        const aircraftTypeId = document.getElementById('aircraftTypeId').value;
-        const status = document.getElementById('status').value;
-
-        if (!flightNumber || !departureTime || !arrivalTime || !airlineId || !routeId || !aircraftTypeId || !status) {
-            alert('Vui lòng điền đầy đủ thông tin.');
-            return false;
-        }
-
-        if (!flightNumber.match(/^[A-Z0-9]{4,10}$/)) {
-            alert('Số hiệu chuyến bay phải từ 4-10 ký tự, chỉ chứa chữ cái in hoa và số.');
-            return false;
-        }
-
-        const departure = new Date(departureTime);
-        const arrival = new Date(arrivalTime);
-        const now = new Date();
-        if (departure < now) {
-            alert('Thời gian khởi hành phải từ hiện tại trở đi.');
-            return false;
-        }
-        if (arrival <= departure) {
-            alert('Thời gian đến phải sau thời gian khởi hành.');
-            return false;
-        }
-
-        return true;
-    }
-</script>
 </body>
 </html>

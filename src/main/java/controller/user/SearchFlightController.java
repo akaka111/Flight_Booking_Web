@@ -1,83 +1,119 @@
-
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
+ */
 package controller.user;
 
 import DAO.Admin.FlightDAO;
 import DAO.Admin.TicketClassDAO;
-import model.Flight;
-import model.TicketClass;
+import java.io.IOException;
+import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.sql.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import model.Flight;
+import model.TicketClass;
 
+/**
+ *
+ * @author Admin
+ */
 @WebServlet(name = "SearchFlightController", urlPatterns = {"/search"})
 public class SearchFlightController extends HttpServlet {
-    private static final Logger LOGGER = Logger.getLogger(SearchFlightController.class.getName());
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        FlightDAO flightDAO = new FlightDAO();
-        TicketClassDAO ticketDAO = new TicketClassDAO();
-        try {
-            String routeIdStr = request.getParameter("routeId");
-            String departureDateStr = request.getParameter("departureDate");
-            if (routeIdStr != null && departureDateStr != null && !routeIdStr.isEmpty() && !departureDateStr.isEmpty()) {
-                try {
-                    int routeId = Integer.parseInt(routeIdStr);
-                    Date departureDate = Date.valueOf(departureDateStr);
-                    List<Flight> flights = flightDAO.searchFlightsByRoute(routeId, departureDate);
-                    Map<Integer, List<TicketClass>> ticketClassesMap = new HashMap<>();
-                    if (flights != null && !flights.isEmpty()) {
-                        for (Flight flight : flights) {
-                            List<TicketClass> ticketClasses = ticketDAO.getTicketClassesByFlightId(flight.getFlightId());
-                            ticketClassesMap.put(flight.getFlightId(), ticketClasses);
-                        }
-                        request.setAttribute("flight", flights.get(0)); // Hỗ trợ tương thích ngược
-                        request.setAttribute("ticketClasses", ticketClassesMap.get(flights.get(0).getFlightId())); // Hỗ trợ tương thích ngược
-                    }
-                    request.setAttribute("flights", flights);
-                    request.setAttribute("ticketClassesMap", ticketClassesMap);
-                    request.setAttribute("routeId", routeIdStr);
-                    request.setAttribute("departureDate", departureDateStr);
-                    request.getRequestDispatcher("/WEB-INF/user/flight-detail.jsp").forward(request, response);
-                } catch (NumberFormatException e) {
-                    LOGGER.log(Level.SEVERE, "Invalid routeId format: " + routeIdStr, e);
-                    response.sendRedirect("home?error=" + URLEncoder.encode("Invalid route ID", StandardCharsets.UTF_8.toString()));
-                    return;
-                } catch (IllegalArgumentException e) {
-                    LOGGER.log(Level.SEVERE, "Invalid date format: " + departureDateStr, e);
-                    response.sendRedirect("home?error=" + URLEncoder.encode("Invalid date format", StandardCharsets.UTF_8.toString()));
-                    return;
-                }
-            } else {
-                response.sendRedirect("home?error=" + URLEncoder.encode("Missing or empty search parameters", StandardCharsets.UTF_8.toString()));
-            }
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error retrieving flight data", e);
-            String errorMessage = "Failed to retrieve flight data: " + e.getMessage();
-            response.sendRedirect("home?error=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8.toString()));
+        response.setContentType("text/html;charset=UTF-8");
+        try (PrintWriter out = response.getWriter()) {
+            /* TODO output your page here. You may use following sample code. */
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<title>Servlet SearchFlightController</title>");
+            out.println("</head>");
+            out.println("<body>");
+            out.println("<h1>Servlet SearchFlightController at " + request.getContextPath() + "</h1>");
+            out.println("</body>");
+            out.println("</html>");
         }
     }
 
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String from = request.getParameter("from");
+        String to = request.getParameter("to");
+        String departureDateStr = request.getParameter("departureDate");
+        TicketClassDAO ticketDAO = new TicketClassDAO();
+        List<Flight> flights = null;
+
+        if (from != null && to != null && departureDateStr != null) {
+            java.sql.Date departureDate = java.sql.Date.valueOf(departureDateStr);
+
+            FlightDAO dao = new FlightDAO();
+            flights = dao.searchFlights(from, to, departureDate);
+
+            if (flights != null && !flights.isEmpty()) {
+                Flight flight = flights.get(0);
+                int flightId = flight.getFlightId();
+                List<TicketClass> ticketClasses = ticketDAO.getTicketClassesByFlightId(flightId);
+
+                request.setAttribute("flight", flight);
+                request.setAttribute("ticketClasses", ticketClasses);
+            }
+
+            request.setAttribute("flights", flights);
+            request.setAttribute("from", from);
+            request.setAttribute("to", to);
+            request.setAttribute("departureDate", departureDateStr);
+        }
+
+        request.getRequestDispatcher("/WEB-INF/user/flight-detail.jsp").forward(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        doGet(request, response);
+        processRequest(request, response);
     }
 
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
     @Override
     public String getServletInfo() {
-        return "SearchFlightController for searching flights by route";
-    }
+        return "Short description";
+    }// </editor-fold>
+
 }

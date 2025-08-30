@@ -1,83 +1,137 @@
-    package model;
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package model;
 
-    import java.sql.Timestamp;
+import java.sql.Timestamp;
 
-    public class Flight {
-        private int flightId;
-        private String flightNumber;
-        private Timestamp departureTime;
-        private Timestamp arrivalTime;
-        private String status;
-        private Airline airline; // Thay vì int airlineId
-        private Route route; // Thay vì int routeId
-        private AircraftType aircraftType; // Thay vì int aircraftTypeId
+/**
+ *
+ * @author $ LienXuanThinh - CE182117
+ */
+public class Flight {
 
-        // Constructor
-        public Flight() { 
-        }
+    private int flightId;
+    private int airlineId;
+    private String flightNumber;
+    private String routeFrom;
+    private String routeTo;
+    private Timestamp departureTime;
+    private Timestamp arrivalTime;
+    private double price;
+    private String aircraft;
+    private String status;
+    private Double ecoPrice;
 
-        // Getters and Setters
-        public int getFlightId() {
-            return flightId;
-        }
-
-        public void setFlightId(int flightId) {
-            this.flightId = flightId;
-        }
-
-        public String getFlightNumber() {
-            return flightNumber;
-        }
-
-        public void setFlightNumber(String flightNumber) {
-            this.flightNumber = flightNumber;
-        }
-
-        public Timestamp getDepartureTime() {
-            return departureTime;
-        }
-
-        public void setDepartureTime(Timestamp departureTime) {
-            this.departureTime = departureTime;
-        }
-
-        public Timestamp getArrivalTime() {
-            return arrivalTime;
-        }
-
-        public void setArrivalTime(Timestamp arrivalTime) {
-            this.arrivalTime = arrivalTime;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public void setStatus(String status) {
-            this.status = status;
-        }
-
-        public Airline getAirline() {
-            return airline;
-        }
-
-        public void setAirline(Airline airline) {
-            this.airline = airline;
-        }
-
-        public Route getRoute() {
-            return route;
-        }
-
-        public void setRoute(Route route) {
-            this.route = route;
-        }
-
-        public AircraftType getAircraftType() {
-            return aircraftType;
-        }
-
-        public void setAircraftType(AircraftType aircraftType) {
-            this.aircraftType = aircraftType;
-        }
+    public Double getEcoPrice() {
+        return ecoPrice;
     }
+
+    public void setEcoPrice(Double ecoPrice) {
+        this.ecoPrice = ecoPrice;
+    }
+
+
+    public Flight() {
+    }
+
+    public Flight(int flightId, int airlineId, String flightNumber, String routeFrom, String routeTo, Timestamp departureTime, Timestamp arrivalTime, double price, String aircraft, String status) {
+        this.flightId = flightId;
+        this.airlineId = airlineId;
+        this.flightNumber = flightNumber;
+        this.routeFrom = routeFrom;
+        this.routeTo = routeTo;
+        this.departureTime = departureTime;
+        this.arrivalTime = arrivalTime;
+        this.price = price;
+        this.aircraft = aircraft;
+        this.status = status;
+    }
+
+    
+
+
+
+    public int getFlightId() {
+        return flightId;
+    }
+
+    public void setFlightId(int flightId) {
+        this.flightId = flightId;
+    }
+
+    public int getAirlineId() {
+        return airlineId;
+    }
+
+    public void setAirlineId(int airlineId) {
+        this.airlineId = airlineId;
+    }
+
+    public String getFlightNumber() {
+        return flightNumber;
+    }
+
+    public void setFlightNumber(String flightNumber) {
+        this.flightNumber = flightNumber;
+    }
+
+    public String getRouteFrom() {
+        return routeFrom;
+    }
+
+    public void setRouteFrom(String routeFrom) {
+        this.routeFrom = routeFrom;
+    }
+
+    public String getRouteTo() {
+        return routeTo;
+    }
+
+    public void setRouteTo(String routeTo) {
+        this.routeTo = routeTo;
+    }
+
+    public Timestamp getDepartureTime() {
+        return departureTime;
+    }
+
+    public void setDepartureTime(Timestamp departureTime) {
+        this.departureTime = departureTime;
+    }
+
+    public Timestamp getArrivalTime() {
+        return arrivalTime;
+    }
+
+    public void setArrivalTime(Timestamp arrivalTime) {
+        this.arrivalTime = arrivalTime;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public String getAircraft() {
+        return aircraft;
+    }
+
+    public void setAircraft(String aircraft) {
+        this.aircraft = aircraft;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    
+}

@@ -40,26 +40,6 @@ public class AirlineDAO {
                 rs.getString("services")
         );
     }
-     public List<Airline> getAllAirlinesflight() {
-        List<Airline> airlines = new ArrayList<>();
-        String sql = "SELECT airline_id, name, code, description, services FROM Airline";
-        try (Connection conn = dbContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                Airline airline = new Airline();
-                airline.setAirlineId(rs.getInt("airline_id"));
-                airline.setName(rs.getString("name"));
-                airline.setCode(rs.getString("code"));
-                airline.setDescription(rs.getString("description"));
-                airline.setServices(rs.getString("services"));
-                airlines.add(airline);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return airlines;
-    }
 
     // Read all airlines
     public List<Airline> getAllAirlines() throws SQLException {

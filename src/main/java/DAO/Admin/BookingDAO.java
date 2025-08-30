@@ -344,13 +344,13 @@ public class BookingDAO {
             if (rs.next()) {
                 Flight flight = new Flight();
                 flight.setFlightId(rs.getInt("flight_id"));
-//                flight.setAirlineId(rs.getInt("airline_id"));
+                flight.setAirlineId(rs.getInt("airline_id"));
                 flight.setFlightNumber(rs.getString("flight_number"));
-//                flight.setRouteFrom(rs.getString("route_from"));
-//                flight.setRouteTo(rs.getString("route_to"));
+                flight.setRouteFrom(rs.getString("route_from"));
+                flight.setRouteTo(rs.getString("route_to"));
                 flight.setDepartureTime(rs.getTimestamp("departure_time"));
                 flight.setArrivalTime(rs.getTimestamp("arrival_time"));
-//                flight.setAircraft(rs.getString("aircraft"));
+                flight.setAircraft(rs.getString("aircraft"));
                 flight.setStatus(rs.getString("status"));
                 return flight;
             }
