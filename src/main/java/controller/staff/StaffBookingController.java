@@ -15,27 +15,24 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Cookie;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Arrays;
-import model.Seat;
 
 /**
  * Servlet xử lý các yêu cầu liên quan đến quản lý booking cho nhân viên.
  */
 @WebServlet("/staff/booking/*")
 public class StaffBookingController extends HttpServlet {
-
     private static final Logger LOGGER = Logger.getLogger(StaffBookingController.class.getName());
     private BookingDAO bookingDAO;
     private AccountDAO accountDAO;
@@ -66,8 +63,65 @@ public class StaffBookingController extends HttpServlet {
         }
     }
 
+    private Integer getStaffIdFromCookies(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("staffId".equals(cookie.getName())) {
+                    try {
+                        return Integer.parseInt(cookie.getValue());
+                    } catch (NumberFormatException e) {
+                        LOGGER.log(Level.WARNING, "Giá trị cookie staffId không hợp lệ: {0}", cookie.getValue());
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private String getStaffRoleFromCookies(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("staffRole".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    private String getStaffNameFromCookies(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("staffName".equals(cookie.getName())) {
+                    return cookie.getValue() != null ? cookie.getValue().replace("_", " ") : null;
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean validateStaffCookies(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        Integer staffId = getStaffIdFromCookies(request);
+        String staffRole = getStaffRoleFromCookies(request);
+        String staffName = getStaffNameFromCookies(request);
+
+        if (staffId == null || staffId <= 0 || staffRole == null || staffName == null) {
+            LOGGER.log(Level.WARNING, "Thông tin nhân viên không hợp lệ trong cookies: staffId={0}, staffRole={1}, staffName={2}",
+                    new Object[]{staffId, staffRole, staffName});
+            response.sendRedirect(request.getContextPath() + "/login?error=permission");
+            return false;
+        }
+        return true;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        if (!validateStaffCookies(request, response)) {
+            return;
+        }
         String action = request.getPathInfo() != null ? request.getPathInfo() : "/list";
         switch (action) {
             case "/list":
@@ -79,9 +133,6 @@ public class StaffBookingController extends HttpServlet {
             case "/details":
                 handleBookingDetails(request, response);
                 break;
-            case "/flight/bookings":
-                handleFlightBookings(request, response);
-                break;
             default:
                 response.sendRedirect(request.getContextPath() + "/staff/booking/list");
                 break;
@@ -90,6 +141,9 @@ public class StaffBookingController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        if (!validateStaffCookies(request, response)) {
+            return;
+        }
         String action = request.getPathInfo() != null ? request.getPathInfo() : "/list";
         switch (action) {
             case "/update":
@@ -110,371 +164,266 @@ public class StaffBookingController extends HttpServlet {
         }
     }
 
-    // Sửa handleListBookings
     private void handleListBookings(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // Không dùng statusFilter nữa vì giờ là list flights
-        List<Flight> flights = bookingDAO.getAllFlights();
-        request.setAttribute("flights", flights);
-        request.getRequestDispatcher("/WEB-INF/staff/flightList.jsp").forward(request, response);
-    }
-
-// Thêm method mới
-    private void handleFlightBookings(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String flightIdStr = request.getParameter("flightId");
         String statusFilter = request.getParameter("statusFilter");
-        // Xóa các thông báo cũ khỏi session
-        request.getSession().removeAttribute("error");
-        request.getSession().removeAttribute("success");
-        if (flightIdStr == null) {
-            request.setAttribute("error", "Vui lòng cung cấp flightId!");
-            response.sendRedirect(request.getContextPath() + "/staff/booking/list");
-            return;
+        List<Booking> bookings = bookingDAO.getAllBookings(statusFilter);
+        for (Booking booking : bookings) {
+            Account account = accountDAO.getAccountById(booking.getUserId());
+            booking.setUserFullName(account != null ? account.getFullname() : "Unknown");
+            Flight flight = bookingDAO.getFlightDetails(booking.getBookingId());
+            booking.setFlightNumber(flight != null ? flight.getFlightNumber() : "Unknown");
         }
-        int flightId = Integer.parseInt(flightIdStr);
-
-        
-        // Lấy thông tin chuyến bay để hiển thị tiêu đề
-        Flight flight =  bookingDAO.getFlightDetails2(flightId);
-        
-        List<Booking> bookings = bookingDAO.getBookingsByFlightId(flightId, statusFilter);
-
-        request.removeAttribute("error");
         request.setAttribute("bookings", bookings);
-        request.setAttribute("flight", flight != null ? flight : new Flight());
-        request.setAttribute("flightId", flightId); // Để dùng trong JSP (ví dụ filter form)
-        
         request.getRequestDispatcher("/WEB-INF/staff/bookingList.jsp").forward(request, response);
     }
 
     private void handleSearchBookings(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String searchTerm = request.getParameter("searchTerm");
         if (searchTerm == null || searchTerm.trim().isEmpty()) {
-            request.getSession().setAttribute("error", "Vui lòng nhập từ khóa tìm kiếm!");
             response.sendRedirect(request.getContextPath() + "/staff/booking/list");
             return;
         }
         List<Booking> bookings = bookingDAO.searchBookings(searchTerm);
+        for (Booking booking : bookings) {
+            Account account = accountDAO.getAccountById(booking.getUserId());
+            booking.setUserFullName(account != null ? account.getFullname() : "Unknown");
+            Flight flight = bookingDAO.getFlightDetails(booking.getBookingId());
+            booking.setFlightNumber(flight != null ? flight.getFlightNumber() : "Unknown");
+        }
         request.setAttribute("bookings", bookings);
         request.getRequestDispatcher("/WEB-INF/staff/bookingList.jsp").forward(request, response);
     }
 
     private void handleBookingDetails(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String bookingIdStr = request.getParameter("bookingId");
-        if (bookingIdStr == null || bookingIdStr.trim().isEmpty()) {
-            request.getSession().setAttribute("error", "Vui lòng cung cấp bookingId!");
+        if (bookingIdStr == null) {
             response.sendRedirect(request.getContextPath() + "/staff/booking/list");
             return;
         }
-
         try {
             int bookingId = Integer.parseInt(bookingIdStr);
             Booking booking = bookingDAO.getBookingDetails(bookingId);
             Passenger passenger = bookingDAO.getPassengerDetails(bookingId);
             Flight flight = bookingDAO.getFlightDetails(bookingId);
             List<BookingHistory> history = bookingDAO.getBookingHistory(bookingId);
-            List<CheckIn> checkIns = bookingDAO.getCheckInDetails(bookingId);
-            // Thêm danh sách ghế khả dụng
-            List<Seat> availableSeats = bookingDAO.getAvailableSeats(booking.getFlightId());
 
             if (booking == null) {
-                LOGGER.warning("Booking không tồn tại: bookingId=" + bookingId);
-                request.getSession().setAttribute("error", "Booking không tồn tại hoặc đã bị xóa!");
+                request.getSession().setAttribute("error", "Booking không tồn tại!");
                 response.sendRedirect(request.getContextPath() + "/staff/booking/list");
                 return;
             }
 
-            booking.setUserFullName(passenger != null ? passenger.getFullName() : "N/A");
+            Account account = accountDAO.getAccountById(booking.getUserId());
+            booking.setUserFullName(account != null ? account.getFullname() : "Unknown");
+            booking.setFlightNumber(flight != null ? flight.getFlightNumber() : "Unknown");
 
             request.getSession().removeAttribute("error");
             request.getSession().removeAttribute("success");
 
             request.setAttribute("booking", booking);
-            request.setAttribute("passenger", passenger != null ? passenger : new Passenger());
-            request.setAttribute("flight", flight != null ? flight : new Flight());
-            request.setAttribute("history", history != null ? history : new ArrayList<>());
-            request.setAttribute("checkIns", checkIns != null ? checkIns : new ArrayList<>());
-            request.setAttribute("flightId", booking.getFlightId());
-            request.setAttribute("availableSeats", availableSeats);
-            LOGGER.info("Forwarding to bookingDetails.jsp with bookingId: " + bookingId + ", checkIns size: " + (checkIns != null ? checkIns.size() : 0));
+            request.setAttribute("passenger", passenger);
+            request.setAttribute("flight", flight);
+            request.setAttribute("history", history);
             request.getRequestDispatcher("/WEB-INF/staff/bookingDetails.jsp").forward(request, response);
         } catch (NumberFormatException e) {
-            LOGGER.log(Level.SEVERE, "bookingId không hợp lệ: " + bookingIdStr, e);
-            request.getSession().setAttribute("error", "bookingId không hợp lệ: " + e.getMessage());
-            response.sendRedirect(request.getContextPath() + "/staff/booking/list");
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi lấy chi tiết booking: " + e.getMessage(), e);
-            request.getSession().setAttribute("error", "Lỗi hệ thống khi lấy chi tiết booking: " + e.getMessage());
+            LOGGER.log(Level.SEVERE, "Lỗi định dạng bookingId: {0}", e.getMessage());
+            request.getSession().setAttribute("error", "Mã booking không hợp lệ!");
             response.sendRedirect(request.getContextPath() + "/staff/booking/list");
         }
     }
 
     private void handleUpdateBooking(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setContentType("text/plain; charset=UTF-8");
         try {
-            HttpSession session = request.getSession();
-            Integer userId = (Integer) session.getAttribute("userId");
-            String role = (String) session.getAttribute("role");
-            String fullName = (String) session.getAttribute("fullname");
+            Integer staffId = getStaffIdFromCookies(request);
+            String staffRole = getStaffRoleFromCookies(request);
+            String staffName = getStaffNameFromCookies(request);
 
-            if (userId == null || userId <= 0 || role == null || fullName == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Thông tin nhân viên không hợp lệ, vui lòng đăng nhập lại.");
-                return;
+            if (staffId == null || staffId <= 0 || staffRole == null || staffName == null) {
+                throw new IllegalStateException("Thông tin nhân viên không hợp lệ, vui lòng đăng nhập lại.");
             }
 
-            String bookingIdStr = request.getParameter("bookingId");
+            int bookingId = Integer.parseInt(request.getParameter("bookingId"));
             String status = request.getParameter("status");
+            String seatClass = request.getParameter("seatClass");
+            double totalPrice = Double.parseDouble(request.getParameter("totalPrice"));
+            String staffNote = request.getParameter("staffNote");
+            String checkinStatus = request.getParameter("checkinStatus");
 
-            // Kiểm tra null hoặc chuỗi rỗng
-            if (bookingIdStr == null || bookingIdStr.trim().isEmpty() || status == null || status.trim().isEmpty()) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Dữ liệu không hợp lệ: Thiếu mã booking hoặc trạng thái.");
-                return;
+            LOGGER.log(Level.INFO, "Dữ liệu nhận được - bookingId={0}, status={1}, seatClass={2}, totalPrice={3}, staffId={4}",
+                    new Object[]{bookingId, status, seatClass, totalPrice, staffId});
+
+            if (bookingId <= 0 || status == null || seatClass == null || totalPrice <= 0) {
+                throw new IllegalArgumentException("Dữ liệu không hợp lệ! bookingId: " + bookingId + ", totalPrice: " + totalPrice);
             }
 
-            int bookingId;
-            try {
-                bookingId = Integer.parseInt(bookingIdStr);
-            } catch (NumberFormatException e) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Mã booking không hợp lệ: " + bookingIdStr);
-                return;
-            }
-
-            // Kiểm tra trạng thái hợp lệ
-            List<String> validStatuses = Arrays.asList("CONFIRMED", "CANCELLED", "COMPLETED", "PENDING");
-            if (!validStatuses.contains(status)) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Trạng thái không hợp lệ: " + status);
-                return;
-            }
-
-            // Kiểm tra trạng thái chuyến bay
-            Flight flight = bookingDAO.getFlightDetails(bookingId);
-            if (flight != null && ("CANCELLED".equals(flight.getStatus()) || "DELAYED".equals(flight.getStatus()))) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Không thể cập nhật booking vì chuyến bay bị hủy hoặc trì hoãn.");
-                return;
-            }
-
-            LOGGER.info("Dữ liệu nhận được - bookingId: " + bookingId + ", status: " + status + ", staffId: " + userId);
-
-            Booking booking = bookingDAO.getBookingDetails(bookingId);
-            if (booking == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Booking không tồn tại.");
-                return;
-            }
-
+            Booking booking = new Booking();
+            booking.setBookingId(bookingId);
             booking.setStatus(status);
-            boolean success = bookingDAO.updateBooking(booking, userId);
+            booking.setSeatClass(seatClass);
+            booking.setTotalPrice(totalPrice);
+            booking.setStaffNote(staffNote);
+            booking.setCheckinStatus(checkinStatus);
+
+            boolean success = bookingDAO.updateBooking(booking, staffId);
             if (success) {
                 BookingHistory history = new BookingHistory();
                 history.setBookingId(bookingId);
                 history.setAction("CẬP NHẬT");
-                history.setDescription("Cập nhật trạng thái booking thành " + status);
+                history.setDescription("Cập nhật trạng thái booking thành " + status + ", hạng ghế thành " + seatClass + ", ghi chú: " + staffNote);
                 history.setActionTime(Timestamp.from(Instant.now()));
-                history.setRole(role);
-                history.setUserName(fullName);
-                history.setUserId(userId);
+                history.setStaffId(staffId);
+                history.setRole(staffRole);
+                history.setStaffName(staffName);
                 bookingDAO.addBookingHistory(history);
-                response.getWriter().write("Cập nhật booking thành công!");
+                request.getSession().setAttribute("success", "Cập nhật booking thành công!");
             } else {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                response.getWriter().write("Cập nhật booking thất bại! Không tìm thấy booking hoặc lỗi cơ sở dữ liệu.");
+                request.getSession().setAttribute("error", "Cập nhật booking thất bại! Vui lòng kiểm tra log.");
             }
+        } catch (NumberFormatException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi định dạng số: {0}", e.getMessage());
+            request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi dữ liệu không hợp lệ: {0}", e.getMessage());
+            request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Lỗi hệ thống khi cập nhật booking: " + e.getMessage(), e);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("Lỗi hệ thống: " + e.getMessage());
+            request.getSession().setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
         }
+        response.sendRedirect(request.getContextPath() + "/staff/booking/details?bookingId=" + request.getParameter("bookingId"));
     }
 
     private void handleCancelBooking(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
-            HttpSession session = request.getSession();
-            Integer userId = (Integer) session.getAttribute("userId");
-            String role = (String) session.getAttribute("role");
-            String fullname = (String) session.getAttribute("fullname");
+            Integer staffId = getStaffIdFromCookies(request);
+            String staffRole = getStaffRoleFromCookies(request);
+            String staffName = getStaffNameFromCookies(request);
 
-            if (userId == null || userId <= 0 || role == null || fullname == null) {
+            if (staffId == null || staffId <= 0 || staffRole == null || staffName == null) {
                 throw new IllegalStateException("Thông tin nhân viên không hợp lệ, vui lòng đăng nhập lại.");
             }
 
             int bookingId = Integer.parseInt(request.getParameter("bookingId"));
             String reason = request.getParameter("reason");
 
-            // Kiểm tra trạng thái chuyến bay
-            Flight flight = bookingDAO.getFlightDetails(bookingId);
-            if (flight != null && "CANCELLED".equals(flight.getStatus())) {
-                throw new IllegalStateException("Không thể hủy booking vì chuyến bay đã bị hủy.");
-            }
-
-            LOGGER.info("Dữ liệu nhận được - bookingId: " + bookingId + ", reason: " + reason + ", userId: " + userId);
+            LOGGER.log(Level.INFO, "Dữ liệu nhận được - bookingId={0}, reason={1}, staffId={2}",
+                    new Object[]{bookingId, reason, staffId});
 
             if (bookingId <= 0) {
                 throw new IllegalArgumentException("Dữ liệu không hợp lệ! bookingId: " + bookingId);
             }
 
-            // Lấy thông tin booking để lấy seat_id
-            Booking booking = bookingDAO.getBookingDetails(bookingId);
-            if (booking == null) {
-                throw new IllegalStateException("Booking không tồn tại hoặc đã bị xóa!");
-            }
-
-            if ("CANCELLED".equals(booking.getStatus())) {
-                throw new IllegalStateException("Booking đã bị hủy trước đó!");
-            }
-
-            // Cập nhật trạng thái booking
+            Booking booking = new Booking();
+            booking.setBookingId(bookingId);
             booking.setStatus("CANCELLED");
             booking.setStaffNote(reason);
+            booking.setCheckinStatus("NOT CHECKED-IN");
 
-            boolean success = bookingDAO.updateBooking(booking, userId);
+            boolean success = bookingDAO.updateBooking(booking, staffId);
             if (success) {
-                // Cập nhật is_booked trong bảng Seat
-                if (booking.getSeat() != null && booking.getSeat().getSeatId() > 0) {
-                    bookingDAO.updateSeatBookingStatus(booking.getSeat().getSeatId(), false);
-                } else {
-                    LOGGER.warning("Không tìm thấy seat_id cho bookingId: " + bookingId);
-                }
-
-                // Ghi lịch sử hủy
                 BookingHistory history = new BookingHistory();
                 history.setBookingId(bookingId);
                 history.setAction("HỦY");
                 history.setDescription("Hủy booking: " + reason);
                 history.setActionTime(Timestamp.from(Instant.now()));
-                history.setRole(role);
-                history.setUserName(fullname);
-                history.setUserId(userId);
+                history.setStaffId(staffId);
+                history.setRole(staffRole);
+                history.setStaffName(staffName);
                 bookingDAO.addBookingHistory(history);
-
                 request.getSession().setAttribute("success", "Hủy booking thành công!");
             } else {
                 request.getSession().setAttribute("error", "Hủy booking thất bại! Vui lòng kiểm tra log.");
             }
         } catch (NumberFormatException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi định dạng số: " + e.getMessage(), e);
+            LOGGER.log(Level.SEVERE, "Lỗi định dạng số: {0}", e.getMessage());
             request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
         } catch (IllegalArgumentException | IllegalStateException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi dữ liệu không hợp lệ: " + e.getMessage(), e);
+            LOGGER.log(Level.SEVERE, "Lỗi dữ liệu không hợp lệ: {0}", e.getMessage());
             request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Lỗi khi hủy booking: " + e.getMessage(), e);
             request.getSession().setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
         }
-        response.sendRedirect(request.getContextPath() + "/staff/booking/flight/bookings?flightId=" + bookingDAO.getFlightDetails(Integer.parseInt(request.getParameter("bookingId"))).getFlightId());
+        response.sendRedirect(request.getContextPath() + "/staff/booking/list");
     }
 
     private void handlePerformCheckIn(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setContentType("text/plain; charset=UTF-8");
         try {
-            HttpSession session = request.getSession();
-            Integer userId = (Integer) session.getAttribute("userId");
-            String role = (String) session.getAttribute("role");
-            String fullname = (String) session.getAttribute("fullname");
+            Integer staffId = getStaffIdFromCookies(request);
+            String staffRole = getStaffRoleFromCookies(request);
+            String staffName = getStaffNameFromCookies(request);
 
-            if (userId == null || userId <= 0 || role == null || fullname == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Thông tin nhân viên không hợp lệ, vui lòng đăng nhập lại.");
-                return;
+            if (staffId == null || staffId <= 0 || staffRole == null || staffName == null) {
+                throw new IllegalStateException("Thông tin nhân viên không hợp lệ, vui lòng đăng nhập lại.");
             }
 
             int bookingId = Integer.parseInt(request.getParameter("bookingId"));
             int passengerId = Integer.parseInt(request.getParameter("passengerId"));
             int flightId = Integer.parseInt(request.getParameter("flightId"));
-            String status = request.getParameter("checkInStatus");
+            String status = request.getParameter("checkinStatus");
 
-            // Kiểm tra trạng thái không undefined/null
-            if (status == null || status.trim().isEmpty()) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Trạng thái check-in không được để trống!");
-                return;
-            }
+            LOGGER.log(Level.INFO, "Dữ liệu nhận được - bookingId={0}, passengerId={1}, flightId={2}, status={3}, staffId={4}",
+                    new Object[]{bookingId, passengerId, flightId, status, staffId});
 
-            // Kiểm tra trạng thái chuyến bay
-            Flight flight = bookingDAO.getFlightDetails(bookingId);
-            if (flight == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Không tìm thấy chuyến bay cho booking này.");
-                return;
-            }
-            if ("CANCELLED".equals(flight.getStatus()) || "DELAYED".equals(flight.getStatus())) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Không thể thực hiện check-in vì chuyến bay bị hủy hoặc trì hoãn.");
-                return;
-            }
-
-            // Kiểm tra trạng thái check-in hợp lệ
-            List<String> validCheckinStatuses = Arrays.asList("NOT CHECKED-IN","CHECKED-IN", "BOARDED");
-            if (!validCheckinStatuses.contains(status)) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Trạng thái check-in không hợp lệ: " + status);
-                return;
-            }
-
-            LOGGER.info("Dữ liệu nhận được - bookingId: " + bookingId + ", passengerId: " + passengerId + ", flightId: " + flightId
-                    + ", status: " + status + ", staffId: " + userId);
-
-            if (bookingId <= 0 || passengerId <= 0 || flightId <= 0) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Dữ liệu không hợp lệ! bookingId: " + bookingId + ", passengerId: " + passengerId
-                        + ", flightId: " + flightId);
-                return;
+            if (bookingId <= 0 || passengerId <= 0 || flightId <= 0 || !status.equals("CHECKED-IN") && !status.equals("BOARDED")) {
+                throw new IllegalArgumentException("Dữ liệu không hợp lệ! bookingId: " + bookingId + ", passengerId: " + passengerId +
+                                                  ", flightId: " + flightId);
             }
 
             CheckIn checkIn = new CheckIn();
             checkIn.setPassengerId(passengerId);
             checkIn.setBookingId(bookingId);
             checkIn.setFlightId(flightId);
-            checkIn.setCheckinTime(Timestamp.from(Instant.now()));
+            checkIn.setCheckinTime(LocalDateTime.now());
             checkIn.setStatus(status);
-            checkIn.setUserId(userId);
+            checkIn.setStaffId(staffId);
 
             boolean success = bookingDAO.addCheckIn(checkIn);
             if (success) {
+                Booking booking = new Booking();
+                booking.setBookingId(bookingId);
+                booking.setCheckinStatus(status);
+                booking.setLastUpdatedBy(staffId);
+                booking.setLastUpdatedAt(Timestamp.from(Instant.now()));
+                bookingDAO.updateBooking(booking, staffId);
+
                 BookingHistory history = new BookingHistory();
                 history.setBookingId(bookingId);
                 history.setAction(status);
-                history.setDescription("Cập nhật trạng thái check-in thành " + status + " cho hành khách ID: " + passengerId);
+                history.setDescription("Cập nhật trạng thái check-in thành " + status);
                 history.setActionTime(Timestamp.from(Instant.now()));
-                history.setRole(role);
-                history.setUserName(fullname);
-                history.setUserId(userId);
+                history.setStaffId(staffId);
+                history.setRole(staffRole);
+                history.setStaffName(staffName);
                 bookingDAO.addBookingHistory(history);
-                response.getWriter().write("Check-in thành công!");
+                request.getSession().setAttribute("success", "Check-in thành công!");
             } else {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                response.getWriter().write("Check-in thất bại! Không tìm thấy hành khách hoặc lỗi cơ sở dữ liệu.");
+                request.getSession().setAttribute("error", "Check-in thất bại! Vui lòng kiểm tra log.");
             }
         } catch (NumberFormatException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi định dạng số: " + e.getMessage(), e);
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("Dữ liệu không hợp lệ: " + e.getMessage());
+            LOGGER.log(Level.SEVERE, "Lỗi định dạng số: {0}", e.getMessage());
+            request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi dữ liệu không hợp lệ: {0}", e.getMessage());
+            request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Lỗi khi thực hiện check-in: " + e.getMessage(), e);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("Lỗi hệ thống: " + e.getMessage());
+            request.getSession().setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
         }
+        response.sendRedirect(request.getContextPath() + "/staff/booking/details?bookingId=" + request.getParameter("bookingId"));
     }
 
     private void handleUpdatePassenger(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setContentType("text/plain; charset=UTF-8");
         try {
-            HttpSession session = request.getSession();
-            Integer userId = (Integer) session.getAttribute("userId");
-            String role = (String) session.getAttribute("role");
-            String fullName = (String) session.getAttribute("fullname");
+            Integer staffId = getStaffIdFromCookies(request);
+            String staffRole = getStaffRoleFromCookies(request);
+            String staffName = getStaffNameFromCookies(request);
 
-            if (userId == null || userId <= 0 || role == null || fullName == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Thông tin nhân viên không hợp lệ, vui lòng đăng nhập lại.");
-                return;
+            if (staffId == null || staffId <= 0 || staffRole == null || staffName == null) {
+                throw new IllegalStateException("Thông tin nhân viên không hợp lệ, vui lòng đăng nhập lại.");
             }
 
             int passengerId = Integer.parseInt(request.getParameter("passengerId"));
-            String fullNamePassenger = request.getParameter("fullName");
+            String fullName = request.getParameter("fullName");
             String passportNumber = request.getParameter("passportNumber");
             String dobStr = request.getParameter("dob");
             String gender = request.getParameter("gender");
@@ -484,14 +433,12 @@ public class StaffBookingController extends HttpServlet {
             String address = request.getParameter("address");
             int bookingId = Integer.parseInt(request.getParameter("bookingId"));
 
-            LOGGER.info("Dữ liệu nhận được - passengerId: " + passengerId + ", fullName: " + fullNamePassenger + ", dobStr: " + dobStr
-                    + ", bookingId: " + bookingId + ", userId: " + userId);
+            LOGGER.log(Level.INFO, "Dữ liệu nhận được - passengerId={0}, fullName={1}, dobStr={2}, bookingId={3}, staffId={4}",
+                    new Object[]{passengerId, fullName, dobStr, bookingId, staffId});
 
-            if (passengerId <= 0 || fullNamePassenger == null || passportNumber == null || dobStr == null || gender == null
-                    || phoneNumber == null || email == null || country == null || address == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Dữ liệu không hợp lệ! Vui lòng kiểm tra thông tin hành khách.");
-                return;
+            if (passengerId <= 0 || fullName == null || passportNumber == null || dobStr == null || gender == null ||
+                phoneNumber == null || email == null || country == null || address == null) {
+                throw new IllegalArgumentException("Dữ liệu không hợp lệ! passengerId: " + passengerId);
             }
 
             Date dob = null;
@@ -503,7 +450,7 @@ public class StaffBookingController extends HttpServlet {
 
             Passenger passenger = new Passenger();
             passenger.setPassengerId(passengerId);
-            passenger.setFullName(fullNamePassenger);
+            passenger.setFullName(fullName);
             passenger.setPassportNumber(passportNumber);
             passenger.setDob(sqlDob);
             passenger.setGender(gender);
@@ -517,29 +464,29 @@ public class StaffBookingController extends HttpServlet {
                 BookingHistory history = new BookingHistory();
                 history.setBookingId(bookingId);
                 history.setAction("CẬP NHẬT HÀNH KHÁCH");
-                history.setDescription("Cập nhật thông tin hành khách cho " + fullNamePassenger);
+                history.setDescription("Cập nhật thông tin hành khách cho " + fullName);
                 history.setActionTime(Timestamp.from(Instant.now()));
-                history.setRole(role);
-                history.setUserName(fullName);
-                history.setUserId(userId);
+                history.setStaffId(staffId);
+                history.setRole(staffRole);
+                history.setStaffName(staffName);
                 bookingDAO.addBookingHistory(history);
-                response.getWriter().write("Cập nhật thông tin hành khách thành công!");
+                request.getSession().setAttribute("success", "Cập nhật thông tin hành khách thành công!");
             } else {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                response.getWriter().write("Cập nhật thông tin hành khách thất bại! Không tìm thấy hành khách hoặc lỗi cơ sở dữ liệu.");
+                request.getSession().setAttribute("error", "Cập nhật thông tin hành khách thất bại! Vui lòng kiểm tra log.");
             }
         } catch (NumberFormatException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi định dạng số: " + e.getMessage(), e);
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("Dữ liệu không hợp lệ: " + e.getMessage());
+            LOGGER.log(Level.SEVERE, "Lỗi định dạng số: {0}", e.getMessage());
+            request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi dữ liệu không hợp lệ: {0}", e.getMessage());
+            request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
         } catch (java.text.ParseException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi định dạng ngày: " + e.getMessage(), e);
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("Ngày sinh không hợp lệ: " + e.getMessage());
+            LOGGER.log(Level.SEVERE, "Lỗi định dạng ngày: {0}", e.getMessage());
+            request.getSession().setAttribute("error", "Ngày sinh không hợp lệ: " + e.getMessage());
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật hành khách: " + e.getMessage(), e);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("Lỗi hệ thống: " + e.getMessage());
+            request.getSession().setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
         }
+        response.sendRedirect(request.getContextPath() + "/staff/booking/details?bookingId=" + request.getParameter("bookingId"));
     }
 }

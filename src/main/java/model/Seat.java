@@ -14,31 +14,17 @@ public class Seat {
     private int flightId;
     private int classId;
     private String seatNumber;
-    private boolean isBooked;
-    private SeatClass seatClass;
 
-    public Seat() {
-    }
-
-    public Seat(int seatId, int flightId, int classId, String seatNumber, boolean isBooked) {
+    public Seat(int seatId, int flightId, int classId, String seatNumber, boolean booked) {
         this.seatId = seatId;
         this.flightId = flightId;
         this.classId = classId;
         this.seatNumber = seatNumber;
-        this.isBooked = isBooked;
-    }
-    
-    public Seat(int seatId, int flightId, int classId, String seatNumber, boolean isBooked, SeatClass seatClass) {
-        this.seatId = seatId;
-        this.flightId = flightId;
-        this.classId = classId;
-        this.seatNumber = seatNumber;
-        this.isBooked = isBooked;
-        this.seatClass = seatClass;
+        this.booked = booked;
     }
 
-    
-    
+    // ✅ sửa ở đây:
+    private boolean booked;
 
     public int getSeatId() {
         return seatId;
@@ -72,21 +58,12 @@ public class Seat {
         this.seatNumber = seatNumber;
     }
 
-    public boolean isIsBooked() {
-        return isBooked;
+    // ✅ đúng chuẩn JavaBean
+    public boolean isBooked() {
+        return booked;
     }
 
-    public void setIsBooked(boolean isBooked) {
-        this.isBooked = isBooked;
+    public void setBooked(boolean booked) {
+        this.booked = booked;
     }
-
-    public SeatClass getSeatClass() {
-        return seatClass;
-    }
-
-    public void setSeatClass(SeatClass seatClass) {
-        this.seatClass = seatClass;
-    }
-    
-    
 }

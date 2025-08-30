@@ -1,6 +1,6 @@
 package model;
 
-public class AircraftType {
+    public class AircraftType {
     private int aircraftTypeId;
     private String aircraftTypeCode;
     private String aircraftTypeName;
@@ -51,6 +51,8 @@ public class AircraftType {
     public void setAirlineId(Airline airlineId) {
         this.airlineId = airlineId;
     }
+
+   
 
    
 }
