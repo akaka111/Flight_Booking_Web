@@ -15,10 +15,6 @@ public class Seat {
     private int classId;
     private String seatNumber;
 
-    public Seat() {
-    }
-
-    
     public Seat(int seatId, int flightId, int classId, String seatNumber, boolean booked) {
         this.seatId = seatId;
         this.flightId = flightId;

@@ -146,7 +146,7 @@
                     <div class="form-group">
                         <label for="role">Vai trò</label>
                         <select class="form-control" id="role" name="role">
-                            <option value="CUSTOMER">Customer</option>
+                           
                             <option value="STAFF">Staff</option>
                             <option value="ADMIN">Admin</option>
                         </select>

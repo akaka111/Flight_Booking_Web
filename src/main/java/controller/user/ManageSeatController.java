@@ -159,11 +159,13 @@ public class ManageSeatController extends HttpServlet {
                 int selectedSeatId = Integer.parseInt(selectedSeatIds[0]);
                 System.out.println("Selected Seat ID: " + selectedSeatId);
 
-                Seat selectedSeat = seatDAO.getSeatById(selectedSeatId);
                 // KHÔNG cập nhật DB ở đây nữa, chỉ lưu vào session
-                tempBooking.setSeat(selectedSeat);
+                tempBooking.setSeatId(selectedSeatId);
                 session.setAttribute("tempBooking", tempBooking);
                 System.out.println("Seat " + selectedSeatId + " temporarily set in session");
+
+                tempBooking.setSeatId(selectedSeatId);
+                session.setAttribute("tempBooking", tempBooking);
 
                 request.getRequestDispatcher("/WEB-INF/user/payment.jsp").forward(request, response);
             } else {

@@ -127,24 +127,4 @@ public class SeatDAO extends DBContext {
         }
         return 0;
     }
-
-    public Seat getSeatById(int seatId) throws SQLException {
-        Seat seat = null;
-        String sql = "SELECT seat_id, seat_number, is_booked, class_id, flight_id FROM Seat WHERE seat_id = ?";
-        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, seatId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    seat = new Seat();
-                    seat.setSeatId(rs.getInt("seat_id"));
-                    seat.setSeatNumber(rs.getString("seat_number"));
-                    seat.setBooked(rs.getBoolean("is_booked"));
-                    seat.setClassId(rs.getInt("class_id"));
-                    seat.setFlightId(rs.getInt("flight_id"));
-                }
-            }
-        }
-        return seat;
-    }
-
 }

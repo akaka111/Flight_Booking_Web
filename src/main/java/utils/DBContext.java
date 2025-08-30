@@ -18,11 +18,11 @@ import java.util.logging.Logger;
  */
 public class DBContext {
     private static final String URL = "jdbc:sqlserver://localhost:1433;"
-            + "databaseName=Flight_Booking_Web2;"
+            + "databaseName=Flight_Booking_Web1;"
             + "encrypt=true;"
             + "trustServerCertificate=true;";
     private static final String USER = "sa";
-    private static final String PASS = "0123456";
+    private static final String PASS = "123456";
     private static final Logger LOGGER = Logger.getLogger(DBContext.class.getName());
 
     public DBContext() {

@@ -15,7 +15,6 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeUtility;
 
 /**
  *
@@ -24,10 +23,10 @@ import javax.mail.internet.MimeUtility;
 public class MailService {
 
     public static void sendEmail(String to, String subject, String content) {
-        final String from = "khoado444@gmail.com";
-        final String password = "svyt jrbr ciww xekj";
-        final String host = "smtp.gmail.com";
-        final String port = "587";
+        final String from = ConfigLoader.get("smtp.username");
+        final String password = ConfigLoader.get("smtp.password");
+        final String host = ConfigLoader.get("smtp.host");
+        final String port = ConfigLoader.get("smtp.port");
 
         // Kiểm tra null để tránh lỗi khó hiểu
         if (from == null || password == null || host == null || port == null) {
@@ -61,7 +60,7 @@ public class MailService {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from, "Airline Booking"));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
-            message.setSubject(MimeUtility.encodeText(subject, "UTF-8", "B"));
+            message.setSubject(subject);
             message.setContent(content, "text/html;charset=UTF-8");
 
             Transport.send(message);
