@@ -4,10 +4,13 @@ DAO\Admin\PaymentDAO.class
 controller\admin\ChangePassword.class
 controller\user\LoginController.class
 controller\user\RegisterController.class
+model\Route.class
 controller\admin\AirlineAdmin.class
+controller\admin\SeatClassAdmin.class
 DAO\Admin\TicketClassDAO.class
 model\Message.class
 model\TicketClass.class
+DAO\Admin\RouteDAO.class
 model\Airline.class
 controller\admin\FlightAdmin1.class
 utils\MailService$1.class
@@ -15,10 +18,12 @@ controller\admin\TopAirlinesByTickets.class
 controller\staff\DashboardStaff.class
 model\Voucher.class
 VNPay\VNPayReturnController.class
-controller\admin\Stats.class
 controller\user\PaymentProcessingController.class
 DAO\Admin\FlightDAO.class
-controller\admin\StatsStatus.class
+model\AircraftType.class
+DAO\Admin\SeatClassDAO.class
+DAO\Admin\AircraftSeatConfigDAO.class
+model\SeatClass.class
 model\Booking.class
 model\Payment.class
 DAO\Admin\PassengerDAO.class
@@ -33,7 +38,9 @@ controller\user\FlightDetailController.class
 controller\user\ManageBooking.class
 controller\staff\textboxmailMessage.class
 model\Passenger.class
+controller\admin\AircraftTypeAdmin.class
 controller\staff\messageDetail.class
+DAO\Admin\AircraftTypeDAO.class
 DAO\Admin\SeatDAO.class
 utils\DBContext.class
 controller\admin\voucherSERV.class
@@ -64,6 +71,7 @@ utils\MailService.class
 model\Flight.class
 model\CheckIn.class
 DAO\staff\AccountDAO.class
+model\AircraftSeatConfig.class
 VNPay\Config.class
 controller\staff\StaffBookingController.class
 DAO\Admin\SupportContact.class

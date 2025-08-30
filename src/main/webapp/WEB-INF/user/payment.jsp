@@ -197,7 +197,7 @@
                     <h3><i class="fas fa-ticket-alt"></i> Mã giảm giá</h3>
                     <div class="voucher-input-group">
                         <input type="text" id="voucher-code-input" placeholder="Nhập mã giảm giá">
-                        <button type="button" id="apply-voucher-btn">Áp dụng</button>
+                        <button type=" " id="apply-voucher-btn">Áp dụng</button>
                     </div>
                     <p id="voucher-message"></p>
                 </div>
